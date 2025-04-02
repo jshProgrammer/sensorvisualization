@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sensorvisualization/presentation/widgets/VisualManipulation.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
