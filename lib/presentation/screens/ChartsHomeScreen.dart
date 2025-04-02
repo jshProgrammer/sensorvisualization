@@ -4,6 +4,7 @@ import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
 import '../widgets/ChartPage.dart';
+import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
 
 class ChartsHomeScreen extends StatefulWidget {
   const ChartsHomeScreen({super.key});
@@ -57,46 +58,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
-  void _addNote(int index) {
-    if (selectedChartIndex < 0 || selectedChartIndex >= charts.length) return;
-
-    final chartConfig = charts[selectedChartIndex];
-    if (index < 0 || index >= chartConfig.dataPoints.length) return;
-
-    TextEditingController controller = TextEditingController();
-
-    if (chartConfig.notes.containsKey(index)) {
-      controller.text = chartConfig.notes[index]!;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Notiz für Punkt $index"),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: "Notiz eingeben..."),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Abbrechen"),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  chartConfig.notes[index] = controller.text;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("Speichern"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  //Hier wieder Addnote einfügen falls es nicht mehr funktioniert
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +79,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : ChartPage(
                       chartConfig: charts[selectedChartIndex],
-                      onPointTap: _addNote,
+                      onPointTap: addNote,
                     ),
           ),
         ],
