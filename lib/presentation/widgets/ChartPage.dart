@@ -99,16 +99,24 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   List<bool> lineToDisplay = [true, true];
+  Set<int> selectedValues = Set<int>();
+
   void _showMultiSelect(BuildContext context) async {
-    final selectedValues = await showDialog<Set>(
+    final result = await showDialog<Set<int>>(
       context: context,
       builder: (BuildContext context) {
         return Multiselectdialogwidget(
           items: SampleData.getXYZ(),
-          initialSelectedValues: Set<int>(),
+          initialSelectedValues: selectedValues,
         );
       },
     );
+
+    if (result != null) {
+      setState(() {
+        selectedValues = result;
+      });
+    }
 
     print(selectedValues);
   }
