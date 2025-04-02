@@ -77,10 +77,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             child:
                 charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : ChartPage(
-                      chartConfig: charts[selectedChartIndex],
-                      onPointTap: addNote,
-                    ),
+                    : ChartPage(chartConfig: charts[selectedChartIndex]),
           ),
         ],
       ),

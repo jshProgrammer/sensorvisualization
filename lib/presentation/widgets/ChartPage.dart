@@ -6,13 +6,8 @@ import '../../data/models/ColorSettings.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
-  final Function(int) onPointTap;
 
-  const ChartPage({
-    super.key,
-    required this.chartConfig,
-    required this.onPointTap,
-  });
+  const ChartPage({super.key, required this.chartConfig});
 
   @override
   State<ChartPage> createState() => _ChartPageState();
@@ -154,15 +149,10 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void addNote(int index) {
-    if (selectedChartIndex < 0 || selectedChartIndex >= charts.length) return;
-
-    final chartConfig = charts[selectedChartIndex];
-    if (index < 0 || index >= chartConfig.dataPoints.length) return;
-
     TextEditingController controller = TextEditingController();
 
-    if (chartConfig.notes.containsKey(index)) {
-      controller.text = chartConfig.notes[index]!;
+    if (widget.chartConfig.notes.containsKey(index)) {
+      controller.text = widget.chartConfig.notes[index]!;
     }
 
     showDialog(
@@ -182,7 +172,7 @@ class _ChartPageState extends State<ChartPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  chartConfig.notes[index] = controller.text;
+                  widget.chartConfig.notes[index] = controller.text;
                 });
                 Navigator.pop(context);
               },
@@ -206,7 +196,7 @@ class _ChartPageState extends State<ChartPage> {
         final index = (touchX / pointSpacing).round();
 
         if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          widget.onPointTap(index);
+          addNote(index);
         }
       },
       child: Scaffold(
