@@ -1,5 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/services/SampleData.dart';
+import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
@@ -97,9 +99,28 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   List<bool> lineToDisplay = [true, true];
+  void _showMultiSelect(BuildContext context) async {
+    final selectedValues = await showDialog<Set>(
+      context: context,
+      builder: (BuildContext context) {
+        return Multiselectdialogwidget(
+          items: SampleData.getXYZ(),
+          initialSelectedValues: Set<int>(),
+        );
+      },
+    );
+
+    print(selectedValues);
+  }
 
   List<Widget> buildAppBarActions() {
     return [
+      ElevatedButton(
+        child: Text("Wähle aus"),
+        onPressed: () {
+          _showMultiSelect(context);
+        },
+      ),
       IconButton(
         icon: const Icon(Icons.zoom_in),
         onPressed: () {
