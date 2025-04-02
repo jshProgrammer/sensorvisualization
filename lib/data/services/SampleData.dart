@@ -30,20 +30,20 @@ class SampleData {
   static List<MultiSelectDialogItem> getXYZ() {
     return <MultiSelectDialogItem>[
       MultiSelectDialogItem(
-        name: 'Argentina',
+        name: 'Beschleunigungs Sensor',
         type: ItemType.seperator,
         value: 1,
       ),
-      MultiSelectDialogItem(name: 'Cordoba', type: ItemType.data, value: 2),
-      MultiSelectDialogItem(name: 'Chaco', type: ItemType.data, value: 3),
-      MultiSelectDialogItem(
+      MultiSelectDialogItem(name: 'X', type: ItemType.data, value: 2),
+      MultiSelectDialogItem(name: 'Y', type: ItemType.data, value: 3),
+      /* MultiSelectDialogItem(
         name: 'Buenos Aires',
         type: ItemType.data,
         value: 4,
       ),
       MultiSelectDialogItem(name: 'USA', type: ItemType.seperator, value: 5),
       MultiSelectDialogItem(name: 'California', type: ItemType.data, value: 6),
-      MultiSelectDialogItem(name: 'Florida', type: ItemType.data, value: 7),
+      MultiSelectDialogItem(name: 'Florida', type: ItemType.data, value: 7),*/
     ];
   }
 }
