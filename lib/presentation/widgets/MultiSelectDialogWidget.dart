@@ -45,7 +45,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Select place'),
+      title: const Text('Sensorauswahl'),
       contentPadding: const EdgeInsets.all(20.0),
       content: SingleChildScrollView(
         child: ListTileTheme(
