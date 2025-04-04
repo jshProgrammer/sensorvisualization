@@ -28,6 +28,8 @@ class _ChartPageState extends State<ChartPage> {
 
   int? selectedPointIndex;
 
+  Set<int> selectedValues = Set<int>();
+
   final GlobalKey _chartKey = GlobalKey();
 
   @override
@@ -98,9 +100,6 @@ class _ChartPageState extends State<ChartPage> {
       _transformationController.value = Matrix4.identity();
     });
   }
-
-  List<bool> lineToDisplay = [true, true];
-  Set<int> selectedValues = Set<int>();
 
   void _showMultiSelect(BuildContext context) async {
     final result = await showDialog<Set<int>>(
@@ -215,83 +214,7 @@ class _ChartPageState extends State<ChartPage> {
               child: Stack(
                 children: [
                   _buildBackgroundPainter(),
-                  //TODO: extract complete LineChart
-                  LineChart(
-                    LineChartData(
-                      minX: 0,
-                      maxX: 10,
-                      minY: -6,
-                      maxY: 8,
-                      gridData: FlGridData(
-                        show: true,
-                        horizontalInterval: 0.5,
-                        verticalInterval: 0.5,
-                        getDrawingHorizontalLine: (value) {
-                          return value >= 2.5
-                              ? FlLine(
-                                color: ColorSettings.lineColor,
-                                strokeWidth: 1,
-                              )
-                              : FlLine(
-                                color: ColorSettings.lineColor,
-                                strokeWidth: 1,
-                              );
-                        },
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        rightTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 44,
-                            getTitlesWidget: (value, meta) {
-                              if (value == 2.5) {
-                                return Text(
-                                  'Grenze',
-                                  style: TextStyle(
-                                    color: ColorSettings.borderColor,
-                                    fontSize: 10,
-                                  ),
-                                );
-                              }
-                              return const Text('');
-                            },
-                          ),
-                        ),
-                      ),
-                      borderData: FlBorderData(
-                        show: true,
-                        border: Border.all(
-                          color: widget.chartConfig.color,
-                          width: 2,
-                        ),
-                      ),
-                      lineBarsData: Sensordata.getLineBarsData(
-                        selectedValues,
-                        widget.chartConfig,
-                      ),
-                      lineTouchData: LineTouchData(
-                        touchTooltipData: LineTouchTooltipData(
-                          tooltipPadding: const EdgeInsets.all(8),
-                          getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                            return touchedSpots.map((spot) {
-                              final index = spot.x.toInt();
-                              return LineTooltipItem(
-                                widget.chartConfig.notes[index] ??
-                                    "Keine Notiz",
-                                TextStyle(
-                                  color:
-                                      spot.y >= 2.5
-                                          ? ColorSettings.pointHoverCritical
-                                          : ColorSettings.pointHoverDefault,
-                                ),
-                              );
-                            }).toList();
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
+                  Sensordata.getLineChart(selectedValues, widget.chartConfig),
                 ],
               ),
             ),

@@ -4,7 +4,76 @@ import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 
 class Sensordata {
-  static List<LineChartBarData> getLineBarsData(
+  static LineChart getLineChart(
+    Set<int> selectedLines,
+    ChartConfig chartConfig,
+  ) {
+    return LineChart(
+      LineChartData(
+        minX: 0,
+        maxX: 10,
+        minY: -6,
+        maxY: 8,
+        gridData: FlGridData(
+          show: true,
+          horizontalInterval: 0.5,
+          verticalInterval: 0.5,
+          getDrawingHorizontalLine: (value) {
+            return value >= 2.5
+                ? FlLine(color: ColorSettings.lineColor, strokeWidth: 1)
+                : FlLine(color: ColorSettings.lineColor, strokeWidth: 1);
+          },
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 44,
+              getTitlesWidget: (value, meta) {
+                if (value == 2.5) {
+                  return Text(
+                    'Grenze',
+                    style: TextStyle(
+                      color: ColorSettings.borderColor,
+                      fontSize: 10,
+                    ),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: chartConfig.color, width: 2),
+        ),
+        lineBarsData: _getLineBarsData(selectedLines, chartConfig),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            tooltipPadding: const EdgeInsets.all(8),
+            getTooltipItems: (List<LineBarSpot> touchedSpots) {
+              return touchedSpots.map((spot) {
+                final index = spot.x.toInt();
+                return LineTooltipItem(
+                  chartConfig.notes[index] ?? "Keine Notiz",
+                  TextStyle(
+                    color:
+                        spot.y >= 2.5
+                            ? ColorSettings.pointHoverCritical
+                            : ColorSettings.pointHoverDefault,
+                  ),
+                );
+              }).toList();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  static List<LineChartBarData> _getLineBarsData(
     Set<int> selectedLines,
     ChartConfig chartConfig,
   ) {
