@@ -67,7 +67,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
           value: checked,
           title: Text(item.name),
           controlAffinity: ListTileControlAffinity.leading,
-          onChanged: (checked) => _onItemCheckedChange(item.value, checked!),
+          onChanged: (checked) => _onItemCheckedChange(item.value!, checked!),
         )
         : Container(
           child: Padding(

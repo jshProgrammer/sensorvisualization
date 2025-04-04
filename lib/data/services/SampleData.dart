@@ -32,10 +32,9 @@ class SampleData {
       MultiSelectDialogItem(
         name: 'Beschleunigungs Sensor',
         type: ItemType.seperator,
-        value: 1,
       ),
-      MultiSelectDialogItem(name: 'X', type: ItemType.data, value: 2),
-      MultiSelectDialogItem(name: 'Y', type: ItemType.data, value: 3),
+      MultiSelectDialogItem(name: 'X', type: ItemType.data, value: 0),
+      MultiSelectDialogItem(name: 'Y', type: ItemType.data, value: 1),
       /* MultiSelectDialogItem(
         name: 'Buenos Aires',
         type: ItemType.data,

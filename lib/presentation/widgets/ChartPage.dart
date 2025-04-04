@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
+import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
@@ -214,6 +215,7 @@ class _ChartPageState extends State<ChartPage> {
               child: Stack(
                 children: [
                   _buildBackgroundPainter(),
+                  //TODO: extract complete LineChart
                   LineChart(
                     LineChartData(
                       minX: 0,
@@ -264,75 +266,10 @@ class _ChartPageState extends State<ChartPage> {
                           width: 2,
                         ),
                       ),
-                      lineBarsData: [
-                        //TODO: extract into logical method
-                        for (int i in selectedValues)
-                          if (i == 2)
-                            LineChartBarData(
-                              spots: widget.chartConfig.dataPoints[0],
-                              isCurved: true,
-                              color: widget.chartConfig.color,
-                              barWidth: 4,
-                              isStrokeCapRound: true,
-                              belowBarData: BarAreaData(
-                                show: true,
-                                color: widget.chartConfig.color.withAlpha(75),
-                              ),
-                              dotData: FlDotData(
-                                show: true,
-                                getDotPainter: (spot, percent, barData, index) {
-                                  final hasNote = widget.chartConfig.notes
-                                      .containsKey(index);
-                                  return FlDotCirclePainter(
-                                    radius: hasNote ? 8 : 6,
-                                    color:
-                                        hasNote
-                                            ? ColorSettings.pointWithNoteColor
-                                            : (spot.y >= 2.5
-                                                ? ColorSettings
-                                                    .pointCriticalColor
-                                                : ColorSettings
-                                                    .pointWithNoteColor),
-                                    strokeWidth: 2,
-                                    strokeColor: ColorSettings.pointStrokeColor,
-                                  );
-                                },
-                              ),
-                            )
-                          else if (i == 3)
-                            LineChartBarData(
-                              spots: widget.chartConfig.dataPoints[1],
-                              isCurved: true,
-                              color: widget.chartConfig.color,
-                              barWidth: 2,
-                              dashArray: [5, 2],
-                              isStrokeCapRound: true,
-                              belowBarData: BarAreaData(
-                                show: true,
-                                color: widget.chartConfig.color.withAlpha(75),
-                              ),
-                              dotData: FlDotData(
-                                show: true,
-                                getDotPainter: (spot, percent, barData, index) {
-                                  final hasNote = widget.chartConfig.notes
-                                      .containsKey(index);
-                                  return FlDotCirclePainter(
-                                    radius: hasNote ? 8 : 6,
-                                    color:
-                                        hasNote
-                                            ? ColorSettings.pointWithNoteColor
-                                            : (spot.y >= 2.5
-                                                ? ColorSettings
-                                                    .pointCriticalColor
-                                                : ColorSettings
-                                                    .pointWithNoteColor),
-                                    strokeWidth: 2,
-                                    strokeColor: ColorSettings.pointStrokeColor,
-                                  );
-                                },
-                              ),
-                            ),
-                      ],
+                      lineBarsData: Sensordata.getLineBarsData(
+                        selectedValues,
+                        widget.chartConfig,
+                      ),
                       lineTouchData: LineTouchData(
                         touchTooltipData: LineTouchTooltipData(
                           tooltipPadding: const EdgeInsets.all(8),
