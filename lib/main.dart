@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
+import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
 import 'presentation/screens/ChartsHomeScreen.dart';
 
 void main() {
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const ChartsHomeScreen(),
+      home: TabsHomeScreen(),
     );
   }
 }
