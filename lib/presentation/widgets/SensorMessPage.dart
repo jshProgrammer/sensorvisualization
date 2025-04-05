@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
 
 class SensorMessPage extends StatefulWidget {
   const SensorMessPage({super.key, this.title});
@@ -35,6 +36,8 @@ class _SensorMessPageState extends State<SensorMessPage> {
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
   Duration sensorInterval = SensorInterval.normalInterval;
+
+  final connection = ConnectionToRecipient();
 
   @override
   Widget build(BuildContext context) {
@@ -213,6 +216,8 @@ class _SensorMessPageState extends State<SensorMessPage> {
   @override
   void initState() {
     super.initState();
+    connection.initSocket();
+
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(
         (UserAccelerometerEvent event) {

@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
@@ -27,9 +28,12 @@ class _ChartPageState extends State<ChartPage> {
 
   final GlobalKey _chartKey = GlobalKey();
 
+  var connection = ConnectionToSender();
+
   @override
   void initState() {
     super.initState();
+    //connection.startServer();
     _transformationController = TransformationController();
   }
 
