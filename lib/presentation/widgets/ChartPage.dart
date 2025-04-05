@@ -33,6 +33,7 @@ class _ChartPageState extends State<ChartPage> {
   @override
   void initState() {
     super.initState();
+    //TODO: only when running on computer (not in browser!)
     //connection.startServer();
     _transformationController = TransformationController();
   }

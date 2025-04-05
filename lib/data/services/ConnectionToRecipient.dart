@@ -1,29 +1,93 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:sensors_plus/sensors_plus.dart';
 
+import 'package:web_socket_channel/web_socket_channel.dart';
+//import 'package:sensors_plus/sensors_plus.dart';
+
 class ConnectionToRecipient {
-  late IO.Socket socket;
-  Duration sensorInterval = SensorInterval.normalInterval;
+  late WebSocketChannel channel;
+  Duration sensorInterval = Duration(seconds: 1);
 
   void initSocket() {
+    //TODO: run 'lsof -i :3001' to check whether connection is successful
     //TODO: run 'ipconfig getifaddr en0'
     String ip = "192.168.2.135";
-    socket = IO.io('http://${ip}:3001', <String, dynamic>{
-      'transports': ['websocket'],
-    });
+    channel = WebSocketChannel.connect(Uri.parse('ws://$ip:3001'));
 
-    socket.onConnect((_) {
-      print('Connected to server');
-    });
+    /*accelerometerEventStream(samplingPeriod: sensorInterval).listen((event) {
+      final message = {'x': event.x, 'y': event.y, 'z': event.z};
+      channel.sink.add(message.toString());
+    });*/
 
-    socket.onError((error) {
-      print('Error: $error');
+    /*channel.stream.listen((message) {
+      print('Received from server: $message');
+    });*/
+
+    userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
+      UserAccelerometerEvent event,
+    ) {
+      final now = event.timestamp;
+      final message = {
+        'sensor': 'UserAccelerometer',
+        'timestamp': now,
+        'x': event.x,
+        'y': event.y,
+        'z': event.z,
+      };
+      channel.sink.add(message.toString());
     });
 
     accelerometerEventStream(samplingPeriod: sensorInterval).listen((
       AccelerometerEvent event,
     ) {
-      socket.emit('sensorData', {'x': event.timestamp, 'y': 1, 'z': 1});
+      final now = event.timestamp;
+      final message = {
+        'sensor': 'Accelerometer',
+        'timestamp': now,
+        'x': event.x,
+        'y': event.y,
+        'z': event.z,
+      };
+      channel.sink.add(message.toString());
+    });
+
+    gyroscopeEventStream(samplingPeriod: sensorInterval).listen((
+      GyroscopeEvent event,
+    ) {
+      final now = event.timestamp;
+      final message = {
+        'sensor': 'Gyroscope',
+        'timestamp': now,
+        'x': event.x,
+        'y': event.y,
+        'z': event.z,
+      };
+      channel.sink.add(message.toString());
+    });
+
+    magnetometerEventStream(samplingPeriod: sensorInterval).listen((
+      MagnetometerEvent event,
+    ) {
+      final now = event.timestamp;
+      final message = {
+        'sensor': 'Magnetometer',
+        'timestamp': now,
+        'x': event.x,
+        'y': event.y,
+        'z': event.z,
+      };
+      channel.sink.add(message.toString());
+    });
+
+    barometerEventStream(samplingPeriod: sensorInterval).listen((
+      BarometerEvent event,
+    ) {
+      final now = event.timestamp;
+      final message = {
+        'sensor': 'Barometer',
+        'timestamp': now,
+        'x': event.pressure,
+      };
+      channel.sink.add(message.toString());
     });
   }
 }

@@ -216,6 +216,7 @@ class _SensorMessPageState extends State<SensorMessPage> {
   @override
   void initState() {
     super.initState();
+    //TODO: only when running on phone
     connection.initSocket();
 
     _streamSubscriptions.add(
