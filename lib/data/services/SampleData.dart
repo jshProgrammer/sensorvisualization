@@ -30,11 +30,19 @@ class SampleData {
   static List<MultiSelectDialogItem> getXYZ() {
     return <MultiSelectDialogItem>[
       MultiSelectDialogItem(
-        name: 'Beschleunigungs-Sensor',
+        sensorName: 'Beschleunigungs-Sensor',
         type: ItemType.seperator,
       ),
-      MultiSelectDialogItem(name: 'X', type: ItemType.data, value: 0),
-      MultiSelectDialogItem(name: 'Y', type: ItemType.data, value: 1),
+      MultiSelectDialogItem(
+        sensorName: 'Beschleunigungs-Sensor',
+        attribute: 'X',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: 'Beschleunigungs-Sensor',
+        attribute: 'Y',
+        type: ItemType.data,
+      ),
       /*MultiSelectDialogItem(name: 'Z', type: ItemType.data, value: 2),
 
       MultiSelectDialogItem(name: 'Gyroskop', type: ItemType.seperator),

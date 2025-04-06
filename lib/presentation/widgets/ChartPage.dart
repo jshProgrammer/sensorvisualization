@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
@@ -29,17 +33,75 @@ class _ChartPageState extends State<ChartPage> {
 
   int? selectedPointIndex;
 
-  Set<int> selectedValues = Set<int>();
+  Set<MultiSelectDialogItem> selectedValues = Set<MultiSelectDialogItem>();
 
   final GlobalKey _chartKey = GlobalKey();
 
-  var connection = ConnectionToSender();
+  late ConnectionToSender server;
+
+  late DateTime _startTime;
+
+  Timer? _debugTimer;
 
   @override
   void initState() {
     super.initState();
+
+    _startTime = DateTime.now();
+
+    _debugTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      final data = widget.chartConfig.dataPoints;
+      print('[DEBUG TEST] Aktive Sensor-Daten:');
+      data.forEach((key, value) {
+        print('  $key: ${value.length} Punkte');
+      });
+    });
+
+    server = ConnectionToSender(
+      onDataReceived: (data) {
+        if (mounted) {
+          setState(() {
+            //TODO: find out how exact timestamp should be displayed
+            final double timestamp =
+                data["timestamp"] != null
+                    ? DateTime.parse(
+                      data["timestamp"].toString(),
+                    ).difference(_startTime).inSeconds.toDouble()
+                    : 0.0;
+            final double x =
+                (data['x'] != null && data['x'] is num)
+                    ? data['x'].toDouble()
+                    : 0.0;
+            final double y =
+                (data['y'] != null && data['y'] is num)
+                    ? data['y'].toDouble()
+                    : 0.0;
+            final double z =
+                (data['z'] != null && data['z'] is num)
+                    ? data['z'].toDouble()
+                    : 0.0;
+
+            print("timestamp: ${timestamp}");
+
+            widget.chartConfig.addDataPoint(
+              data["sensor"].toString() + "x",
+              FlSpot(timestamp, x),
+            );
+            widget.chartConfig.addDataPoint(
+              data["sensor"].toString() + "y",
+              FlSpot(timestamp, y),
+            );
+            widget.chartConfig.addDataPoint(
+              data["sensor"].toString() + "z",
+              FlSpot(timestamp, z),
+            );
+          });
+        }
+      },
+    );
+
     //TODO: only when running on computer (not in browser!)
-    //connection.startServer();
+    //server.startServer();
     _transformationController = TransformationController();
   }
 
@@ -67,7 +129,7 @@ class _ChartPageState extends State<ChartPage> {
                     child: ListBody(
                       children:
                           widget.chartConfig.notes.entries.map((entry) {
-                            final spot = widget.chartConfig.dataPoints
+                            final spot = widget.chartConfig.dataPoints.values
                                 .expand((innerList) => innerList)
                                 .firstWhere((e) => e.x.toInt() == entry.key);
                             return ListTile(
@@ -107,7 +169,7 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void _showMultiSelect(BuildContext context) async {
-    final result = await showDialog<Set<int>>(
+    final result = await showDialog<Set<MultiSelectDialogItem>>(
       context: context,
       builder: (BuildContext context) {
         return Multiselectdialogwidget(
@@ -187,6 +249,15 @@ class _ChartPageState extends State<ChartPage> {
     ];
   }
 
+  //TODO!!!!
+  Set<MultiSelectDialogItem> dummySet = {
+    MultiSelectDialogItem(
+      sensorName: "Gyroscope",
+      type: ItemType.data,
+      attribute: "x",
+    ),
+  };
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -219,7 +290,10 @@ class _ChartPageState extends State<ChartPage> {
               child: Stack(
                 children: [
                   _buildBackgroundPainter(),
-                  Sensordata.getLineChart(selectedValues, widget.chartConfig),
+                  Sensordata.getLineChart(
+                    dummySet /*selectedValues*/,
+                    widget.chartConfig,
+                  ),
                 ],
               ),
             ),

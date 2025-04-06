@@ -1,14 +1,18 @@
 enum ItemType { seperator, data }
 
 class MultiSelectDialogItem {
-  int? value;
+  String sensorName;
 
-  String name;
+  String? attribute;
   ItemType type;
 
-  MultiSelectDialogItem({required this.name, required this.type, this.value}) {
+  MultiSelectDialogItem({
+    this.attribute,
+    required this.type,
+    required this.sensorName,
+  }) {
     if (type == ItemType.data) {
-      assert(value != null, 'Data items must have a value');
+      assert(attribute != null, 'Data items must have a value');
     }
   }
 }

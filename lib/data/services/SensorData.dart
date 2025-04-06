@@ -2,18 +2,34 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
+import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 
 class Sensordata {
   static LineChart getLineChart(
-    Set<int> selectedLines,
+    Set<MultiSelectDialogItem> selectedLines,
     ChartConfig chartConfig,
   ) {
+    print(
+      "Ausgewählte Linien: ${selectedLines.map((e) => e.sensorName + e.attribute!).join(', ')}",
+    );
     return LineChart(
       LineChartData(
         minX: 0,
-        maxX: 10,
-        minY: -6,
-        maxY: 8,
+        maxX:
+            chartConfig.dataPoints["Gyroscopex"]
+                ?.map((spot) => spot.x)
+                .reduce((a, b) => a > b ? a : b) ??
+            10,
+        minY:
+            chartConfig.dataPoints["Gyroscopex"]
+                ?.map((spot) => spot.y)
+                .reduce((a, b) => a < b ? a : b) ??
+            -2,
+        maxY:
+            chartConfig.dataPoints["Gyroscopex"]
+                ?.map((spot) => spot.y)
+                .reduce((a, b) => a > b ? a : b) ??
+            2,
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
@@ -74,13 +90,13 @@ class Sensordata {
   }
 
   static List<LineChartBarData> _getLineBarsData(
-    Set<int> selectedLines,
+    Set<MultiSelectDialogItem> selectedLines,
     ChartConfig chartConfig,
   ) {
     List<LineChartBarData> toReturn = [];
 
-    for (int id in selectedLines) {
-      toReturn.add(_getCorrespondingLineChartBarData(chartConfig, id));
+    for (MultiSelectDialogItem sensor in selectedLines) {
+      toReturn.add(_getCorrespondingLineChartBarData(chartConfig, sensor));
     }
 
     return toReturn;
@@ -88,10 +104,14 @@ class Sensordata {
 
   static LineChartBarData _getCorrespondingLineChartBarData(
     ChartConfig chartConfig,
-    int id,
+    MultiSelectDialogItem sensor,
   ) {
+    print("TEST: ${chartConfig.dataPoints}");
     return LineChartBarData(
-      spots: chartConfig.dataPoints[id],
+      spots:
+          chartConfig
+              .dataPoints["Gyroscopex" /*sensor.sensorName + sensor.attribute!*/] ??
+          [],
       isCurved: true,
       color: chartConfig.color,
       barWidth: 4,

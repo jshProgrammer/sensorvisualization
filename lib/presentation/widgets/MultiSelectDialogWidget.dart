@@ -9,27 +9,27 @@ class Multiselectdialogwidget extends StatefulWidget {
   }) : super(key: key);
 
   final List<MultiSelectDialogItem> items;
-  final Set<int> initialSelectedValues;
+  final Set<MultiSelectDialogItem> initialSelectedValues;
 
   @override
   State<StatefulWidget> createState() => _MultiSelectDialogState();
 }
 
 class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
-  final _selectedValues = <int>{};
+  var _selectedSensors = <MultiSelectDialogItem>{};
 
   @override
   void initState() {
     super.initState();
-    _selectedValues.addAll(widget.initialSelectedValues);
+    _selectedSensors = widget.initialSelectedValues;
   }
 
-  void _onItemCheckedChange(int itemValue, bool checked) {
+  void _onItemCheckedChange(MultiSelectDialogItem sensor, bool checked) {
     setState(() {
       if (checked) {
-        _selectedValues.add(itemValue);
+        _selectedSensors.add(sensor);
       } else {
-        _selectedValues.remove(itemValue);
+        _selectedSensors.remove(sensor);
       }
     });
   }
@@ -39,7 +39,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   }
 
   void _onSubmitTap() {
-    Navigator.pop(context, _selectedValues);
+    Navigator.pop(context, _selectedSensors);
   }
 
   @override
@@ -61,19 +61,19 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   }
 
   Widget _buildItem(MultiSelectDialogItem item) {
-    final checked = _selectedValues.contains(item.value);
+    final checked = _selectedSensors.contains(item);
     return item.type == ItemType.data
         ? CheckboxListTile(
           value: checked,
-          title: Text(item.name),
+          title: Text(item.attribute!),
           controlAffinity: ListTileControlAffinity.leading,
-          onChanged: (checked) => _onItemCheckedChange(item.value!, checked!),
+          onChanged: (checked) => _onItemCheckedChange(item, checked!),
         )
         : Container(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Text(
-              item.name,
+              item.sensorName,
               style: TextStyle(color: Color.fromARGB(255, 91, 91, 91)),
             ),
           ),
