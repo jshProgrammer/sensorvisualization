@@ -1,5 +1,4 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
 
 class SampleData {
   static List<FlSpot> getPoints1(int newIndex) {
