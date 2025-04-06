@@ -15,7 +15,7 @@ class ConnectionToRecipient {
     String ip = "192.168.2.135";
     channel = WebSocketChannel.connect(Uri.parse('ws://$ip:3001'));
 
-    userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
+    /*userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
       UserAccelerometerEvent event,
     ) {
       final now = event.timestamp;
@@ -27,14 +27,14 @@ class ConnectionToRecipient {
         'z': event.z,
       };
       channel.sink.add(jsonEncode(message));
-    });
+    });*/
 
     accelerometerEventStream(samplingPeriod: sensorInterval).listen((
       AccelerometerEvent event,
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'Accelerometer',
+        'sensor': 'Beschleunigungs-Sensor',
         'timestamp': now.toString(),
         'x': event.x,
         'y': event.y,
@@ -48,7 +48,7 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'Gyroscope',
+        'sensor': 'Gyroskop',
         'timestamp': now.toString(),
         'x': event.x,
         'y': event.y,

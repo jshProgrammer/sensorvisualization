@@ -5,6 +5,79 @@ import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 
 class Sensordata {
+  //TODO: probably change static to object
+
+  //TODO: use minumum values for range
+  static double getMaxX(
+    Set<MultiSelectDialogItem> selectedLines,
+    ChartConfig chartConfig,
+  ) {
+    return selectedLines
+            .expand(
+              (item) =>
+                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
+                  [],
+            )
+            .map((spot) => spot.x)
+            .isEmpty
+        ? 10
+        : (selectedLines
+            .expand(
+              (item) =>
+                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
+                  [],
+            )
+            .map((spot) => spot.x)
+            .reduce((a, b) => a > b ? a : b));
+  }
+
+  //TODO: probably refactoring possible => lots of duplicate code
+  static double getMinY(
+    Set<MultiSelectDialogItem> selectedLines,
+    ChartConfig chartConfig,
+  ) {
+    return selectedLines
+            .expand(
+              (item) =>
+                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
+                  [],
+            )
+            .map((spot) => spot.y)
+            .isEmpty
+        ? 10
+        : (selectedLines
+            .expand(
+              (item) =>
+                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
+                  [],
+            )
+            .map((spot) => spot.y)
+            .reduce((a, b) => a < b ? a : b));
+  }
+
+  static double getMaxY(
+    Set<MultiSelectDialogItem> selectedLines,
+    ChartConfig chartConfig,
+  ) {
+    return selectedLines
+            .expand(
+              (item) =>
+                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
+                  [],
+            )
+            .map((spot) => spot.y)
+            .isEmpty
+        ? 10
+        : (selectedLines
+            .expand(
+              (item) =>
+                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
+                  [],
+            )
+            .map((spot) => spot.y)
+            .reduce((a, b) => a > b ? a : b));
+  }
+
   static LineChart getLineChart(
     Set<MultiSelectDialogItem> selectedLines,
     ChartConfig chartConfig,
@@ -15,21 +88,9 @@ class Sensordata {
     return LineChart(
       LineChartData(
         minX: 0,
-        maxX:
-            chartConfig.dataPoints["Gyroscopex"]
-                ?.map((spot) => spot.x)
-                .reduce((a, b) => a > b ? a : b) ??
-            10,
-        minY:
-            chartConfig.dataPoints["Gyroscopex"]
-                ?.map((spot) => spot.y)
-                .reduce((a, b) => a < b ? a : b) ??
-            -2,
-        maxY:
-            chartConfig.dataPoints["Gyroscopex"]
-                ?.map((spot) => spot.y)
-                .reduce((a, b) => a > b ? a : b) ??
-            2,
+        maxX: getMaxX(selectedLines, chartConfig),
+        minY: getMinY(selectedLines, chartConfig),
+        maxY: getMaxY(selectedLines, chartConfig),
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
@@ -106,12 +167,9 @@ class Sensordata {
     ChartConfig chartConfig,
     MultiSelectDialogItem sensor,
   ) {
-    print("TEST: ${chartConfig.dataPoints}");
     return LineChartBarData(
       spots:
-          chartConfig
-              .dataPoints["Gyroscopex" /*sensor.sensorName + sensor.attribute!*/] ??
-          [],
+          chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
       isCurved: true,
       color: chartConfig.color,
       barWidth: 4,

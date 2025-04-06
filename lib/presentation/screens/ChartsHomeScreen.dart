@@ -28,11 +28,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       final newChart = ChartConfig(
         id: 'chart_$newIndex',
         title: 'Diagramm ${newIndex + 1}',
-        //TODO
-        dataPoints: {
-          "Test1": SampleData.getPoints1(newIndex),
-          "Test2": SampleData.getPoints2(newIndex),
-        },
+        dataPoints: {},
         color: Colors.primaries[newIndex % Colors.primaries.length],
       );
       charts.add(newChart);

@@ -173,7 +173,7 @@ class _ChartPageState extends State<ChartPage> {
       context: context,
       builder: (BuildContext context) {
         return Multiselectdialogwidget(
-          items: SampleData.getXYZ(),
+          items: SampleData.getSensorChoices(),
           initialSelectedValues: selectedValues,
         );
       },
@@ -249,15 +249,6 @@ class _ChartPageState extends State<ChartPage> {
     ];
   }
 
-  //TODO!!!!
-  Set<MultiSelectDialogItem> dummySet = {
-    MultiSelectDialogItem(
-      sensorName: "Gyroscope",
-      type: ItemType.data,
-      attribute: "x",
-    ),
-  };
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -290,10 +281,7 @@ class _ChartPageState extends State<ChartPage> {
               child: Stack(
                 children: [
                   _buildBackgroundPainter(),
-                  Sensordata.getLineChart(
-                    dummySet /*selectedValues*/,
-                    widget.chartConfig,
-                  ),
+                  Sensordata.getLineChart(selectedValues, widget.chartConfig),
                 ],
               ),
             ),

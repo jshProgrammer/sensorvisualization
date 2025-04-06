@@ -27,7 +27,7 @@ class SampleData {
     ];
   }
 
-  static List<MultiSelectDialogItem> getXYZ() {
+  static List<MultiSelectDialogItem> getSensorChoices() {
     return <MultiSelectDialogItem>[
       MultiSelectDialogItem(
         sensorName: 'Beschleunigungs-Sensor',
@@ -35,25 +35,56 @@ class SampleData {
       ),
       MultiSelectDialogItem(
         sensorName: 'Beschleunigungs-Sensor',
-        attribute: 'X',
+        attribute: 'x',
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
         sensorName: 'Beschleunigungs-Sensor',
-        attribute: 'Y',
+        attribute: 'y',
         type: ItemType.data,
       ),
-      /*MultiSelectDialogItem(name: 'Z', type: ItemType.data, value: 2),
+      MultiSelectDialogItem(
+        sensorName: 'Beschleunigungs-Sensor',
+        attribute: 'z',
+        type: ItemType.data,
+      ),
 
-      MultiSelectDialogItem(name: 'Gyroskop', type: ItemType.seperator),
-      MultiSelectDialogItem(name: 'X', type: ItemType.data, value: 3),
-      MultiSelectDialogItem(name: 'Y', type: ItemType.data, value: 4),
-      MultiSelectDialogItem(name: 'Z', type: ItemType.data, value: 5),
+      MultiSelectDialogItem(sensorName: 'Gyroskop', type: ItemType.seperator),
+      MultiSelectDialogItem(
+        sensorName: 'Gyroskop',
+        attribute: 'x',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: 'Gyroskop',
+        attribute: 'y',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: 'Gyroskop',
+        attribute: 'z',
+        type: ItemType.data,
+      ),
 
-      MultiSelectDialogItem(name: 'Magnetometer', type: ItemType.seperator),
-      MultiSelectDialogItem(name: 'X', type: ItemType.data, value: 6),
-      MultiSelectDialogItem(name: 'Y', type: ItemType.data, value: 7),
-      MultiSelectDialogItem(name: 'Z', type: ItemType.data, value: 8),*/
+      MultiSelectDialogItem(
+        sensorName: 'Magnetometer',
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: 'Magnetometer',
+        attribute: 'x',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: 'Magnetometer',
+        attribute: 'y',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: 'Magnetometer',
+        attribute: 'z',
+        type: ItemType.data,
+      ),
     ];
   }
 }
