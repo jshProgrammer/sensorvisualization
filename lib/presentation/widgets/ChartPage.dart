@@ -184,178 +184,200 @@ class _ChartPageState extends State<ChartPage> {
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapUp: (details) {
-        final touchX = details.localPosition.dx;
-        final chartWidth = MediaQuery.of(context).size.width - 32;
-        final pointSpacing =
-            chartWidth / (widget.chartConfig.dataPoints.length - 1);
-
-        final index = (touchX / pointSpacing).round();
-
-        if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          addNote(index);
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.chartConfig.title),
-          actions: buildAppBarActions(),
-        ),
-        body: InteractiveViewer(
-          transformationController: _transformationController,
-          minScale: 0.1,
-          maxScale: 10.0,
-          boundaryMargin: const EdgeInsets.all(double.infinity),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: RepaintBoundary(
-              key: _chartKey,
-              child: Stack(
-                children: [
-                  _buildBackgroundPainter(),
-                  LineChart(
-                    LineChartData(
-                      minX: 0,
-                      maxX: 10,
-                      minY: -6,
-                      maxY: 8,
-                      gridData: FlGridData(
-                        show: true,
-                        horizontalInterval: 0.5,
-                        verticalInterval: 0.5,
-                        getDrawingHorizontalLine: (value) {
-                          return value >= 2.5
-                              ? FlLine(
-                                color: ColorSettings.lineColor,
-                                strokeWidth: 1,
-                              )
-                              : FlLine(
-                                color: ColorSettings.lineColor,
-                                strokeWidth: 1,
-                              );
-                        },
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        rightTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 44,
-                            getTitlesWidget: (value, meta) {
-                              if (value == 2.5) {
-                                return Text(
-                                  'Grenze',
-                                  style: TextStyle(
-                                    color: ColorSettings.borderColor,
-                                    fontSize: 10,
-                                  ),
-                                );
-                              }
-                              return const Text('');
-                            },
-                          ),
-                        ),
-                      ),
-                      borderData: FlBorderData(
-                        show: true,
-                        border: Border.all(
-                          color: widget.chartConfig.color,
-                          width: 2,
-                        ),
-                      ),
-                      lineBarsData: [
-                        if (lineToDisplay[0])
-                          LineChartBarData(
-                            spots: widget.chartConfig.dataPoints[0],
-                            isCurved: true,
-                            color: widget.chartConfig.color,
-                            barWidth: 4,
-                            isStrokeCapRound: true,
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: widget.chartConfig.color.withAlpha(75),
-                            ),
-                            dotData: FlDotData(
-                              show: true,
-                              getDotPainter: (spot, percent, barData, index) {
-                                final hasNote = widget.chartConfig.notes
-                                    .containsKey(index);
-                                return FlDotCirclePainter(
-                                  radius: hasNote ? 8 : 6,
-                                  color:
-                                      hasNote
-                                          ? ColorSettings.pointWithNoteColor
-                                          : (spot.y >= 2.5
-                                              ? ColorSettings.pointCriticalColor
-                                              : ColorSettings
-                                                  .pointWithNoteColor),
-                                  strokeWidth: 2,
-                                  strokeColor: ColorSettings.pointStrokeColor,
-                                );
-                              },
-                            ),
-                          ),
-
-                        if (lineToDisplay[1])
-                          LineChartBarData(
-                            spots: widget.chartConfig.dataPoints[1],
-                            isCurved: true,
-                            color: widget.chartConfig.color,
-                            barWidth: 2,
-                            dashArray: [5, 2],
-                            isStrokeCapRound: true,
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: widget.chartConfig.color.withAlpha(75),
-                            ),
-                            dotData: FlDotData(
-                              show: true,
-                              getDotPainter: (spot, percent, barData, index) {
-                                final hasNote = widget.chartConfig.notes
-                                    .containsKey(index);
-                                return FlDotCirclePainter(
-                                  radius: hasNote ? 8 : 6,
-                                  color:
-                                      hasNote
-                                          ? ColorSettings.pointWithNoteColor
-                                          : (spot.y >= 2.5
-                                              ? ColorSettings.pointCriticalColor
-                                              : ColorSettings
-                                                  .pointWithNoteColor),
-                                  strokeWidth: 2,
-                                  strokeColor: ColorSettings.pointStrokeColor,
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                      lineTouchData: LineTouchData(
-                        touchTooltipData: LineTouchTooltipData(
-                          tooltipPadding: const EdgeInsets.all(8),
-                          getTooltipItems: (List<LineBarSpot> touchedSpots) {
-                            return touchedSpots.map((spot) {
-                              final index = spot.x.toInt();
-                              return LineTooltipItem(
-                                widget.chartConfig.notes[index] ??
-                                    "Keine Notiz",
-                                TextStyle(
-                                  color:
-                                      spot.y >= 2.5
-                                          ? ColorSettings.pointHoverCritical
-                                          : ColorSettings.pointHoverDefault,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.chartConfig.title),
+        actions: buildAppBarActions(),
+      ),
+      body: InteractiveViewer(
+        transformationController: _transformationController,
+        minScale: 0.1,
+        maxScale: 10.0,
+        boundaryMargin: const EdgeInsets.all(double.infinity),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: RepaintBoundary(
+            key: _chartKey,
+            child: Stack(
+              children: [
+                _buildBackgroundPainter(),
+                LineChart(
+                  LineChartData(
+                    minX: 0,
+                    maxX: 10,
+                    minY: -6,
+                    maxY: 8,
+                    gridData: FlGridData(
+                      show: true,
+                      horizontalInterval: 0.5,
+                      verticalInterval: 0.5,
+                      getDrawingHorizontalLine: (value) {
+                        return value >= 2.5
+                            ? FlLine(
+                              color: ColorSettings.lineColor,
+                              strokeWidth: 1,
+                            )
+                            : FlLine(
+                              color: ColorSettings.lineColor,
+                              strokeWidth: 1,
+                            );
+                      },
+                    ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      rightTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 44,
+                          getTitlesWidget: (value, meta) {
+                            if (value == 2.5) {
+                              return Text(
+                                'Grenze',
+                                style: TextStyle(
+                                  color: ColorSettings.borderColor,
+                                  fontSize: 10,
                                 ),
                               );
-                            }).toList();
+                            }
+                            return const Text('');
                           },
                         ),
                       ),
                     ),
+                    borderData: FlBorderData(
+                      show: true,
+                      border: Border.all(
+                        color: widget.chartConfig.color,
+                        width: 2,
+                      ),
+                    ),
+                    lineBarsData: [
+                      if (lineToDisplay[0])
+                        LineChartBarData(
+                          spots: widget.chartConfig.dataPoints[0],
+                          isCurved: true,
+                          color: widget.chartConfig.color,
+                          barWidth: 4,
+                          isStrokeCapRound: true,
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: widget.chartConfig.color.withAlpha(75),
+                          ),
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              final hasNote = widget.chartConfig.notes
+                                  .containsKey(index);
+                              return FlDotCirclePainter(
+                                radius: hasNote ? 8 : 6,
+                                color:
+                                    hasNote
+                                        ? ColorSettings.pointWithNoteColor
+                                        : (spot.y >= 2.5
+                                            ? ColorSettings.pointCriticalColor
+                                            : ColorSettings.pointWithNoteColor),
+                                strokeWidth: 2,
+                                strokeColor: ColorSettings.pointStrokeColor,
+                              );
+                            },
+                          ),
+                        ),
+                      if (lineToDisplay[1])
+                        LineChartBarData(
+                          spots: widget.chartConfig.dataPoints[1],
+                          isCurved: true,
+                          color: widget.chartConfig.color,
+                          barWidth: 2,
+                          dashArray: [5, 2],
+                          isStrokeCapRound: true,
+                          belowBarData: BarAreaData(
+                            show: true,
+                            color: widget.chartConfig.color.withAlpha(75),
+                          ),
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              final hasNote = widget.chartConfig.notes
+                                  .containsKey(index);
+                              return FlDotCirclePainter(
+                                radius: hasNote ? 8 : 6,
+                                color:
+                                    hasNote
+                                        ? ColorSettings.pointWithNoteColor
+                                        : (spot.y >= 2.5
+                                            ? ColorSettings.pointCriticalColor
+                                            : ColorSettings.pointWithNoteColor),
+                                strokeWidth: 2,
+                                strokeColor: ColorSettings.pointStrokeColor,
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                    lineTouchData: LineTouchData(
+                      enabled: true,
+                      touchSpotThreshold:
+                          10, // Adjust this value to control touch precision
+                      handleBuiltInTouches: true,
+                      touchTooltipData: LineTouchTooltipData(
+                        tooltipPadding: const EdgeInsets.all(8),
+                        getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            final index = spot.x.toInt();
+                            return LineTooltipItem(
+                              widget.chartConfig.notes[index] ?? "Keine Notiz",
+                              TextStyle(
+                                color:
+                                    spot.y >= 2.5
+                                        ? ColorSettings.pointHoverCritical
+                                        : ColorSettings.pointHoverDefault,
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                      getTouchedSpotIndicator: (
+                        LineChartBarData barData,
+                        List<int> spotIndexes,
+                      ) {
+                        return spotIndexes.map((spotIndex) {
+                          return TouchedSpotIndicatorData(
+                            FlLine(
+                              color: Colors.transparent,
+                            ), // Remove touch indicator line
+                            FlDotData(
+                              getDotPainter: (spot, percent, barData, index) {
+                                return FlDotCirclePainter(
+                                  radius: 8,
+                                  color: ColorSettings.pointHoverDefault,
+                                  strokeWidth: 2,
+                                  strokeColor: Colors.white,
+                                );
+                              },
+                            ),
+                          );
+                        }).toList();
+                      },
+                      touchCallback: (
+                        FlTouchEvent event,
+                        LineTouchResponse? touchResponse,
+                      ) {
+                        // Only respond to tap up events on dots
+                        if (event is FlTapUpEvent &&
+                            touchResponse != null &&
+                            touchResponse.lineBarSpots != null &&
+                            touchResponse.lineBarSpots!.isNotEmpty) {
+                          final index =
+                              touchResponse.lineBarSpots!.first.x.toInt();
+                          addNote(index);
+                        }
+                      },
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
