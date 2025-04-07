@@ -20,7 +20,7 @@ class _QrIpScreenState extends State<QrIpScreen> {
 
   Future<void> _loadIp() async {
     final info = NetworkInfo();
-    final ip = await info.getWifiIP(); // lokale IP im WLAN
+    final ip = await info.getWifiIP();
     setState(() {
       _ipAddress = ip;
     });
