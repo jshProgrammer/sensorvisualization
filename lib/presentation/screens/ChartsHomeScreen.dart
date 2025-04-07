@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
@@ -116,6 +115,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       chartConfig: charts[selectedChartIndex],
                       onPointTap: _addNote,
                     ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            tooltip: 'Diagramm löschen',
+            onPressed: () => _deleteChart(selectedChartIndex),
           ),
         ],
       ),
