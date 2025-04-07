@@ -292,7 +292,7 @@ class _ChartPageState extends State<ChartPage> {
         final index = (touchX / pointSpacing).round();
 
         if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          widget.onPointTap(index);
+          addNote(index);
         }
       },
       child: Scaffold(
