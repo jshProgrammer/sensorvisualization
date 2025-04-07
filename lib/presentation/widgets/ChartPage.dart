@@ -22,6 +22,9 @@ class ChartPage extends StatefulWidget {
 }
 
 class _ChartPageState extends State<ChartPage> {
+  double baselineX = 0.0;
+  double baselineY = 0.0;
+
   final TextEditingController _noteController = TextEditingController();
 
   late TransformationController _transformationController;
@@ -323,10 +326,55 @@ class _ChartPageState extends State<ChartPage> {
               child: Stack(
                 children: [
                   _buildBackgroundPainter(),
-                  Sensordata(
-                    selectedLines: selectedValues,
-                    chartConfig: widget.chartConfig,
-                  ).getLineChart(),
+                  AspectRatio(
+                    aspectRatio: 1.5,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 18.0, right: 18.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                RotatedBox(
+                                  quarterTurns: 1,
+                                  child: Slider(
+                                    value: baselineY,
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        baselineY = newValue;
+                                      });
+                                    },
+                                    min: -10,
+                                    max: 10,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Sensordata(
+                                    selectedLines: selectedValues,
+                                    chartConfig: widget.chartConfig,
+                                  ).getLineChart(
+                                    baselineX,
+                                    (20 - (baselineY + 10)) - 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Slider(
+                            value: baselineX,
+                            onChanged: (newValue) {
+                              setState(() {
+                                baselineX = newValue;
+                              });
+                            },
+                            min: -10,
+                            max: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

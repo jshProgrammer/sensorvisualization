@@ -8,7 +8,15 @@ class Sensordata {
   late Set<MultiSelectDialogItem> selectedLines;
   late ChartConfig chartConfig;
 
-  Sensordata({required this.selectedLines, required this.chartConfig});
+  double baselineX;
+  double baselineY;
+
+  Sensordata({
+    required this.selectedLines,
+    required this.chartConfig,
+    this.baselineX = 0.0,
+    this.baselineY = 0.0,
+  });
 
   double _getExtremeValue(
     double Function(FlSpot spot) selector,
@@ -40,21 +48,27 @@ class Sensordata {
     return _getExtremeValue((spot) => spot.y, (a, b) => a > b, 10);
   }
 
-  LineChart getLineChart() {
+  LineChart getLineChart(double baselineX, double baselineY) {
     return LineChart(
       LineChartData(
-        minX: 0,
+        minX: 0.0,
+        baselineX: baselineX,
         maxX: _getMaxX(),
-        minY: _getMinY(),
-        maxY: _getMaxY(),
+        minY: 0.0,
+        baselineY: baselineY,
+        maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
           verticalInterval: 0.5,
           getDrawingHorizontalLine: (value) {
-            return value >= 2.5
-                ? FlLine(color: ColorSettings.lineColor, strokeWidth: 1)
-                : FlLine(color: ColorSettings.lineColor, strokeWidth: 1);
+            return FlLine(
+              color:
+                  (value - baselineY).abs() < 0.1
+                      ? ColorSettings.lineColor
+                      : ColorSettings.lineColor,
+              strokeWidth: (value - baselineY).abs() < 0.1 ? 2 : 1,
+            );
           },
         ),
         titlesData: FlTitlesData(
