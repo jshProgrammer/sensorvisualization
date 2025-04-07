@@ -281,7 +281,10 @@ class _ChartPageState extends State<ChartPage> {
               child: Stack(
                 children: [
                   _buildBackgroundPainter(),
-                  Sensordata.getLineChart(selectedValues, widget.chartConfig),
+                  Sensordata(
+                    selectedLines: selectedValues,
+                    chartConfig: widget.chartConfig,
+                  ).getLineChart(),
                 ],
               ),
             ),

@@ -5,92 +5,48 @@ import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 
 class Sensordata {
-  //TODO: probably change static to object
+  late Set<MultiSelectDialogItem> selectedLines;
+  late ChartConfig chartConfig;
 
-  //TODO: use minumum values for range
-  static double getMaxX(
-    Set<MultiSelectDialogItem> selectedLines,
-    ChartConfig chartConfig,
+  Sensordata({required this.selectedLines, required this.chartConfig});
+
+  double _getExtremeValue(
+    double Function(FlSpot spot) selector,
+    bool Function(double a, double b) compare,
+    double fallbackValue,
   ) {
-    return selectedLines
-            .expand(
-              (item) =>
-                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
-                  [],
-            )
-            .map((spot) => spot.x)
-            .isEmpty
-        ? 10
-        : (selectedLines
-            .expand(
-              (item) =>
-                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
-                  [],
-            )
-            .map((spot) => spot.x)
-            .reduce((a, b) => a > b ? a : b));
+    final Iterable<double> values = selectedLines
+        .expand(
+          (item) =>
+              chartConfig.dataPoints[item.sensorName + item.attribute!] ?? [],
+        )
+        .cast<FlSpot>()
+        .map(selector);
+
+    return values.isEmpty
+        ? fallbackValue
+        : values.reduce((a, b) => compare(a, b) ? a : b);
   }
 
-  //TODO: probably refactoring possible => lots of duplicate code
-  static double getMinY(
-    Set<MultiSelectDialogItem> selectedLines,
-    ChartConfig chartConfig,
-  ) {
-    return selectedLines
-            .expand(
-              (item) =>
-                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
-                  [],
-            )
-            .map((spot) => spot.y)
-            .isEmpty
-        ? 10
-        : (selectedLines
-            .expand(
-              (item) =>
-                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
-                  [],
-            )
-            .map((spot) => spot.y)
-            .reduce((a, b) => a < b ? a : b));
+  double _getMaxX() {
+    return _getExtremeValue((spot) => spot.x, (a, b) => a > b, 10);
   }
 
-  static double getMaxY(
-    Set<MultiSelectDialogItem> selectedLines,
-    ChartConfig chartConfig,
-  ) {
-    return selectedLines
-            .expand(
-              (item) =>
-                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
-                  [],
-            )
-            .map((spot) => spot.y)
-            .isEmpty
-        ? 10
-        : (selectedLines
-            .expand(
-              (item) =>
-                  chartConfig.dataPoints[item.sensorName + item.attribute!] ??
-                  [],
-            )
-            .map((spot) => spot.y)
-            .reduce((a, b) => a > b ? a : b));
+  double _getMinY() {
+    return _getExtremeValue((spot) => spot.y, (a, b) => a < b, 10);
   }
 
-  static LineChart getLineChart(
-    Set<MultiSelectDialogItem> selectedLines,
-    ChartConfig chartConfig,
-  ) {
-    print(
-      "Ausgewählte Linien: ${selectedLines.map((e) => e.sensorName + e.attribute!).join(', ')}",
-    );
+  double _getMaxY() {
+    return _getExtremeValue((spot) => spot.y, (a, b) => a > b, 10);
+  }
+
+  LineChart getLineChart() {
     return LineChart(
       LineChartData(
         minX: 0,
-        maxX: getMaxX(selectedLines, chartConfig),
-        minY: getMinY(selectedLines, chartConfig),
-        maxY: getMaxY(selectedLines, chartConfig),
+        maxX: _getMaxX(),
+        minY: _getMinY(),
+        maxY: _getMaxY(),
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
@@ -126,7 +82,7 @@ class Sensordata {
           show: true,
           border: Border.all(color: chartConfig.color, width: 2),
         ),
-        lineBarsData: _getLineBarsData(selectedLines, chartConfig),
+        lineBarsData: _getLineBarsData(),
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             tooltipPadding: const EdgeInsets.all(8),
@@ -150,21 +106,17 @@ class Sensordata {
     );
   }
 
-  static List<LineChartBarData> _getLineBarsData(
-    Set<MultiSelectDialogItem> selectedLines,
-    ChartConfig chartConfig,
-  ) {
+  List<LineChartBarData> _getLineBarsData() {
     List<LineChartBarData> toReturn = [];
 
     for (MultiSelectDialogItem sensor in selectedLines) {
-      toReturn.add(_getCorrespondingLineChartBarData(chartConfig, sensor));
+      toReturn.add(_getCorrespondingLineChartBarData(sensor));
     }
 
     return toReturn;
   }
 
-  static LineChartBarData _getCorrespondingLineChartBarData(
-    ChartConfig chartConfig,
+  LineChartBarData _getCorrespondingLineChartBarData(
     MultiSelectDialogItem sensor,
   ) {
     return LineChartBarData(

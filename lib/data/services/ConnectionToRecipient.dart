@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
-//import 'package:sensors_plus/sensors_plus.dart';
 
 class ConnectionToRecipient {
   late WebSocketChannel channel;
