@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMotionUsageDescription</key>
+	<string>Diese App benötigt Zugriff auf die Bewegungssensoren, um Sensorwerte anzuzeigen.</string>
 </dict>
 </plist>
