@@ -14,13 +14,8 @@ import '../../data/models/ColorSettings.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
-  final Function(int) onPointTap;
 
-  const ChartPage({
-    super.key,
-    required this.chartConfig,
-    required this.onPointTap,
-  });
+  const ChartPage({super.key, required this.chartConfig});
 
   @override
   State<ChartPage> createState() => _ChartPageState();
@@ -249,6 +244,42 @@ class _ChartPageState extends State<ChartPage> {
     ];
   }
 
+  void addNote(int index) {
+    TextEditingController controller = TextEditingController();
+
+    if (widget.chartConfig.notes.containsKey(index)) {
+      controller.text = widget.chartConfig.notes[index]!;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Notiz für Punkt $index"),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(hintText: "Notiz eingeben..."),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Abbrechen"),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  widget.chartConfig.notes[index] = controller.text;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text("Speichern"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -261,7 +292,7 @@ class _ChartPageState extends State<ChartPage> {
         final index = (touchX / pointSpacing).round();
 
         if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          widget.onPointTap(index);
+          addNote(index);
         }
       },
       child: Scaffold(

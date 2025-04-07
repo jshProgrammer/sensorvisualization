@@ -217,7 +217,7 @@ class _SensorMessPageState extends State<SensorMessPage> {
   void initState() {
     super.initState();
     //TODO: only when running on phone
-    connection.initSocket();
+    //connection.initSocket();
 
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(
