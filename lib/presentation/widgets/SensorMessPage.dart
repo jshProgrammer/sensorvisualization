@@ -5,9 +5,10 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
 
 class SensorMessPage extends StatefulWidget {
-  const SensorMessPage({super.key, this.title});
+  const SensorMessPage({super.key, this.title, required this.ipAddress});
 
   final String? title;
+  final String ipAddress;
 
   @override
   State<SensorMessPage> createState() => _SensorMessPageState();
@@ -37,12 +38,16 @@ class _SensorMessPageState extends State<SensorMessPage> {
 
   Duration sensorInterval = SensorInterval.normalInterval;
 
-  final connection = ConnectionToRecipient();
+  late final ConnectionToRecipient connection;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Messung'), elevation: 4),
+      appBar: AppBar(
+        title: const Text('Messung'),
+        elevation: 4,
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20.0),
         child: Column(
@@ -217,7 +222,8 @@ class _SensorMessPageState extends State<SensorMessPage> {
   void initState() {
     super.initState();
     //TODO: only when running on phone
-    //connection.initSocket();
+    connection = ConnectionToRecipient(ipAddress: widget.ipAddress);
+    connection.initSocket();
 
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(

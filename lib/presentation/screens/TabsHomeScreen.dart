@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/presentation/screens/QRScannerScreen.dart';
-import 'package:sensorvisualization/presentation/screens/QrIpScreen.dart';
+
+import 'package:sensorvisualization/presentation/screens/ScannerEntryScreen.dart';
 import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
 import 'package:sensorvisualization/presentation/screens/ChartsHomeScreen.dart';
 
@@ -17,10 +18,8 @@ class _TabsHomeScreenState extends State<TabsHomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const SensorMessPage(),
+    const ScannerEntryScreen(),
     const ChartsHomeScreen(),
-    const QrIpScreen(),
-    const QRScannerScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -41,14 +40,6 @@ class _TabsHomeScreenState extends State<TabsHomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.show_chart),
             label: 'Visualisierung',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code),
-            label: "QR-Code Creator",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera),
-            label: "Scan QR-Code",
           ),
         ],
       ),

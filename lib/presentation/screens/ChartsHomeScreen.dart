@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
@@ -54,14 +56,34 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
-  //Hier wieder Addnote einfügen falls es nicht mehr funktioniert
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensor visualization (THW)'),
-        actions: [],
+        actions: [
+          IconButton(
+            icon: Icon(Icons.qr_code),
+            onPressed: () async {
+              final info = NetworkInfo();
+              final ip = await info.getWifiIP();
+              showDialog(
+                context: context,
+                builder:
+                    (BuildContext context) => AlertDialog(
+                      title: Text('QR-Code der IP-Adresse'),
+                      content: PrettyQrView.data(data: ip!),
+                      actions: [
+                        TextButton(
+                          child: Text('Schließen'),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [

@@ -6,13 +6,18 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ConnectionToRecipient {
   late WebSocketChannel channel;
+
+  final String ipAddress;
+
+  ConnectionToRecipient({required this.ipAddress});
+
   Duration sensorInterval = Duration(seconds: 1);
 
   void initSocket() {
     //TODO: run 'lsof -i :3001' to check whether connection is successful
     //TODO: run 'ipconfig getifaddr en0'
-    String ip = "192.168.2.135";
-    channel = WebSocketChannel.connect(Uri.parse('ws://$ip:3001'));
+    //String ip = "192.168.2.135";
+    channel = WebSocketChannel.connect(Uri.parse('ws://$ipAddress:3001'));
 
     /*userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
       UserAccelerometerEvent event,

@@ -39,21 +39,11 @@ class _ChartPageState extends State<ChartPage> {
 
   late DateTime _startTime;
 
-  Timer? _debugTimer;
-
   @override
   void initState() {
     super.initState();
 
     _startTime = DateTime.now();
-
-    _debugTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      final data = widget.chartConfig.dataPoints;
-      print('[DEBUG TEST] Aktive Sensor-Daten:');
-      data.forEach((key, value) {
-        print('  $key: ${value.length} Punkte');
-      });
-    });
 
     server = ConnectionToSender(
       onDataReceived: (data) {
@@ -99,7 +89,7 @@ class _ChartPageState extends State<ChartPage> {
     );
 
     //TODO: only when running on computer (not in browser!)
-    //server.startServer();
+    server.startServer();
     _transformationController = TransformationController();
   }
 

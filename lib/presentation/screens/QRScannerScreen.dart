@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -27,6 +28,13 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     scannedCode = code;
                   });
                   debugPrint('Scanned QR Code: $code');
+                  //Navigator.pop(context, code);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SensorMessPage(ipAddress: code),
+                    ),
+                  );
                 }
               },
             ),
@@ -36,7 +44,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             flex: 1,
             child: Center(
               child: Text(
-                scannedCode ?? 'Scanne einen QR-Code',
+                scannedCode ??
+                    'Scanne den QR-Code, um die Sensordaten zu übermitteln',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 18),
               ),
