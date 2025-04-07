@@ -4,7 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 class ChartConfig {
   final String id;
   final String title;
-  final List<List<FlSpot>> dataPoints;
+  //TODO: check which data structure (<List<List<FlSpot>> as alternative)
+  final Map<String, List<FlSpot>> dataPoints;
   final Map<int, String> notes = {};
   final Color color;
 
@@ -14,4 +15,9 @@ class ChartConfig {
     required this.dataPoints,
     required this.color,
   });
+
+  void addDataPoint(String sensorName, FlSpot spot) {
+    dataPoints.putIfAbsent(sensorName, () => []);
+    dataPoints[sensorName]!.add(spot);
+  }
 }

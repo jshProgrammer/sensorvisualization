@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
@@ -29,10 +28,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       final newChart = ChartConfig(
         id: 'chart_$newIndex',
         title: 'Diagramm ${newIndex + 1}',
-        dataPoints: [
-          SampleData.getPoints1(newIndex),
-          SampleData.getPoints2(newIndex),
-        ],
+        dataPoints: {},
         color: Colors.primaries[newIndex % Colors.primaries.length],
       );
       charts.add(newChart);
@@ -78,6 +74,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                 charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : ChartPage(chartConfig: charts[selectedChartIndex]),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            tooltip: 'Diagramm löschen',
+            onPressed: () => _deleteChart(selectedChartIndex),
           ),
         ],
       ),
