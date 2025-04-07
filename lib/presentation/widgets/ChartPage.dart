@@ -203,7 +203,6 @@ class _ChartPageState extends State<ChartPage> {
                   ..translate(x, y)
                   ..scale(scale)
                   ..translate(-x, -y);
-
             final currentZoom = _transformationController.value.clone();
             currentZoom.multiply(zoom);
             _transformationController.value = currentZoom;
@@ -224,9 +223,21 @@ class _ChartPageState extends State<ChartPage> {
                   ..scale(scale)
                   ..translate(-x, -y);
 
-            final currentZoom = _transformationController.value.clone();
-            currentZoom.multiply(zoom);
-            _transformationController.value = currentZoom;
+            var currentZoom = _transformationController.value.clone();
+            if (currentZoom.getMaxScaleOnAxis() > 1.0) {
+              currentZoom.multiply(zoom);
+              if (currentZoom.getMaxScaleOnAxis() < 1.0) {
+                currentZoom = Matrix4.identity();
+              }
+              _transformationController.value = currentZoom;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Weiteres Herauszoomen nicht erlaubt'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           });
         },
         tooltip: 'Verkleinern',
