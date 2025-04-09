@@ -116,6 +116,29 @@ class Sensordata {
             },
           ),
         ),
+        extraLinesData: ExtraLinesData(
+          verticalLines: [
+            VerticalLine(
+              x: 5.7,
+              color: Colors.blue,
+              strokeWidth: 2,
+              dashArray: [5, 10],
+              label: VerticalLineLabel(
+                show: true,
+                alignment: Alignment.bottomRight,
+                padding: const EdgeInsets.only(left: 5, bottom: 5),
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
+                direction: LabelDirection.vertical,
+                labelResolver: (line) => 'V: ${line.x}',
+              ),
+            ),
+            VerticalLine(x: 8.5, color: Colors.red),
+            VerticalLine(x: 3.5, color: Colors.red),
+          ],
+        ),
       ),
     );
   }

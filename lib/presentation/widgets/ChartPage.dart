@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/services/ChartExporter.dart';
 
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
@@ -11,6 +12,7 @@ import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget
 import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
+import 'package:sensorvisualization/data/services/ChartExporter.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -244,6 +246,14 @@ class _ChartPageState extends State<ChartPage> {
         icon: const Icon(Icons.list),
         onPressed: _showAllNotes,
         tooltip: 'Alle Notizen anzeigen',
+      ),
+      IconButton(
+        icon: const Icon(Icons.picture_as_pdf),
+        onPressed: () {
+          final exporter = ChartExporter(_chartKey);
+          exporter.exportToPDF("Diagramm_Export");
+        },
+        tooltip: 'Diagramm als PDF exportieren',
       ),
     ];
   }
