@@ -54,7 +54,7 @@ class Sensordata {
         minX: 0.0,
         baselineX: baselineX,
         maxX: _getMaxX(),
-        minY: 0.0,
+        minY: 10.0,
         baselineY: baselineY,
         maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(
@@ -137,6 +137,25 @@ class Sensordata {
             ),
             VerticalLine(x: 8.5, color: Colors.red),
             VerticalLine(x: 3.5, color: Colors.red),
+          ],
+        ),
+        rangeAnnotations: RangeAnnotations(
+          horizontalRangeAnnotations: [
+            HorizontalRangeAnnotation(
+              y1: 0,
+              y2: 2,
+              color: Colors.green.withValues(alpha: 0.3),
+            ),
+            HorizontalRangeAnnotation(
+              y1: 2,
+              y2: 4,
+              color: Colors.orange.withValues(alpha: 0.3),
+            ),
+            HorizontalRangeAnnotation(
+              y1: 4,
+              y2: 10,
+              color: Colors.red.withValues(alpha: 0.3),
+            ),
           ],
         ),
       ),

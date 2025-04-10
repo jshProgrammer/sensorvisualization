@@ -9,6 +9,7 @@ import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
+import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
@@ -178,8 +179,32 @@ class _ChartPageState extends State<ChartPage> {
     print(selectedValues);
   }
 
+  void _showWarnLevelSelection(BuildContext context) async {
+    final result = await showDialog<Set<MultiSelectDialogItem>>(
+      context: context,
+      builder: (BuildContext context) {
+        return Warninglevelsselection();
+      },
+    );
+
+    /*if (result != null) {
+      setState(() {
+        selectedValues = result;
+      });
+    }*/
+
+    print(selectedValues);
+  }
+
   List<Widget> buildAppBarActions() {
     return [
+      ElevatedButton(
+        child: Text("Warnschwellen"),
+        onPressed: () {
+          _showWarnLevelSelection(context);
+        },
+      ),
+      SizedBox(width: 8),
       ElevatedButton(
         child: Text("Sensorwahl"),
         onPressed: () {
@@ -325,7 +350,7 @@ class _ChartPageState extends State<ChartPage> {
               key: _chartKey,
               child: Stack(
                 children: [
-                  _buildBackgroundPainter(),
+                  // _buildBackgroundPainter(),
                   AspectRatio(
                     aspectRatio: 1.5,
                     child: Padding(
