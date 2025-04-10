@@ -9,4 +9,7 @@ class ColorSettings {
   //TODO: add stroke color for points with notes instead of whole point
   static final Color pointHoverCritical = Colors.orange;
   static final Color pointHoverDefault = Colors.white;
+  static final Color sensorXAxisColor = Colors.green;
+  static final Color sensorYAxisColor = Colors.red;
+  static final Color sensorZAxisColor = Colors.blue;
 }

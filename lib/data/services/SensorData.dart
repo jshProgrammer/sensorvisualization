@@ -160,7 +160,12 @@ class Sensordata {
       spots:
           chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
       isCurved: true,
-      color: chartConfig.color,
+      color:
+          sensor.attribute! == "x"
+              ? ColorSettings.sensorXAxisColor
+              : sensor.attribute! == "y"
+              ? ColorSettings.sensorYAxisColor
+              : ColorSettings.sensorZAxisColor,
       barWidth: 4,
       isStrokeCapRound: true,
       belowBarData: BarAreaData(
