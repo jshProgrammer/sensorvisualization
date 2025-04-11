@@ -12,4 +12,5 @@ class ColorSettings {
   static final Color sensorXAxisColor = Colors.green;
   static final Color sensorYAxisColor = Colors.red;
   static final Color sensorZAxisColor = Colors.blue;
+  static final Color noteLineColor = Colors.purple;
 }

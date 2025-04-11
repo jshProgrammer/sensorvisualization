@@ -116,29 +116,7 @@ class Sensordata {
             },
           ),
         ),
-        extraLinesData: ExtraLinesData(
-          verticalLines: [
-            VerticalLine(
-              x: 5.7,
-              color: Colors.blue,
-              strokeWidth: 2,
-              dashArray: [5, 10],
-              label: VerticalLineLabel(
-                show: true,
-                alignment: Alignment.bottomRight,
-                padding: const EdgeInsets.only(left: 5, bottom: 5),
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
-                direction: LabelDirection.vertical,
-                labelResolver: (line) => 'V: ${line.x}',
-              ),
-            ),
-            VerticalLine(x: 8.5, color: Colors.red),
-            VerticalLine(x: 3.5, color: Colors.red),
-          ],
-        ),
+        extraLinesData: ExtraLinesData(verticalLines: _getNotesVerticalLines()),
         rangeAnnotations: RangeAnnotations(
           horizontalRangeAnnotations: [
             HorizontalRangeAnnotation(
@@ -168,6 +146,31 @@ class Sensordata {
     for (MultiSelectDialogItem sensor in selectedLines) {
       toReturn.add(_getCorrespondingLineChartBarData(sensor));
     }
+
+    return toReturn;
+  }
+
+  List<VerticalLine> _getNotesVerticalLines() {
+    List<VerticalLine> toReturn = [];
+
+    chartConfig.notes.forEach((noteTime, noteString) {
+      toReturn.add(
+        VerticalLine(
+          x: noteTime.toDouble(),
+          color: ColorSettings.noteLineColor,
+          strokeWidth: 2,
+          dashArray: [5, 10],
+          label: VerticalLineLabel(
+            show: true,
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.only(left: 5, bottom: 5),
+            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+            direction: LabelDirection.vertical,
+            labelResolver: (line) => noteString,
+          ),
+        ),
+      );
+    });
 
     return toReturn;
   }
