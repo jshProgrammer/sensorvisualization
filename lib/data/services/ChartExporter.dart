@@ -17,7 +17,7 @@ class ChartExporter {
   }
 
   // Exportiert das Diagramm in eine PDF-Datei
-  Future<void> exportToPDF(String fileName) async {
+  Future<String?> exportToPDF(String fileName) async {
     try {
       // Diagramm als Bild rendern
       final ui.Image chartImage = await renderChartAsImage();
@@ -47,8 +47,10 @@ class ChartExporter {
       await outputFile.writeAsBytes(await pdf.save());
 
       print("PDF gespeichert: ${outputFile.path}");
+      return outputFile.path;
     } catch (e) {
       print("Fehler beim Exportieren des Diagramms: $e");
+      return null;
     }
   }
 

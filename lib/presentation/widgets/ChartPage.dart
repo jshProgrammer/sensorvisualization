@@ -274,9 +274,29 @@ class _ChartPageState extends State<ChartPage> {
       ),
       IconButton(
         icon: const Icon(Icons.picture_as_pdf),
-        onPressed: () {
+        onPressed: () async {
           final exporter = ChartExporter(_chartKey);
-          exporter.exportToPDF("Diagramm_Export");
+          final path = await exporter.exportToPDF("Diagramm_Export");
+          if (!mounted) return;
+          if (path == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Fehler beim Exportieren des Diagramms'),
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('PDF gespeichert: $path'),
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          ;
         },
         tooltip: 'Diagramm als PDF exportieren',
       ),
