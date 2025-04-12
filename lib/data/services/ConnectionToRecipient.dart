@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -9,22 +10,19 @@ class ConnectionToRecipient {
 
   final String ipAddress;
 
-  ConnectionToRecipient({required this.ipAddress});
+  ConnectionToRecipient({required this.ipAddress}) {
+    channel = WebSocketChannel.connect(Uri.parse('ws://$ipAddress:3001'));
+  }
 
   Duration sensorInterval = Duration(seconds: 1);
 
   void initSocket() {
-    //TODO: run 'lsof -i :3001' to check whether connection is successful
-    //TODO: run 'ipconfig getifaddr en0'
-    //String ip = "192.168.2.135";
-    channel = WebSocketChannel.connect(Uri.parse('ws://$ipAddress:3001'));
-
     /*userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
       UserAccelerometerEvent event,
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'UserAccelerometer',
+        'sensor': SensorType.userAccelerometer.displayName,
         'timestamp': now.toString(),
         'x': event.x,
         'y': event.y,
@@ -38,7 +36,7 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'Beschleunigungs-Sensor',
+        'sensor': SensorType.accelerometer.displayName,
         'timestamp': now.toString(),
         'x': event.x,
         'y': event.y,
@@ -52,7 +50,7 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'Gyroskop',
+        'sensor': SensorType.gyroscope.displayName,
         'timestamp': now.toString(),
         'x': event.x,
         'y': event.y,
@@ -66,7 +64,7 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'Magnetometer',
+        'sensor': SensorType.magnetometer.displayName,
         'timestamp': now.toString(),
         'x': event.x,
         'y': event.y,
@@ -80,11 +78,15 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
-        'sensor': 'Barometer',
+        'sensor': SensorType.barometer.displayName,
         'timestamp': now.toString(),
         'x': event.pressure,
       };
       channel.sink.add(jsonEncode(message));
     });
+  }
+
+  void sendNullMeasurementAverage(Map<String, Object> averageValues) {
+    channel.sink.add(jsonEncode(averageValues));
   }
 }

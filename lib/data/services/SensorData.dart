@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
 
 class Sensordata {
   late Set<MultiSelectDialogItem> selectedLines;
@@ -54,7 +55,7 @@ class Sensordata {
         minX: 0.0,
         baselineX: baselineX,
         maxX: _getMaxX(),
-        minY: 10.0,
+        minY: _getMinY(),
         baselineY: baselineY,
         maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(
@@ -183,9 +184,9 @@ class Sensordata {
           chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
       isCurved: true,
       color:
-          sensor.attribute! == "x"
+          sensor.attribute! == SensorOrientation.x.displayName
               ? ColorSettings.sensorXAxisColor
-              : sensor.attribute! == "y"
+              : sensor.attribute! == SensorOrientation.y.displayName
               ? ColorSettings.sensorYAxisColor
               : ColorSettings.sensorZAxisColor,
       barWidth: 4,

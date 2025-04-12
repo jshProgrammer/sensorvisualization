@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/presentation/screens/StartMeasurementScreen.dart';
 import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
 import 'QRScannerScreen.dart';
 
@@ -12,11 +13,11 @@ class ScannerEntryScreen extends StatefulWidget {
 class _EntryScreenState extends State<ScannerEntryScreen> {
   final TextEditingController _ipController = TextEditingController();
 
-  void _navigateToSensorPage(String ipAddress) {
+  void _navigateToStartMeasurementPage(String ipAddress) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => SensorMessPage(ipAddress: ipAddress),
+        builder: (context) => StartMeasurementScreen(ipAddress: ipAddress),
       ),
     );
   }
@@ -40,7 +41,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
                 );
 
                 if (scannedCode != null) {
-                  _navigateToSensorPage(scannedCode);
+                  _navigateToStartMeasurementPage(scannedCode);
                 }
               },
               icon: const Icon(Icons.qr_code_scanner),
@@ -64,7 +65,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
             ElevatedButton(
               onPressed: () {
                 if (_ipController.text.isNotEmpty) {
-                  _navigateToSensorPage(_ipController.text.trim());
+                  _navigateToStartMeasurementPage(_ipController.text.trim());
                 }
               },
               child: const Text('Weiter zur Messung'),

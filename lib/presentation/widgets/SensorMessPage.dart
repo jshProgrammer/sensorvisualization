@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
 
 class SensorMessPage extends StatefulWidget {
-  const SensorMessPage({super.key, this.title, required this.ipAddress});
+  const SensorMessPage({super.key, this.title, required this.connection});
 
   final String? title;
-  final String ipAddress;
+  final ConnectionToRecipient connection;
 
   @override
   State<SensorMessPage> createState() => _SensorMessPageState();
@@ -37,8 +38,6 @@ class _SensorMessPageState extends State<SensorMessPage> {
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
   Duration sensorInterval = SensorInterval.normalInterval;
-
-  late final ConnectionToRecipient connection;
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +71,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('User Beschleunigungssensor'),
+                        child: Text(SensorType.userAccelerometer.displayName),
                       ),
                       Text(
                         _userAccelerometerEvent?.x.toStringAsFixed(1) ?? '?',
@@ -92,9 +91,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Beschleunigungssensor'),
+                        child: Text(SensorType.accelerometer.displayName),
                       ),
                       Text(_accelerometerEvent?.x.toStringAsFixed(1) ?? '?'),
                       Text(_accelerometerEvent?.y.toStringAsFixed(1) ?? '?'),
@@ -106,9 +105,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Gyroskop'),
+                        child: Text(SensorType.gyroscope.displayName),
                       ),
                       Text(_gyroscopeEvent?.x.toStringAsFixed(1) ?? '?'),
                       Text(_gyroscopeEvent?.y.toStringAsFixed(1) ?? '?'),
@@ -118,9 +117,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Magnetometer'),
+                        child: Text(SensorType.magnetometer.displayName),
                       ),
                       Text(_magnetometerEvent?.x.toStringAsFixed(1) ?? '?'),
                       Text(_magnetometerEvent?.y.toStringAsFixed(1) ?? '?'),
@@ -151,9 +150,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Barometer'),
+                        child: Text(SensorType.barometer.displayName),
                       ),
                       Text(
                         '${_barometerEvent?.pressure.toStringAsFixed(1) ?? '?'} hPa',
@@ -222,8 +221,8 @@ class _SensorMessPageState extends State<SensorMessPage> {
   void initState() {
     super.initState();
     //TODO: only when running on phone
-    connection = ConnectionToRecipient(ipAddress: widget.ipAddress);
-    connection.initSocket();
+
+    widget.connection.initSocket();
 
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(

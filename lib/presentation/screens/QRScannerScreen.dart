@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:sensorvisualization/presentation/screens/StartMeasurementScreen.dart';
 import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
 
 class QRScannerScreen extends StatefulWidget {
@@ -32,7 +33,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SensorMessPage(ipAddress: code),
+                      builder:
+                          (context) => StartMeasurementScreen(ipAddress: code),
                     ),
                   );
                 }
