@@ -4,10 +4,11 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
-import '../widgets/ChartPage.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
+import '../widgets/MultipleChartsPage.dart';
 
 class ChartsHomeScreen extends StatefulWidget {
+  //TODO: allow multiple charts in a single tab
   const ChartsHomeScreen({super.key});
 
   @override
@@ -16,12 +17,14 @@ class ChartsHomeScreen extends StatefulWidget {
 
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
+  List<Widget> chartPages = [];
   int selectedChartIndex = 0;
+  bool useMultipleCharts = false;
 
   @override
   void initState() {
     super.initState();
-    _addNewChart();
+    _addNewChart(); 
   }
 
   void _addNewChart() {
@@ -37,6 +40,24 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       selectedChartIndex = charts.length - 1;
     });
   }
+
+    void _addMultipleCharts() {
+  setState(() {
+    chartPages.clear();
+    for (int i = 0; i < 3; i++) {
+      final newChartWidget = ChartPage(
+        chartConfig: ChartConfig(
+          id: 'chart_$i',
+          title: 'Diagramm ${i + 1}',
+          dataPoints: {},
+          color: Colors.primaries[i % Colors.primaries.length],
+        ),
+      );
+      chartPages.add(newChartWidget);
+    }
+    selectedChartIndex = chartPages.length - 1;
+  });
+}
 
   void _deleteChart(int index) {
     if (charts.length <= 1) {
@@ -69,19 +90,43 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
               final ip = await info.getWifiIP();
               showDialog(
                 context: context,
-                builder:
-                    (BuildContext context) => AlertDialog(
-                      title: Text('QR-Code der IP-Adresse'),
-                      content: PrettyQrView.data(data: ip!),
-                      actions: [
-                        TextButton(
-                          child: Text('Schließen'),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
+                builder: (BuildContext context) => AlertDialog(
+                  title: Text('QR-Code der IP-Adresse'),
+                  content: PrettyQrView.data(data: ip!),
+                  actions: [
+                    TextButton(
+                      child: Text('Schließen'),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
+                  ],
+                ),
               );
             },
+          ),
+          Row(
+            children: [
+              Text(
+                'Mehrere Diagramme',
+                style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+              ),
+              Switch(
+                value: useMultipleCharts,
+                onChanged: (value) {
+                  setState(() {
+                    useMultipleCharts = value;
+                    if (useMultipleCharts) {
+                      _addMultipleCharts();
+                    } else {
+                      charts.clear();
+                      _addNewChart();
+                    }
+                  });
+                },
+                activeColor: Colors.blue,
+                inactiveTrackColor: const Color.fromARGB(255, 70, 70, 70),
+                inactiveThumbColor: Colors.grey,
+              ),
+            ],
           ),
         ],
       ),
@@ -92,9 +137,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             selectedChartIndex: selectedChartIndex,
           ),
           Expanded(
-            child:
-                charts.isEmpty
-                    ? const Center(child: Text('Keine Diagramme vorhanden'))
+            child: charts.isEmpty
+                ? const Center(child: Text('Keine Diagramme vorhanden'))
+                : useMultipleCharts
+                    ? MultipleChartsPage(chartPages: chartPages) 
                     : ChartPage(chartConfig: charts[selectedChartIndex]),
           ),
           IconButton(
