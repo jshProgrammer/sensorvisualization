@@ -89,6 +89,17 @@ class _ChartPageState extends State<ChartPage> {
           });
         }
       },
+      onMeasurementStopped: () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Messung wurde gestoppt"),
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
     );
 
     //TODO: only when running on computer (not in browser!)

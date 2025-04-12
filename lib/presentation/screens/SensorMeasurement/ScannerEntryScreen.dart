@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sensorvisualization/presentation/screens/StartMeasurementScreen.dart';
-import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartMeasurementScreen.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'QRScannerScreen.dart';
 
 class ScannerEntryScreen extends StatefulWidget {

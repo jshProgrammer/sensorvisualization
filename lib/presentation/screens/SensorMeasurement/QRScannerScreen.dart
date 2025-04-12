@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:sensorvisualization/presentation/screens/StartMeasurementScreen.dart';
-import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartMeasurementScreen.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});

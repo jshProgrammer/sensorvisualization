@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
-import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'presentation/screens/ChartsHomeScreen.dart';
 
 void main() {

@@ -4,18 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
-class SensorMessPage extends StatefulWidget {
-  const SensorMessPage({super.key, this.title, required this.connection});
+class SensorMessScreen extends StatefulWidget {
+  const SensorMessScreen({super.key, this.title, required this.connection});
 
   final String? title;
   final ConnectionToRecipient connection;
 
   @override
-  State<SensorMessPage> createState() => _SensorMessPageState();
+  State<SensorMessScreen> createState() => _SensorMessScreenState();
 }
 
-class _SensorMessPageState extends State<SensorMessPage> {
+class _SensorMessScreenState extends State<SensorMessScreen> {
   static const Duration _ignoreDuration = Duration(milliseconds: 20);
 
   UserAccelerometerEvent? _userAccelerometerEvent;
@@ -202,6 +203,19 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   },
                 ),
               ],
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              child: const Text("Messung abbrechen"),
+              onPressed: () async {
+                await widget.connection.stopMeasurement();
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ScannerEntryScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
             ),
           ],
         ),

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
-import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 class StartMeasurementScreen extends StatefulWidget {
@@ -34,6 +34,7 @@ class _StartMeasurementScreenState extends State<StartMeasurementScreen> {
       appBar: AppBar(title: const Text('Nullmessung')),
       body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               child: Text("Nullmessung starten"),
@@ -132,7 +133,7 @@ class _StartMeasurementScreenState extends State<StartMeasurementScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => SensorMessPage(connection: connection),
+        builder: (context) => SensorMessScreen(connection: connection),
       ),
     );
   }

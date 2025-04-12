@@ -6,11 +6,12 @@ import 'package:sensorvisualization/data/models/SensorType.dart';
 
 class ConnectionToSender {
   final void Function(Map<String, dynamic>) onDataReceived;
+  final void Function()? onMeasurementStopped;
 
   final Map<SensorType, Map<SensorOrientation, double>> nullMeasurementValues =
       {};
 
-  ConnectionToSender({required this.onDataReceived});
+  ConnectionToSender({required this.onDataReceived, this.onMeasurementStopped});
 
   void startServer() async {
     final server = await HttpServer.bind(InternetAddress.anyIPv4, 3001);
@@ -23,56 +24,60 @@ class ConnectionToSender {
             print('Received: $data');
 
             try {
-              final Map<String, dynamic> parsed = Map<String, dynamic>.from(
-                data is String ? jsonDecode(data) : {},
-              );
-
-              if (parsed['sensor'].contains("Durchschnittswert")) {
-                _storeNullMeasurementValues(parsed);
+              if (jsonDecode(data) == "StopMeasurement") {
+                onMeasurementStopped?.call();
               } else {
-                final rawX =
-                    (parsed['x'] is String)
-                        ? double.tryParse(parsed['x'])
-                        : parsed['x'];
-                final rawY =
-                    (parsed['y'] is String)
-                        ? double.tryParse(parsed['y'])
-                        : parsed['y'];
-                final rawZ =
-                    (parsed['z'] is String)
-                        ? double.tryParse(parsed['z'])
-                        : parsed['z'];
-
-                final sensorType = SensorTypeExtension.fromString(
-                  parsed['sensor'],
+                final Map<String, dynamic> parsed = Map<String, dynamic>.from(
+                  data is String ? jsonDecode(data) : {},
                 );
 
-                final nulls = nullMeasurementValues[sensorType];
+                if (parsed['sensor'].contains("Durchschnittswert")) {
+                  _storeNullMeasurementValues(parsed);
+                } else {
+                  final rawX =
+                      (parsed['x'] is String)
+                          ? double.tryParse(parsed['x'])
+                          : parsed['x'];
+                  final rawY =
+                      (parsed['y'] is String)
+                          ? double.tryParse(parsed['y'])
+                          : parsed['y'];
+                  final rawZ =
+                      (parsed['z'] is String)
+                          ? double.tryParse(parsed['z'])
+                          : parsed['z'];
 
-                //TODO: Barometer is ignored yet
-                final calibratedX =
-                    rawX != null && nulls != null
-                        ? rawX - (nulls[SensorOrientation.x] ?? 0.0)
-                        : rawX;
-                final calibratedY =
-                    rawY != null && nulls != null
-                        ? rawY - (nulls[SensorOrientation.y] ?? 0.0)
-                        : rawY;
-                final calibratedZ =
-                    rawZ != null && nulls != null
-                        ? rawZ - (nulls[SensorOrientation.z] ?? 0.0)
-                        : rawZ;
+                  final sensorType = SensorTypeExtension.fromString(
+                    parsed['sensor'],
+                  );
 
-                final sensorData = {
-                  'sensor': parsed['sensor'],
-                  'timestamp': parsed['timestamp'],
-                  'x': calibratedX,
-                  'y': calibratedY,
-                  'z': calibratedZ,
-                };
+                  final nulls = nullMeasurementValues[sensorType];
 
-                print("Sensor Data: $sensorData");
-                onDataReceived(sensorData);
+                  //TODO: Barometer is ignored yet
+                  final calibratedX =
+                      rawX != null && nulls != null
+                          ? rawX - (nulls[SensorOrientation.x] ?? 0.0)
+                          : rawX;
+                  final calibratedY =
+                      rawY != null && nulls != null
+                          ? rawY - (nulls[SensorOrientation.y] ?? 0.0)
+                          : rawY;
+                  final calibratedZ =
+                      rawZ != null && nulls != null
+                          ? rawZ - (nulls[SensorOrientation.z] ?? 0.0)
+                          : rawZ;
+
+                  final sensorData = {
+                    'sensor': parsed['sensor'],
+                    'timestamp': parsed['timestamp'],
+                    'x': calibratedX,
+                    'y': calibratedY,
+                    'z': calibratedZ,
+                  };
+
+                  print("Sensor Data: $sensorData");
+                  onDataReceived(sensorData);
+                }
               }
             } catch (e) {
               print('Error parsing data: $e');
