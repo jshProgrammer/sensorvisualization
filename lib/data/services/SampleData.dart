@@ -89,6 +89,25 @@ class SampleData {
         attribute: 'z',
         type: ItemType.data,
       ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.simulatedData.displayName,
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.simulatedData.displayName,
+        attribute: 'x',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.simulatedData.displayName,
+        attribute: 'y',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.simulatedData.displayName,
+        attribute: 'z',
+        type: ItemType.data,
+      ),
     ];
   }
 }

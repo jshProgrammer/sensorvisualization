@@ -14,6 +14,7 @@ import '../../data/models/ChartConfig.dart';
 import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
+import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -42,7 +43,68 @@ class _ChartPageState extends State<ChartPage> {
 
   late DateTime _startTime;
 
+  late SensorDataSimulator simulator;
+  bool isSimulationRunning = false;
+  //Only for Simulation
   @override
+  void initState() {
+    super.initState();
+    _startTime = DateTime.now();
+    _transformationController = TransformationController();
+    simulator = SensorDataSimulator(
+      onDataGenerated: (data) {
+        if (mounted) {
+          setState(() {
+            final double timestamp =
+                data["timestamp"] != null
+                    ? DateTime.parse(
+                      data["timestamp"].toString(),
+                    ).difference(_startTime).inSeconds.toDouble()
+                    : 0.0;
+            final double x =
+                (data['x'] != null && data['x'] is num)
+                    ? data['x'].toDouble()
+                    : 0.0;
+            final double y =
+                (data['y'] != null && data['y'] is num)
+                    ? data['y'].toDouble()
+                    : 0.0;
+            final double z =
+                (data['z'] != null && data['z'] is num)
+                    ? data['z'].toDouble()
+                    : 0.0;
+
+            print("timestamp: ${timestamp}");
+
+            widget.chartConfig.addDataPoint(
+              data["sensor"].toString() + "x",
+              FlSpot(timestamp, x),
+            );
+            widget.chartConfig.addDataPoint(
+              data["sensor"].toString() + "y",
+              FlSpot(timestamp, y),
+            );
+            widget.chartConfig.addDataPoint(
+              data["sensor"].toString() + "z",
+              FlSpot(timestamp, z),
+            );
+          });
+        }
+      },
+    );
+    simulator.init();
+  }
+
+  //Only for Simulation
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    simulator.stopSimulation();
+    super.dispose();
+  }
+
+  //Working on real sceanario
+  /*@override
   void initState() {
     super.initState();
 
@@ -107,12 +169,13 @@ class _ChartPageState extends State<ChartPage> {
     _transformationController = TransformationController();
   }
 
+  //Working on real sceanario
   @override
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
     super.dispose();
-  }
+  }*/
 
   Widget _buildBackgroundPainter() {
     return CustomPaint(painter: BackgroundColorPainter(), child: Container());
@@ -310,6 +373,21 @@ class _ChartPageState extends State<ChartPage> {
           ;
         },
         tooltip: 'Diagramm als PDF exportieren',
+      ),
+      ElevatedButton(
+        child: Text(
+          isSimulationRunning ? "Simulaton stoppen" : "Simulation start",
+        ),
+        onPressed: () {
+          if (!isSimulationRunning) {
+            simulator.startSimulation(intervalMs: 1000);
+            _startTime = DateTime.now();
+            isSimulationRunning = true;
+          } else {
+            isSimulationRunning = false;
+            simulator.stopSimulation();
+          }
+        },
       ),
     ];
   }

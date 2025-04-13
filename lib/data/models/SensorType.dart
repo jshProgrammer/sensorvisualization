@@ -4,6 +4,7 @@ enum SensorType {
   magnetometer,
   barometer,
   userAccelerometer,
+  simulatedData,
 }
 
 extension SensorTypeExtension on SensorType {
@@ -19,6 +20,8 @@ extension SensorTypeExtension on SensorType {
         return 'Barometer';
       case SensorType.userAccelerometer:
         return 'User Beschleunigungssensor';
+      case SensorType.simulatedData:
+        return 'Simulierte Daten';
     }
   }
 
@@ -32,6 +35,8 @@ extension SensorTypeExtension on SensorType {
         return SensorType.magnetometer;
       case 'barometer':
         return SensorType.barometer;
+      case 'Simulierte Daten':
+        return SensorType.simulatedData;
       default:
         return null;
     }
