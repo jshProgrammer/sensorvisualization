@@ -4,7 +4,9 @@ import 'package:sensorvisualization/presentation/screens/SensorMeasurement/Start
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 
 class QRScannerScreen extends StatefulWidget {
-  const QRScannerScreen({super.key});
+  const QRScannerScreen({super.key, required this.deviceName});
+
+  final String deviceName;
 
   @override
   State<QRScannerScreen> createState() => _QRScannerScreenState();
@@ -34,7 +36,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (context) => StartMeasurementScreen(ipAddress: code),
+                          (context) => StartMeasurementScreen(
+                            hostIPAddress: code,
+                            deviceName: widget.deviceName,
+                          ),
                     ),
                   );
                 }
