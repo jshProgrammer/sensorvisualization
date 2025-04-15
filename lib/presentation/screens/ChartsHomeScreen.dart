@@ -24,7 +24,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _addNewChart(); 
+    _addNewChart();
   }
 
   void _addNewChart() {
@@ -41,23 +41,23 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
-    void _addMultipleCharts() {
-  setState(() {
-    chartPages.clear();
-    for (int i = 0; i < 3; i++) {
-      final newChartWidget = ChartPage(
-        chartConfig: ChartConfig(
-          id: 'chart_$i',
-          title: 'Diagramm ${i + 1}',
-          dataPoints: {},
-          color: Colors.primaries[i % Colors.primaries.length],
-        ),
-      );
-      chartPages.add(newChartWidget);
-    }
-    selectedChartIndex = chartPages.length - 1;
-  });
-}
+  void _addMultipleCharts() {
+    setState(() {
+      chartPages.clear();
+      for (int i = 0; i < 3; i++) {
+        final newChartWidget = ChartPage(
+          chartConfig: ChartConfig(
+            id: 'chart_$i',
+            title: 'Diagramm ${i + 1}',
+            dataPoints: {},
+            color: Colors.primaries[i % Colors.primaries.length],
+          ),
+        );
+        chartPages.add(newChartWidget);
+      }
+      selectedChartIndex = chartPages.length - 1;
+    });
+  }
 
   void _deleteChart(int index) {
     if (charts.length <= 1) {
@@ -84,22 +84,43 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
         title: const Text('Sensor visualization (THW)'),
         actions: [
           IconButton(
+            icon: Icon(Icons.smartphone),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder:
+                    (BuildContext context) => AlertDialog(
+                      title: Text("Verbundene Geräte"),
+                      //TODO: insert connectedDevices list of ConnectionToSender => evtl. mit provider-pattern?!
+                      content: Text("Test"),
+                      actions: [
+                        TextButton(
+                          child: Text('Schließen'),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(Icons.qr_code),
             onPressed: () async {
               final info = NetworkInfo();
               final ip = await info.getWifiIP();
               showDialog(
                 context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: Text('QR-Code der IP-Adresse'),
-                  content: PrettyQrView.data(data: ip!),
-                  actions: [
-                    TextButton(
-                      child: Text('Schließen'),
-                      onPressed: () => Navigator.of(context).pop(),
+                builder:
+                    (BuildContext context) => AlertDialog(
+                      title: Text('QR-Code der IP-Adresse'),
+                      content: PrettyQrView.data(data: ip!),
+                      actions: [
+                        TextButton(
+                          child: Text('Schließen'),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
               );
             },
           ),
@@ -137,10 +158,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             selectedChartIndex: selectedChartIndex,
           ),
           Expanded(
-            child: charts.isEmpty
-                ? const Center(child: Text('Keine Diagramme vorhanden'))
-                : useMultipleCharts
-                    ? MultipleChartsPage(chartPages: chartPages) 
+            child:
+                charts.isEmpty
+                    ? const Center(child: Text('Keine Diagramme vorhanden'))
+                    : useMultipleCharts
+                    ? MultipleChartsPage(chartPages: chartPages)
                     : ChartPage(chartConfig: charts[selectedChartIndex]),
           ),
           IconButton(

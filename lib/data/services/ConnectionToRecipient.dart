@@ -34,9 +34,12 @@ class ConnectionToRecipient {
 
   Duration sensorInterval = Duration(seconds: 1);
 
-  void initSocket() {
-    String initializationMessage =
-        "Connection requested; IP: ${_retrieveLocalIP()}; Device Name: $deviceName";
+  Future<void> initSocket() async {
+    final initializationMessage = jsonEncode({
+      "type": "ConnectionRequest",
+      "ip": await _retrieveLocalIP(),
+      "deviceName": deviceName,
+    });
     channel.sink.add(jsonEncode(initializationMessage));
 
     //TODO: wait for response if connection has been successful

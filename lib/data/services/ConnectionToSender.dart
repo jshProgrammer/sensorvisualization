@@ -13,6 +13,8 @@ class ConnectionToSender {
 
   ConnectionToSender({required this.onDataReceived, this.onMeasurementStopped});
 
+  Map<String, String> connectedDevices = {}; // ip-address => device-name
+
   void startServer() async {
     final server = await HttpServer.bind(InternetAddress.anyIPv4, 3001);
     print('Listening on port 3001');
@@ -24,11 +26,25 @@ class ConnectionToSender {
             print('Received: $data');
 
             try {
-              if (jsonDecode(data) == "StopMeasurement") {
+              var decoded = jsonDecode(data);
+              if (decoded is Map<String, dynamic> &&
+                  decoded['type'] == 'ConnectionRequest') {
+                final senderIp = decoded['ip'];
+                final deviceName = decoded['deviceName'];
+
+                print('Neue Verbindung von $deviceName mit IP $senderIp');
+
+                ws.add(
+                  jsonEncode({
+                    "response": "Connection accepted",
+                    "message": "Willkommen $deviceName!",
+                  }),
+                );
+              } else if (decoded == "StopMeasurement") {
                 onMeasurementStopped?.call();
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(
-                  data is String ? jsonDecode(data) : {},
+                  data is String ? decoded : {},
                 );
 
                 if (parsed['sensor'].contains("Durchschnittswert")) {
