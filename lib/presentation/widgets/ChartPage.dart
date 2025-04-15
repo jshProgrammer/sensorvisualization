@@ -28,6 +28,7 @@ class ChartPage extends StatefulWidget {
 class _ChartPageState extends State<ChartPage> {
   double baselineX = 0.0;
   double baselineY = 0.0;
+  bool autoFollowLatestData = true;
 
   final TextEditingController _noteController = TextEditingController();
 
@@ -49,6 +50,7 @@ class _ChartPageState extends State<ChartPage> {
   @override
   void initState() {
     super.initState();
+
     _startTime = DateTime.now();
     _transformationController = TransformationController();
     simulator = SensorDataSimulator(
@@ -88,6 +90,10 @@ class _ChartPageState extends State<ChartPage> {
               data["sensor"].toString() + "z",
               FlSpot(timestamp, z),
             );
+
+            if (autoFollowLatestData) {
+              baselineX = timestamp;
+            }
           });
         }
       },
@@ -285,6 +291,7 @@ class _ChartPageState extends State<ChartPage> {
           _showMultiSelect(context);
         },
       ),
+
       IconButton(
         icon: const Icon(Icons.zoom_in),
         onPressed: () {
@@ -428,6 +435,14 @@ class _ChartPageState extends State<ChartPage> {
     );
   }
 
+  double get maxX => widget.chartConfig.dataPoints.values
+      .expand((list) => list)
+      .fold(0.0, (prev, spot) => spot.x > prev ? spot.x : prev);
+
+  double get maxY => widget.chartConfig.dataPoints.values
+      .expand((list) => list)
+      .fold(0.0, (prev, spot) => spot.y > prev ? spot.y : prev);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -472,6 +487,7 @@ class _ChartPageState extends State<ChartPage> {
                               children: [
                                 RotatedBox(
                                   quarterTurns: 1,
+                                  //TODO: fix issue => only working until 15s
                                   child: Slider(
                                     value: baselineY,
                                     onChanged: (newValue) {
@@ -479,14 +495,15 @@ class _ChartPageState extends State<ChartPage> {
                                         baselineY = newValue;
                                       });
                                     },
-                                    min: -10,
-                                    max: 10,
+                                    min: 0,
+                                    max: maxY,
                                   ),
                                 ),
                                 Expanded(
                                   child: Sensordata(
                                     selectedLines: selectedValues,
                                     chartConfig: widget.chartConfig,
+                                    baselineX: baselineX,
                                   ).getLineChart(
                                     baselineX,
                                     (20 - (baselineY + 10)) - 10,
@@ -495,15 +512,43 @@ class _ChartPageState extends State<ChartPage> {
                               ],
                             ),
                           ),
-                          Slider(
-                            value: baselineX,
-                            onChanged: (newValue) {
-                              setState(() {
-                                baselineX = newValue;
-                              });
-                            },
-                            min: -10,
-                            max: 10,
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Slider(
+                                  value: baselineX,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      autoFollowLatestData = false;
+                                      baselineX = newValue;
+                                    });
+                                  },
+                                  min: 0,
+                                  max: maxX,
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  autoFollowLatestData
+                                      ? Icons.lock_clock
+                                      : Icons.lock_open,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    autoFollowLatestData =
+                                        !autoFollowLatestData;
+                                    if (autoFollowLatestData) {
+                                      baselineX = maxX;
+                                    }
+                                  });
+                                },
+                                tooltip:
+                                    autoFollowLatestData
+                                        ? 'Automatische Verfolgung deaktivieren'
+                                        : 'Automatische Verfolgung aktivieren',
+                              ),
+                            ],
                           ),
                         ],
                       ),
