@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
+import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
 
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
@@ -39,14 +41,14 @@ class _ChartPageState extends State<ChartPage> {
 
   final GlobalKey _chartKey = GlobalKey();
 
-  late ConnectionToSender server;
+  late StreamSubscription _dataSubscription;
 
   late DateTime _startTime;
 
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
   //Only for Simulation
-  @override
+  /*@override
   void initState() {
     super.initState();
 
@@ -105,72 +107,36 @@ class _ChartPageState extends State<ChartPage> {
   void dispose() {
     _transformationController.dispose();
     simulator.stopSimulation();
+    _dataSubscription.cancel();
     super.dispose();
-  }
+  }*/
 
   //Working on real sceanario
-  /*@override
+  @override
   void initState() {
     super.initState();
 
     _startTime = DateTime.now();
 
-    server = ConnectionToSender(
-      onDataReceived: (data) {
-        if (mounted) {
-          setState(() {
-            //TODO: find out how exact timestamp should be displayed
-            final double timestamp =
-                data["timestamp"] != null
-                    ? DateTime.parse(
-                      data["timestamp"].toString(),
-                    ).difference(_startTime).inSeconds.toDouble()
-                    : 0.0;
-            final double x =
-                (data['x'] != null && data['x'] is num)
-                    ? data['x'].toDouble()
-                    : 0.0;
-            final double y =
-                (data['y'] != null && data['y'] is num)
-                    ? data['y'].toDouble()
-                    : 0.0;
-            final double z =
-                (data['z'] != null && data['z'] is num)
-                    ? data['z'].toDouble()
-                    : 0.0;
+    _dataSubscription = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).dataStream.listen(_handleSensorData);
 
-            print("timestamp: ${timestamp}");
-
-            widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "x",
-              FlSpot(timestamp, x),
-            );
-            widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "y",
-              FlSpot(timestamp, y),
-            );
-            widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "z",
-              FlSpot(timestamp, z),
-            );
-          });
-        }
-      },
-      onMeasurementStopped: () {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Messung wurde gestoppt"),
-              duration: Duration(seconds: 4),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      },
-    );
-
-    //TODO: only when running on computer (not in browser!)
-    server.startServer();
+    Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).measurementStopped.listen((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Messung wurde gestoppt"),
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
     _transformationController = TransformationController();
   }
 
@@ -179,8 +145,47 @@ class _ChartPageState extends State<ChartPage> {
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
+    _dataSubscription.cancel();
     super.dispose();
-  }*/
+  }
+
+  void _handleSensorData(Map<String, dynamic> data) {
+    if (mounted) {
+      setState(() {
+        final double timestamp =
+            data["timestamp"] != null
+                ? DateTime.parse(
+                  data["timestamp"].toString(),
+                ).difference(_startTime).inSeconds.toDouble()
+                : 0.0;
+        final double x =
+            (data['x'] != null && data['x'] is num)
+                ? data['x'].toDouble()
+                : 0.0;
+        final double y =
+            (data['y'] != null && data['y'] is num)
+                ? data['y'].toDouble()
+                : 0.0;
+        final double z =
+            (data['z'] != null && data['z'] is num)
+                ? data['z'].toDouble()
+                : 0.0;
+
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "x",
+          FlSpot(timestamp, x),
+        );
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "y",
+          FlSpot(timestamp, y),
+        );
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "z",
+          FlSpot(timestamp, z),
+        );
+      });
+    }
+  }
 
   void _showAllNotes() {
     showDialog(

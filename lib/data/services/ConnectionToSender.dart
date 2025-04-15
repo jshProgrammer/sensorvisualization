@@ -7,11 +7,16 @@ import 'package:sensorvisualization/data/models/SensorType.dart';
 class ConnectionToSender {
   final void Function(Map<String, dynamic>) onDataReceived;
   final void Function()? onMeasurementStopped;
+  final void Function()? onConnectionChanged;
 
   final Map<SensorType, Map<SensorOrientation, double>> nullMeasurementValues =
       {};
 
-  ConnectionToSender({required this.onDataReceived, this.onMeasurementStopped});
+  ConnectionToSender({
+    required this.onDataReceived,
+    this.onMeasurementStopped,
+    this.onConnectionChanged,
+  });
 
   Map<String, String> connectedDevices = {}; // ip-address => device-name
 
@@ -34,6 +39,9 @@ class ConnectionToSender {
 
                 print('Neue Verbindung von $deviceName mit IP $senderIp');
 
+                connectedDevices.putIfAbsent(senderIp, () => deviceName);
+                onConnectionChanged?.call();
+
                 ws.add(
                   jsonEncode({
                     "response": "Connection accepted",
@@ -41,6 +49,8 @@ class ConnectionToSender {
                   }),
                 );
               } else if (decoded['command'] == "StopMeasurement") {
+                connectedDevices.remove(decoded['ip']);
+                onConnectionChanged?.call();
                 onMeasurementStopped?.call();
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(

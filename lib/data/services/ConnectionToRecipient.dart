@@ -40,7 +40,7 @@ class ConnectionToRecipient {
       "ip": await _retrieveLocalIP(),
       "deviceName": deviceName,
     });
-    channel.sink.add(jsonEncode(initializationMessage));
+    channel.sink.add(initializationMessage);
 
     //TODO: wait for response if connection has been successful
 
@@ -119,7 +119,12 @@ class ConnectionToRecipient {
     await magnetometerSub.cancel();
     await barometerSub.cancel();
 
-    channel.sink.add({"command": "StopMeasurement"});
+    channel.sink.add(
+      jsonEncode({
+        "command": "StopMeasurement",
+        "ip": await _retrieveLocalIP(),
+      }),
+    );
 
     await channel.sink.close();
   }
