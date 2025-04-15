@@ -1,0 +1,6 @@
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "visuals/Projekt_Libelle_Icon.png"
+  adaptive_icon_background: '#FFFFFF'
+  adaptive_icon_foreground: 'visuals/Projekt_Libelle_Icon.png'
