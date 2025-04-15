@@ -8,21 +8,17 @@ import 'package:sensorvisualization/data/models/SensorType.dart';
 class Sensordata {
   late Set<MultiSelectDialogItem> selectedLines;
   late ChartConfig chartConfig;
-
-  //TODO: ensure that scrolling is not possible < 0
-  double baselineX;
-  double baselineY;
-
   int secondsToDisplay = 10;
+  double baselineX;
 
   Sensordata({
     required this.selectedLines,
     required this.chartConfig,
-    this.baselineX = 0.0,
-    this.baselineY = 0.0,
+    required this.baselineX,
   });
 
-  List<FlSpot> getFilteredDataPoints(String sensorName) {
+  //TODO: ensure that scrolling is not possible < 0
+  List<FlSpot> getFilteredDataPoints(String sensorName, {int baselineY = 0}) {
     final double xMin;
     final double xMax;
 
