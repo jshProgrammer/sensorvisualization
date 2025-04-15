@@ -8,7 +8,6 @@ import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
 import '../widgets/MultipleChartsPage.dart';
 
 class ChartsHomeScreen extends StatefulWidget {
-  //TODO: allow multiple charts in a single tab
   const ChartsHomeScreen({super.key});
 
   @override
@@ -23,7 +22,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _addNewChart(); 
+    _addNewChart();
   }
 
   void _addNewChart() {
@@ -71,16 +70,17 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
               final ip = await info.getWifiIP();
               showDialog(
                 context: context,
-                builder: (BuildContext context) => AlertDialog(
-                  title: Text('QR-Code der IP-Adresse'),
-                  content: PrettyQrView.data(data: ip!),
-                  actions: [
-                    TextButton(
-                      child: Text('Schließen'),
-                      onPressed: () => Navigator.of(context).pop(),
+                builder:
+                    (BuildContext context) => AlertDialog(
+                      title: Text('QR-Code der IP-Adresse'),
+                      content: PrettyQrView.data(data: ip!),
+                      actions: [
+                        TextButton(
+                          child: Text('Schließen'),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
               );
             },
           ),
@@ -95,8 +95,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                 onChanged: (value) {
                   setState(() {
                     useMultipleCharts = value;
-                    
-                });},
+                  });
+                },
                 activeColor: Colors.blue,
                 inactiveTrackColor: const Color.fromARGB(255, 70, 70, 70),
                 inactiveThumbColor: Colors.grey,
@@ -112,10 +112,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             selectedChartIndex: selectedChartIndex,
           ),
           Expanded(
-            child: charts.isEmpty
-                ? const Center(child: Text('Keine Diagramme vorhanden'))
-                : useMultipleCharts
-                    ? MultipleChartsPage(chartPages: charts) 
+            child:
+                charts.isEmpty
+                    ? const Center(child: Text('Keine Diagramme vorhanden'))
+                    : useMultipleCharts
+                    ? MultipleChartsPage(chartPages: charts)
                     : ChartPage(chartConfig: charts[selectedChartIndex]),
           ),
           IconButton(

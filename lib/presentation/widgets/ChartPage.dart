@@ -428,6 +428,10 @@ class _ChartPageState extends State<ChartPage> {
     );
   }
 
+  double get maxX => widget.chartConfig.dataPoints.values
+      .expand((list) => list)
+      .fold(0.0, (prev, spot) => spot.x > prev ? spot.x : prev);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -472,6 +476,7 @@ class _ChartPageState extends State<ChartPage> {
                               children: [
                                 RotatedBox(
                                   quarterTurns: 1,
+                                  //TODO: fix issue => only working until 15s
                                   child: Slider(
                                     value: baselineY,
                                     onChanged: (newValue) {
@@ -479,8 +484,8 @@ class _ChartPageState extends State<ChartPage> {
                                         baselineY = newValue;
                                       });
                                     },
-                                    min: -10,
-                                    max: 10,
+                                    min: 0,
+                                    max: maxX,
                                   ),
                                 ),
                                 Expanded(
@@ -495,6 +500,7 @@ class _ChartPageState extends State<ChartPage> {
                               ],
                             ),
                           ),
+
                           Slider(
                             value: baselineX,
                             onChanged: (newValue) {
@@ -502,7 +508,9 @@ class _ChartPageState extends State<ChartPage> {
                                 baselineX = newValue;
                               });
                             },
+                            //TODO: insert minimum y value
                             min: -10,
+                            //TODO: insert maximum y value
                             max: 10,
                           ),
                         ],

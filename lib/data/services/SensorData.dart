@@ -9,8 +9,11 @@ class Sensordata {
   late Set<MultiSelectDialogItem> selectedLines;
   late ChartConfig chartConfig;
 
+  //TODO: ensure that scrolling is not possible < 0
   double baselineX;
   double baselineY;
+
+  int secondsToDisplay = 10;
 
   Sensordata({
     required this.selectedLines,
@@ -18,6 +21,32 @@ class Sensordata {
     this.baselineX = 0.0,
     this.baselineY = 0.0,
   });
+
+  List<FlSpot> getFilteredDataPoints(String sensorName) {
+    final double xMin;
+    final double xMax;
+
+    if (baselineX != 0) {
+      xMin = baselineX - secondsToDisplay / 2;
+      xMax = baselineX + secondsToDisplay / 2;
+    } else {
+      xMin = _getMaxX() - secondsToDisplay;
+      xMax = _getMaxX();
+    }
+
+    List<FlSpot> filteredData = [];
+
+    chartConfig.dataPoints.forEach((key, points) {
+      if (key == sensorName) {
+        filteredData =
+            points.where((point) {
+              return point.x >= xMin && point.x <= xMax;
+            }).toList();
+      }
+    });
+
+    return filteredData;
+  }
 
   double _getExtremeValue(
     double Function(FlSpot spot) selector,
@@ -52,11 +81,19 @@ class Sensordata {
   LineChart getLineChart(double baselineX, double baselineY) {
     return LineChart(
       LineChartData(
-        minX: 0.0,
-        baselineX: baselineX,
-        maxX: _getMaxX(),
+        minX:
+            baselineX == 0
+                ? _getMaxX() < secondsToDisplay
+                    ? 0
+                    : _getMaxX() - secondsToDisplay
+                : baselineX - secondsToDisplay / 2,
+        maxX:
+            baselineX == 0
+                ? _getMaxX() < secondsToDisplay
+                    ? secondsToDisplay.toDouble()
+                    : _getMaxX()
+                : baselineX + secondsToDisplay / 2,
         minY: _getMinY(),
-        baselineY: baselineY,
         maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(
           show: true,
@@ -180,8 +217,8 @@ class Sensordata {
     MultiSelectDialogItem sensor,
   ) {
     return LineChartBarData(
-      spots:
-          chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
+      spots: getFilteredDataPoints(sensor.sensorName + sensor.attribute!),
+      //chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
       isCurved: true,
       color:
           sensor.attribute! == SensorOrientation.x.displayName
