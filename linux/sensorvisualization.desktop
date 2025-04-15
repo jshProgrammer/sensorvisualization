@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=SensorVisualization
+Comment=App zur Sensordatenvisualisierung
+Exec=flutter run -d linux
+Icon=icons/icon_128x128.png
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=true

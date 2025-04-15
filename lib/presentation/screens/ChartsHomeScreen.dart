@@ -8,7 +8,6 @@ import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
 import '../widgets/MultipleChartsPage.dart';
 
 class ChartsHomeScreen extends StatefulWidget {
-  //TODO: allow multiple charts in a single tab
   const ChartsHomeScreen({super.key});
 
   @override
@@ -17,7 +16,6 @@ class ChartsHomeScreen extends StatefulWidget {
 
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
-  List<Widget> chartPages = [];
   int selectedChartIndex = 0;
   bool useMultipleCharts = false;
 
@@ -38,24 +36,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       );
       charts.add(newChart);
       selectedChartIndex = charts.length - 1;
-    });
-  }
-
-  void _addMultipleCharts() {
-    setState(() {
-      chartPages.clear();
-      for (int i = 0; i < 3; i++) {
-        final newChartWidget = ChartPage(
-          chartConfig: ChartConfig(
-            id: 'chart_$i',
-            title: 'Diagramm ${i + 1}',
-            dataPoints: {},
-            color: Colors.primaries[i % Colors.primaries.length],
-          ),
-        );
-        chartPages.add(newChartWidget);
-      }
-      selectedChartIndex = chartPages.length - 1;
     });
   }
 
@@ -135,12 +115,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                 onChanged: (value) {
                   setState(() {
                     useMultipleCharts = value;
-                    if (useMultipleCharts) {
-                      _addMultipleCharts();
-                    } else {
-                      charts.clear();
-                      _addNewChart();
-                    }
                   });
                 },
                 activeColor: Colors.blue,
@@ -162,7 +136,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                 charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : useMultipleCharts
-                    ? MultipleChartsPage(chartPages: chartPages)
+                    ? MultipleChartsPage(chartPages: charts)
                     : ChartPage(chartConfig: charts[selectedChartIndex]),
           ),
           IconButton(

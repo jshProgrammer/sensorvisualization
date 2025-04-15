@@ -40,7 +40,7 @@ class ConnectionToSender {
                     "message": "Willkommen $deviceName!",
                   }),
                 );
-              } else if (decoded == "StopMeasurement") {
+              } else if (decoded['command'] == "StopMeasurement") {
                 onMeasurementStopped?.call();
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(

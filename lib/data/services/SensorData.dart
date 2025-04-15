@@ -8,16 +8,40 @@ import 'package:sensorvisualization/data/models/SensorType.dart';
 class Sensordata {
   late Set<MultiSelectDialogItem> selectedLines;
   late ChartConfig chartConfig;
-
+  int secondsToDisplay = 10;
   double baselineX;
-  double baselineY;
 
   Sensordata({
     required this.selectedLines,
     required this.chartConfig,
-    this.baselineX = 0.0,
-    this.baselineY = 0.0,
+    required this.baselineX,
   });
+
+  List<FlSpot> getFilteredDataPoints(String sensorName, {int baselineY = 0}) {
+    final double xMin;
+    final double xMax;
+
+    if (baselineX != 0) {
+      xMin = baselineX - secondsToDisplay / 2;
+      xMax = baselineX + secondsToDisplay / 2;
+    } else {
+      xMin = _getMaxX() - secondsToDisplay;
+      xMax = _getMaxX();
+    }
+
+    List<FlSpot> filteredData = [];
+
+    chartConfig.dataPoints.forEach((key, points) {
+      if (key == sensorName) {
+        filteredData =
+            points.where((point) {
+              return point.x >= xMin && point.x <= xMax;
+            }).toList();
+      }
+    });
+
+    return filteredData;
+  }
 
   double _getExtremeValue(
     double Function(FlSpot spot) selector,
@@ -52,11 +76,19 @@ class Sensordata {
   LineChart getLineChart(double baselineX, double baselineY) {
     return LineChart(
       LineChartData(
-        minX: 0.0,
-        baselineX: baselineX,
-        maxX: _getMaxX(),
+        minX:
+            baselineX == 0
+                ? _getMaxX() < secondsToDisplay
+                    ? 0
+                    : _getMaxX() - secondsToDisplay
+                : baselineX - secondsToDisplay / 2,
+        maxX:
+            baselineX == 0
+                ? _getMaxX() < secondsToDisplay
+                    ? secondsToDisplay.toDouble()
+                    : _getMaxX()
+                : baselineX + secondsToDisplay / 2,
         minY: _getMinY(),
-        baselineY: baselineY,
         maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(
           show: true,
@@ -143,9 +175,11 @@ class Sensordata {
 
   List<LineChartBarData> _getLineBarsData() {
     List<LineChartBarData> toReturn = [];
+    int index = 0;
 
     for (MultiSelectDialogItem sensor in selectedLines) {
-      toReturn.add(_getCorrespondingLineChartBarData(sensor));
+      toReturn.add(_getCorrespondingLineChartBarData(sensor, index));
+      index++;
     }
 
     return toReturn;
@@ -176,21 +210,38 @@ class Sensordata {
     return toReturn;
   }
 
+  Color _getSensorColor(String attribute) {
+    final colorMap = {
+      SensorOrientation.x.displayName: ColorSettings.sensorXAxisColor,
+      SensorOrientation.y.displayName: ColorSettings.sensorYAxisColor,
+      SensorOrientation.z.displayName: ColorSettings.sensorZAxisColor,
+    };
+
+    return colorMap[attribute] ?? Colors.grey;
+  }
+
   LineChartBarData _getCorrespondingLineChartBarData(
     MultiSelectDialogItem sensor,
+    int sensorIndex,
   ) {
+    List<List<int>?> dashPatterns = [
+      null, // solid
+      [10, 5], // dashed
+      [2, 4], // dotted
+      [15, 5, 5, 5], // dash-dot
+      [8, 3, 2, 3], // short-dash-dot
+      [20, 5, 5, 5, 5, 5], // complex pattern
+    ];
+
+    final dashPattern = dashPatterns[sensorIndex % dashPatterns.length];
+
     return LineChartBarData(
-      spots:
-          chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
+      spots: getFilteredDataPoints(sensor.sensorName + sensor.attribute!),
       isCurved: true,
-      color:
-          sensor.attribute! == SensorOrientation.x.displayName
-              ? ColorSettings.sensorXAxisColor
-              : sensor.attribute! == SensorOrientation.y.displayName
-              ? ColorSettings.sensorYAxisColor
-              : ColorSettings.sensorZAxisColor,
+      color: _getSensorColor(sensor.attribute!),
       barWidth: 4,
       isStrokeCapRound: true,
+      dashArray: dashPattern,
       belowBarData: BarAreaData(
         show: true,
         color: chartConfig.color.withAlpha(75),
