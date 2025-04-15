@@ -8,7 +8,6 @@ import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
 import '../widgets/MultipleChartsPage.dart';
 
 class ChartsHomeScreen extends StatefulWidget {
-  //TODO: allow multiple charts in a single tab
   const ChartsHomeScreen({super.key});
 
   @override

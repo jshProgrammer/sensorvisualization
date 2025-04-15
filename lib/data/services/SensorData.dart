@@ -143,9 +143,11 @@ class Sensordata {
 
   List<LineChartBarData> _getLineBarsData() {
     List<LineChartBarData> toReturn = [];
+    int index = 0;
 
     for (MultiSelectDialogItem sensor in selectedLines) {
-      toReturn.add(_getCorrespondingLineChartBarData(sensor));
+      toReturn.add(_getCorrespondingLineChartBarData(sensor, index));
+      index++;
     }
 
     return toReturn;
@@ -176,42 +178,61 @@ class Sensordata {
     return toReturn;
   }
 
+  Color _getSensorColor(String attribute) {
+  final colorMap = {
+    SensorOrientation.x.displayName: ColorSettings.sensorXAxisColor,
+    SensorOrientation.y.displayName: ColorSettings.sensorYAxisColor,
+    SensorOrientation.z.displayName: ColorSettings.sensorZAxisColor,
+  };
+
+  return colorMap[attribute] ?? Colors.grey;
+}
+
+
   LineChartBarData _getCorrespondingLineChartBarData(
-    MultiSelectDialogItem sensor,
-  ) {
-    return LineChartBarData(
-      spots:
-          chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
-      isCurved: true,
-      color:
-          sensor.attribute! == SensorOrientation.x.displayName
-              ? ColorSettings.sensorXAxisColor
-              : sensor.attribute! == SensorOrientation.y.displayName
-              ? ColorSettings.sensorYAxisColor
-              : ColorSettings.sensorZAxisColor,
-      barWidth: 4,
-      isStrokeCapRound: true,
-      belowBarData: BarAreaData(
-        show: true,
-        color: chartConfig.color.withAlpha(75),
-      ),
-      dotData: FlDotData(
-        show: true,
-        getDotPainter: (spot, percent, barData, index) {
-          final hasNote = chartConfig.notes.containsKey(index);
-          return FlDotCirclePainter(
-            radius: hasNote ? 8 : 6,
-            color:
-                hasNote
-                    ? ColorSettings.pointWithNoteColor
-                    : (spot.y >= 2.5
-                        ? ColorSettings.pointCriticalColor
-                        : ColorSettings.pointWithNoteColor),
-            strokeWidth: 2,
-            strokeColor: ColorSettings.pointStrokeColor,
-          );
-        },
-      ),
-    );
-  }
+  MultiSelectDialogItem sensor,
+  int sensorIndex,
+) {
+  
+  List<List<int>?> dashPatterns = [
+  null,                  // solid
+  [10, 5],               // dashed
+  [2, 4],                // dotted
+  [15, 5, 5, 5],         // dash-dot
+  [8, 3, 2, 3],          // short-dash-dot
+  [20, 5, 5, 5, 5, 5]    // complex pattern
+];
+
+  final spots = chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [];
+  final dashPattern = dashPatterns[sensorIndex % dashPatterns.length];
+
+  return LineChartBarData(
+    spots: spots,
+    isCurved: true,
+    color: _getSensorColor(sensor.attribute!),
+    barWidth: 4,
+    isStrokeCapRound: true,
+    dashArray: dashPattern,
+    belowBarData: BarAreaData(
+      show: true,
+      color: chartConfig.color.withAlpha(75),
+    ),
+    dotData: FlDotData(
+      show: true,
+      getDotPainter: (spot, percent, barData, index) {
+        final hasNote = chartConfig.notes.containsKey(index);
+        return FlDotCirclePainter(
+          radius: hasNote ? 8 : 6,
+          color: hasNote
+              ? ColorSettings.pointWithNoteColor
+              : (spot.y >= 2.5
+                  ? ColorSettings.pointCriticalColor
+                  : ColorSettings.pointWithNoteColor),
+          strokeWidth: 2,
+          strokeColor: ColorSettings.pointStrokeColor,
+        );
+      },
+    ),
+  );
+}
 }
