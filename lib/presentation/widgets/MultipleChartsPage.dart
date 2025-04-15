@@ -4,7 +4,7 @@ import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
 
 class MultipleChartsPage extends StatelessWidget {
-  final List<Widget> chartPages;
+  final List<ChartConfig> chartPages;
 
   const MultipleChartsPage({Key? key, required this.chartPages}) : super(key: key);
 
@@ -17,10 +17,13 @@ class MultipleChartsPage extends StatelessWidget {
       body: ListView.builder(
         itemCount: chartPages.length,
         itemBuilder: (context, index) {
-          return Padding(
+          return SizedBox(
+            height: 500,
+            child: 
+            Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: chartPages[index],
-          );
+            child: ChartPage(chartConfig: chartPages[index]),
+          ));
         },
       ),
     );
