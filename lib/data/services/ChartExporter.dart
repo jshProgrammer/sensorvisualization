@@ -53,35 +53,4 @@ class ChartExporter {
       return null;
     }
   }
-
-  ///TODO: Methoden aufruf der in ChartPage oder so gezogen werden muss
-  ///Sollte schon gemacht sein, evtl checken das alles funktioniert, solange noch
-  ///hier stehen lassen
-  /*final GlobalKey _chartKey = GlobalKey();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.chartConfig.title),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.picture_as_pdf),
-            onPressed: () {
-              final exporter = ChartExporter(_chartKey);
-              exporter.exportToPDF("Diagramm_Export");
-            },
-          ),
-        ],
-      ),
-      body: RepaintBoundary(
-        key: _chartKey,
-        child:
-            Sensordata(
-              selectedLines: selectedValues,
-              chartConfig: widget.chartConfig,
-            ).getLineChart(),
-      ),
-    );
-  }*/
 }

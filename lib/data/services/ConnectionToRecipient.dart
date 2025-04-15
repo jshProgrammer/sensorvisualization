@@ -98,8 +98,7 @@ class ConnectionToRecipient {
     await magnetometerSub.cancel();
     await barometerSub.cancel();
 
-    //TODO: extract to additional MessageClass
-    channel.sink.add(jsonEncode("StopMeasurement"));
+    channel.sink.add({"command": "StopMeasurement"});
 
     await channel.sink.close();
   }

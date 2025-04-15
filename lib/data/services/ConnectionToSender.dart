@@ -24,7 +24,7 @@ class ConnectionToSender {
             print('Received: $data');
 
             try {
-              if (jsonDecode(data) == "StopMeasurement") {
+              if (jsonDecode(data)['command'] == "StopMeasurement") {
                 onMeasurementStopped?.call();
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(

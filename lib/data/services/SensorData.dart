@@ -17,7 +17,6 @@ class Sensordata {
     required this.baselineX,
   });
 
-  //TODO: ensure that scrolling is not possible < 0
   List<FlSpot> getFilteredDataPoints(String sensorName, {int baselineY = 0}) {
     final double xMin;
     final double xMax;

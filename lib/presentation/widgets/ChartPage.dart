@@ -11,7 +11,6 @@ import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 import '../../data/models/ChartConfig.dart';
-import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
@@ -182,10 +181,6 @@ class _ChartPageState extends State<ChartPage> {
     _noteController.dispose();
     super.dispose();
   }*/
-
-  Widget _buildBackgroundPainter() {
-    return CustomPaint(painter: BackgroundColorPainter(), child: Container());
-  }
 
   void _showAllNotes() {
     showDialog(
@@ -487,7 +482,6 @@ class _ChartPageState extends State<ChartPage> {
                               children: [
                                 RotatedBox(
                                   quarterTurns: 1,
-                                  //TODO: fix issue => only working until 15s
                                   child: Slider(
                                     value: baselineY,
                                     onChanged: (newValue) {
