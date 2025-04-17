@@ -7,10 +7,16 @@ import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
 class SensorMessScreen extends StatefulWidget {
-  const SensorMessScreen({super.key, this.title, required this.connection});
+  const SensorMessScreen({
+    super.key,
+    this.title,
+    required this.connection,
+    required this.deviceName,
+  });
 
   final String? title;
   final ConnectionToRecipient connection;
+  final String deviceName;
 
   @override
   State<SensorMessScreen> createState() => _SensorMessScreenState();

@@ -1,35 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/SampleData.dart';
 
 class Multiselectdialogwidget extends StatefulWidget {
-  const Multiselectdialogwidget({
-    Key? key,
-    required this.items,
-    required this.initialSelectedValues,
-  }) : super(key: key);
+  const Multiselectdialogwidget({Key? key, required this.initialSelectedValues})
+    : super(key: key);
 
-  final List<MultiSelectDialogItem> items;
-  final Set<MultiSelectDialogItem> initialSelectedValues;
+  final Map<String, Set<MultiSelectDialogItem>>
+  initialSelectedValues; // device name => (multiple) sensors
 
   @override
   State<StatefulWidget> createState() => _MultiSelectDialogState();
 }
 
 class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
-  var _selectedSensors = <MultiSelectDialogItem>{};
+  Map<String, Set<MultiSelectDialogItem>> _selectedSensors = {};
+  late String _currentSelectedDevice;
 
   @override
   void initState() {
     super.initState();
     _selectedSensors = widget.initialSelectedValues;
+
+    final devices =
+        Provider.of<ConnectionProvider>(
+          context,
+          listen: false,
+        ).connectedDevices;
+    _currentSelectedDevice =
+        devices.keys.isNotEmpty
+            ? devices.keys.first
+            : SensorType.simulatedData.displayName;
   }
 
   void _onItemCheckedChange(MultiSelectDialogItem sensor, bool checked) {
     setState(() {
       if (checked) {
-        _selectedSensors.add(sensor);
+        _selectedSensors.putIfAbsent(
+          _currentSelectedDevice,
+          () => <MultiSelectDialogItem>{},
+        );
+        _selectedSensors[_currentSelectedDevice]!.add(sensor);
       } else {
-        _selectedSensors.remove(sensor);
+        _selectedSensors[_currentSelectedDevice]!.remove(sensor);
       }
     });
   }
@@ -44,13 +60,52 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
 
   @override
   Widget build(BuildContext context) {
+    final connectionProvider = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    );
+    final deviceEntries = connectionProvider.connectedDevices.entries.toList();
+
+    final dropdownItems = [
+      DropdownMenuItem<String>(
+        value: SensorType.simulatedData.displayName,
+        child: Text(SensorType.simulatedData.displayName),
+      ),
+      ...deviceEntries.map((entry) {
+        return DropdownMenuItem<String>(
+          value: entry.key, // z. B. "192.168.1.5"
+          child: Text('${entry.value} (${entry.key})'),
+        );
+      }),
+    ];
+
     return AlertDialog(
       title: const Text('Sensorauswahl'),
       contentPadding: const EdgeInsets.all(20.0),
       content: SingleChildScrollView(
-        child: ListTileTheme(
-          contentPadding: const EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
-          child: ListBody(children: widget.items.map(_buildItem).toList()),
+        child: Column(
+          children: [
+            DropdownButton<String>(
+              value: _currentSelectedDevice,
+              hint: const Text('Sensor auswählen'),
+              items: dropdownItems,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _currentSelectedDevice = newValue ?? _currentSelectedDevice;
+                });
+              },
+            ),
+            const SizedBox(height: 20.0),
+            ListTileTheme(
+              contentPadding: const EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+              child: ListBody(
+                children:
+                    SampleData.getSensorChoices(
+                      _currentSelectedDevice,
+                    ).map(_buildItem).toList(),
+              ),
+            ),
+          ],
         ),
       ),
       actions: <Widget>[
@@ -61,7 +116,9 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   }
 
   Widget _buildItem(MultiSelectDialogItem item) {
-    final checked = _selectedSensors.contains(item);
+    final selectedSet = _selectedSensors[_currentSelectedDevice] ?? {};
+    final checked = selectedSet.contains(item);
+
     return item.type == ItemType.data
         ? CheckboxListTile(
           value: checked,

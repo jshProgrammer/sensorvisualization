@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:provider/provider.dart';
+import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
@@ -63,6 +65,46 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       appBar: AppBar(
         title: const Text('Sensor visualization (THW)'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.smartphone),
+            onPressed: () {
+              Map<String, String> connectedDevices =
+                  Provider.of<ConnectionProvider>(
+                    context,
+                    listen: false,
+                  ).connectedDevices;
+
+              showDialog(
+                context: context,
+                builder:
+                    (BuildContext context) => AlertDialog(
+                      title: Text("Verbundene Geräte"),
+                      content:
+                          connectedDevices.isEmpty
+                              ? Text("Keine Geräte verbunden")
+                              : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children:
+                                    connectedDevices.entries
+                                        .map(
+                                          //TODO: also show current connection state
+                                          (entry) => ListTile(
+                                            title: Text(entry.value),
+                                            subtitle: Text(entry.key),
+                                          ),
+                                        )
+                                        .toList(),
+                              ),
+                      actions: [
+                        TextButton(
+                          child: Text('Schließen'),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.qr_code),
             onPressed: () async {

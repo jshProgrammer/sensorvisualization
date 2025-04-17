@@ -7,9 +7,13 @@ import 'package:sensorvisualization/presentation/screens/SensorMeasurement/Senso
 import 'package:sensors_plus/sensors_plus.dart';
 
 class StartMeasurementScreen extends StatefulWidget {
-  final String ipAddress;
+  final String hostIPAddress;
+  final String deviceName;
 
-  const StartMeasurementScreen({required this.ipAddress});
+  const StartMeasurementScreen({
+    required this.hostIPAddress,
+    required this.deviceName,
+  });
 
   @override
   State<StatefulWidget> createState() => _StartMeasurementScreenState();
@@ -127,13 +131,20 @@ class _StartMeasurementScreenState extends State<StartMeasurementScreen> {
       SensorType.barometer.displayName: _averageSingle(_baroData),
     };
 
-    var connection = ConnectionToRecipient(ipAddress: widget.ipAddress);
+    var connection = ConnectionToRecipient(
+      hostIPAddress: widget.hostIPAddress,
+      deviceName: widget.deviceName,
+    );
     connection.sendNullMeasurementAverage(result);
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => SensorMessScreen(connection: connection),
+        builder:
+            (context) => SensorMessScreen(
+              connection: connection,
+              deviceName: widget.deviceName,
+            ),
       ),
     );
   }

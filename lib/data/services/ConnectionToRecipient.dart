@@ -5,6 +5,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
 class ConnectionToRecipient {
   late WebSocketChannel channel;
@@ -14,15 +15,35 @@ class ConnectionToRecipient {
   late StreamSubscription magnetometerSub;
   late StreamSubscription barometerSub;
 
-  final String ipAddress;
+  final String hostIPAddress;
+  final String deviceName;
 
-  ConnectionToRecipient({required this.ipAddress}) {
-    channel = WebSocketChannel.connect(Uri.parse('ws://$ipAddress:3001'));
+  ConnectionToRecipient({
+    required this.hostIPAddress,
+    required this.deviceName,
+  }) {
+    channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
+  }
+
+  Future<String?> _retrieveLocalIP() async {
+    final info = NetworkInfo();
+    final wifiIP = await info.getWifiIP();
+
+    return wifiIP;
   }
 
   Duration sensorInterval = Duration(seconds: 1);
 
-  void initSocket() {
+  Future<void> initSocket() async {
+    final initializationMessage = jsonEncode({
+      "type": "ConnectionRequest",
+      "ip": await _retrieveLocalIP(),
+      "deviceName": deviceName,
+    });
+    channel.sink.add(initializationMessage);
+
+    //TODO: wait for response if connection has been successful
+
     /*userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
       UserAccelerometerEvent event,
     ) {
@@ -98,7 +119,12 @@ class ConnectionToRecipient {
     await magnetometerSub.cancel();
     await barometerSub.cancel();
 
-    channel.sink.add({"command": "StopMeasurement"});
+    channel.sink.add(
+      jsonEncode({
+        "command": "StopMeasurement",
+        "ip": await _retrieveLocalIP(),
+      }),
+    );
 
     await channel.sink.close();
   }

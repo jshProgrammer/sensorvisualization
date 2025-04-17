@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
+import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
 
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
@@ -37,11 +39,11 @@ class _ChartPageState extends State<ChartPage> {
 
   int? selectedPointIndex;
 
-  Set<MultiSelectDialogItem> selectedValues = Set<MultiSelectDialogItem>();
+  Map<String, Set<MultiSelectDialogItem>> selectedValues = {};
 
   final GlobalKey _chartKey = GlobalKey();
 
-  late ConnectionToSender server;
+  late StreamSubscription _dataSubscription;
 
   late DateTime _startTime;
 
@@ -60,7 +62,28 @@ class _ChartPageState extends State<ChartPage> {
     super.initState();
 
     _startTime = DateTime.now();
+
+    _dataSubscription = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).dataStream.listen(_handleSensorData);
+
+    Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).measurementStopped.listen((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Messung wurde gestoppt"),
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
     _transformationController = TransformationController();
+
     simulator = SensorDataSimulator(
       onDataGenerated: (data) {
         if (mounted) {
@@ -109,87 +132,54 @@ class _ChartPageState extends State<ChartPage> {
     simulator.init();
   }
 
-  //Only for Simulation
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    simulator.stopSimulation();
-    super.dispose();
-  }
-
-  //Working on real sceanario
-  /*@override
-  void initState() {
-    super.initState();
-
-    _startTime = DateTime.now();
-
-    server = ConnectionToSender(
-      onDataReceived: (data) {
-        if (mounted) {
-          setState(() {
-            //TODO: find out how exact timestamp should be displayed
-            final double timestamp =
-                data["timestamp"] != null
-                    ? DateTime.parse(
-                      data["timestamp"].toString(),
-                    ).difference(_startTime).inSeconds.toDouble()
-                    : 0.0;
-            final double x =
-                (data['x'] != null && data['x'] is num)
-                    ? data['x'].toDouble()
-                    : 0.0;
-            final double y =
-                (data['y'] != null && data['y'] is num)
-                    ? data['y'].toDouble()
-                    : 0.0;
-            final double z =
-                (data['z'] != null && data['z'] is num)
-                    ? data['z'].toDouble()
-                    : 0.0;
-
-            print("timestamp: ${timestamp}");
-
-            widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "x",
-              FlSpot(timestamp, x),
-            );
-            widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "y",
-              FlSpot(timestamp, y),
-            );
-            widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "z",
-              FlSpot(timestamp, z),
-            );
-          });
-        }
-      },
-      onMeasurementStopped: () {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Messung wurde gestoppt"),
-              duration: Duration(seconds: 4),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      },
-    );
-
-    //TODO: only when running on computer (not in browser!)
-    server.startServer();
-    _transformationController = TransformationController();
-  }
-
   //Working on real sceanario
   @override
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
+    _dataSubscription.cancel();
+    simulator.stopSimulation();
     super.dispose();
-  }*/
+  }
+
+  void _handleSensorData(Map<String, dynamic> data) {
+    if (mounted) {
+      setState(() {
+        //TODO: find out how exact timestamp should be displayed
+        final double timestamp =
+            data["timestamp"] != null
+                ? DateTime.parse(
+                  data["timestamp"].toString(),
+                ).difference(_startTime).inSeconds.toDouble()
+                : 0.0;
+        final double x =
+            (data['x'] != null && data['x'] is num)
+                ? data['x'].toDouble()
+                : 0.0;
+        final double y =
+            (data['y'] != null && data['y'] is num)
+                ? data['y'].toDouble()
+                : 0.0;
+        final double z =
+            (data['z'] != null && data['z'] is num)
+                ? data['z'].toDouble()
+                : 0.0;
+
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "x",
+          FlSpot(timestamp, x),
+        );
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "y",
+          FlSpot(timestamp, y),
+        );
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "z",
+          FlSpot(timestamp, z),
+        );
+      });
+    }
+  }
 
   void _showAllNotes() {
     showDialog(
@@ -244,13 +234,10 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void _showMultiSelect(BuildContext context) async {
-    final result = await showDialog<Set<MultiSelectDialogItem>>(
+    final result = await showDialog<Map<String, Set<MultiSelectDialogItem>>>(
       context: context,
       builder: (BuildContext context) {
-        return Multiselectdialogwidget(
-          items: SampleData.getSensorChoices(),
-          initialSelectedValues: selectedValues,
-        );
+        return Multiselectdialogwidget(initialSelectedValues: selectedValues);
       },
     );
 
