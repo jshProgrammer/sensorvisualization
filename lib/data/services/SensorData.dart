@@ -4,6 +4,7 @@ import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 
 class Sensordata {
   late Set<MultiSelectDialogItem> selectedLines;
@@ -11,11 +12,22 @@ class Sensordata {
   int secondsToDisplay = 10;
   double baselineX;
 
+  Map<String, List<WarningRange>> ranges = {
+    'green': [],
+    'yellow': [],
+    'red': [],
+  };
+
   Sensordata({
     required this.selectedLines,
     required this.chartConfig,
     required this.baselineX,
-  });
+    Map<String, List<WarningRange>>? warningRanges,
+  }) {
+    if (warningRanges != null) {
+      ranges = warningRanges;
+    }
+  }
 
   List<FlSpot> getFilteredDataPoints(String sensorName, {int baselineY = 0}) {
     final double xMin;
@@ -152,21 +164,32 @@ class Sensordata {
         extraLinesData: ExtraLinesData(verticalLines: _getNotesVerticalLines()),
         rangeAnnotations: RangeAnnotations(
           horizontalRangeAnnotations: [
-            HorizontalRangeAnnotation(
-              y1: 0,
-              y2: 2,
-              color: Colors.green.withValues(alpha: 0.3),
-            ),
-            HorizontalRangeAnnotation(
-              y1: 2,
-              y2: 4,
-              color: Colors.orange.withValues(alpha: 0.3),
-            ),
-            HorizontalRangeAnnotation(
-              y1: 4,
-              y2: 10,
-              color: Colors.red.withValues(alpha: 0.3),
-            ),
+            if (ranges['green'] != null && ranges['green']!.isNotEmpty)
+              ...ranges['green']!.map(
+                (range) => HorizontalRangeAnnotation(
+                  y1: range.lower,
+                  y2: range.upper,
+                  color: Colors.green.withOpacity(0.3),
+                ),
+              ),
+
+            if (ranges['yellow'] != null && ranges['yellow']!.isNotEmpty)
+              ...ranges['yellow']!.map(
+                (range) => HorizontalRangeAnnotation(
+                  y1: range.lower,
+                  y2: range.upper,
+                  color: Colors.orange.withOpacity(0.3),
+                ),
+              ),
+
+            if (ranges['red'] != null && ranges['red']!.isNotEmpty)
+              ...ranges['red']!.map(
+                (range) => HorizontalRangeAnnotation(
+                  y1: range.lower,
+                  y2: range.upper,
+                  color: Colors.red.withOpacity(0.3),
+                ),
+              ),
           ],
         ),
       ),

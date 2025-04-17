@@ -13,19 +13,16 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
   final TextEditingController greenController1 = TextEditingController();
   final TextEditingController greenController2 = TextEditingController();
 
-  // Listen für gelbe und rote Bereiche
   List<Map<String, TextEditingController>> yellowControllers = [];
   List<Map<String, TextEditingController>> redControllers = [];
 
   @override
   void initState() {
     super.initState();
-    // Start mit je einem gelben und roten Bereich
     _addYellowField();
     _addRedField();
   }
 
-  // Hinzufügen eines gelben Bereichs
   void _addYellowField() {
     setState(() {
       yellowControllers.add({
@@ -35,7 +32,6 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
     });
   }
 
-  // Hinzufügen eines roten Bereichs
   void _addRedField() {
     setState(() {
       redControllers.add({
@@ -101,8 +97,8 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
         ),
         ElevatedButton(
           onPressed: () {
-            // TODO: Werte übernehmen
-            Navigator.of(context).pop();
+            var ranges = _collectValues();
+            Navigator.of(context).pop(ranges);
           },
           child: const Text('OK'),
         ),
@@ -181,4 +177,45 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
       ),
     );
   }
+
+  Map<String, List<WarningRange>> _collectValues() {
+    List<WarningRange> greenRanges = [
+      WarningRange(
+        double.tryParse(greenController1.text.replaceAll(',', '.')) ?? 0.0,
+        double.tryParse(greenController2.text.replaceAll(',', '.')) ?? 0.0,
+      ),
+    ];
+
+    List<WarningRange> yellowRanges =
+        yellowControllers.map((controllers) {
+          return WarningRange(
+            double.tryParse(controllers['lower']!.text.replaceAll(',', '.')) ??
+                0.0,
+            double.tryParse(controllers['upper']!.text.replaceAll(',', '.')) ??
+                0.0,
+          );
+        }).toList();
+
+    List<WarningRange> redRanges =
+        redControllers.map((controllers) {
+          return WarningRange(
+            double.tryParse(controllers['lower']!.text.replaceAll(',', '.')) ??
+                0.0,
+            double.tryParse(controllers['upper']!.text.replaceAll(',', '.')) ??
+                0.0,
+          );
+        }).toList();
+
+    return {'green': greenRanges, 'yellow': yellowRanges, 'red': redRanges};
+  }
+}
+
+class WarningRange {
+  final double lower;
+  final double upper;
+
+  WarningRange(this.lower, this.upper);
+
+  @override
+  String toString() => '[$lower, $upper]';
 }

@@ -45,6 +45,13 @@ class _ChartPageState extends State<ChartPage> {
 
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
+
+  Map<String, List<WarningRange>> warningRanges = {
+    'green': [],
+    'yellow': [],
+    'red': [],
+  };
+
   //Only for Simulation
   @override
   void initState() {
@@ -255,20 +262,18 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void _showWarnLevelSelection(BuildContext context) async {
-    final result = await showDialog<Set<MultiSelectDialogItem>>(
+    final result = await showDialog<Map<String, List<WarningRange>>>(
       context: context,
       builder: (BuildContext context) {
         return Warninglevelsselection();
       },
     );
 
-    /*if (result != null) {
+    if (result != null) {
       setState(() {
-        selectedValues = result;
+        warningRanges = result;
       });
-    }*/
-
-    print(selectedValues);
+    }
   }
 
   List<Widget> buildAppBarActions() {
@@ -498,6 +503,7 @@ class _ChartPageState extends State<ChartPage> {
                                     selectedLines: selectedValues,
                                     chartConfig: widget.chartConfig,
                                     baselineX: baselineX,
+                                    warningRanges: warningRanges,
                                   ).getLineChart(
                                     baselineX,
                                     (20 - (baselineY + 10)) - 10,
