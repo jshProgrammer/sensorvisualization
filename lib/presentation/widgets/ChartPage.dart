@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
@@ -371,7 +373,22 @@ class _ChartPageState extends State<ChartPage> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('PDF gespeichert: $path'),
+                content: GestureDetector(
+                  onTap: () async {
+                    final uri = Uri.file(path, windows: Platform.isWindows);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Konnte Pfad nicht öffnen.'),
+                        ),
+                      );
+                    }
+                  },
+
+                  child: Text('PDF gespeichert: $path'),
+                ),
                 duration: Duration(seconds: 4),
                 behavior: SnackBarBehavior.floating,
               ),
