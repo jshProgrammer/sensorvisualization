@@ -11,6 +11,7 @@ class Sensordata {
   late ChartConfig chartConfig;
   int secondsToDisplay = 10;
   double baselineX;
+  bool autoFollowLatestData;
 
   Map<String, List<WarningRange>> ranges = {
     'green': [],
@@ -22,6 +23,7 @@ class Sensordata {
     required this.selectedLines,
     required this.chartConfig,
     required this.baselineX,
+    required this.autoFollowLatestData,
     Map<String, List<WarningRange>>? warningRanges,
   }) {
     if (warningRanges != null) {
@@ -33,12 +35,12 @@ class Sensordata {
     final double xMin;
     final double xMax;
 
-    if (baselineX != 0) {
-      xMin = baselineX - secondsToDisplay / 2;
-      xMax = baselineX + secondsToDisplay / 2;
-    } else {
+    if (autoFollowLatestData) {
       xMin = _getMaxX() - secondsToDisplay;
       xMax = _getMaxX();
+    } else {
+      xMin = baselineX - secondsToDisplay;
+      xMax = baselineX + secondsToDisplay;
     }
 
     List<FlSpot> filteredData = [];
@@ -89,17 +91,17 @@ class Sensordata {
     return LineChart(
       LineChartData(
         minX:
-            baselineX == 0
+            autoFollowLatestData
                 ? _getMaxX() < secondsToDisplay
                     ? 0
                     : _getMaxX() - secondsToDisplay
-                : baselineX - secondsToDisplay / 2,
+                : baselineX - secondsToDisplay,
         maxX:
-            baselineX == 0
+            autoFollowLatestData
                 ? _getMaxX() < secondsToDisplay
                     ? secondsToDisplay.toDouble()
                     : _getMaxX()
-                : baselineX + secondsToDisplay / 2,
+                : baselineX,
         minY: _getMinY(),
         maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(

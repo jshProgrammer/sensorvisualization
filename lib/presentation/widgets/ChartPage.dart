@@ -519,6 +519,7 @@ class _ChartPageState extends State<ChartPage> {
                                   child: Sensordata(
                                     selectedLines: selectedValues,
                                     chartConfig: widget.chartConfig,
+                                    autoFollowLatestData: autoFollowLatestData,
                                     baselineX: baselineX,
                                     warningRanges: warningRanges,
                                   ).getLineChart(
