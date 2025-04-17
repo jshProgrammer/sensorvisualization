@@ -3,22 +3,71 @@ import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 
 class Sensordata {
-  late Set<MultiSelectDialogItem> selectedLines;
+  late Map<String, Set<MultiSelectDialogItem>> selectedLines;
   late ChartConfig chartConfig;
+  int secondsToDisplay = 10;
+  double baselineX;
+  bool autoFollowLatestData;
 
-  Sensordata({required this.selectedLines, required this.chartConfig});
+  Map<String, List<WarningRange>> ranges = {
+    'green': [],
+    'yellow': [],
+    'red': [],
+  };
+
+  Sensordata({
+    required this.selectedLines,
+    required this.chartConfig,
+    required this.baselineX,
+    required this.autoFollowLatestData,
+    Map<String, List<WarningRange>>? warningRanges,
+  }) {
+    if (warningRanges != null) {
+      ranges = warningRanges;
+    }
+  }
+
+  List<FlSpot> getFilteredDataPoints(String sensorName, {int baselineY = 0}) {
+    final double xMin;
+    final double xMax;
+
+    if (autoFollowLatestData) {
+      xMin = _getMaxX() - secondsToDisplay;
+      xMax = _getMaxX();
+    } else {
+      xMin = baselineX - secondsToDisplay;
+      xMax = baselineX + secondsToDisplay;
+    }
+
+    List<FlSpot> filteredData = [];
+
+    chartConfig.dataPoints.forEach((key, points) {
+      if (key == sensorName) {
+        filteredData =
+            points.where((point) {
+              return point.x >= xMin && point.x <= xMax;
+            }).toList();
+      }
+    });
+
+    return filteredData;
+  }
 
   double _getExtremeValue(
     double Function(FlSpot spot) selector,
     bool Function(double a, double b) compare,
     double fallbackValue,
   ) {
-    final Iterable<double> values = selectedLines
+    final Iterable<double> values = selectedLines.values
         .expand(
-          (item) =>
-              chartConfig.dataPoints[item.sensorName + item.attribute!] ?? [],
+          (set) => set.expand(
+            (item) =>
+                chartConfig.dataPoints[item.sensorName + item.attribute!] ?? [],
+          ),
         )
         .cast<FlSpot>()
         .map(selector);
@@ -40,21 +89,35 @@ class Sensordata {
     return _getExtremeValue((spot) => spot.y, (a, b) => a > b, 10);
   }
 
-  LineChart getLineChart() {
+  LineChart getLineChart(double baselineX, double baselineY) {
     return LineChart(
       LineChartData(
-        minX: 0,
-        maxX: _getMaxX(),
+        minX:
+            autoFollowLatestData
+                ? _getMaxX() < secondsToDisplay
+                    ? 0
+                    : _getMaxX() - secondsToDisplay
+                : baselineX - secondsToDisplay,
+        maxX:
+            autoFollowLatestData
+                ? _getMaxX() < secondsToDisplay
+                    ? secondsToDisplay.toDouble()
+                    : _getMaxX()
+                : baselineX,
         minY: _getMinY(),
-        maxY: _getMaxY(),
+        maxY: (_getMaxY() - _getMinY()),
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
           verticalInterval: 0.5,
           getDrawingHorizontalLine: (value) {
-            return value >= 2.5
-                ? FlLine(color: ColorSettings.lineColor, strokeWidth: 1)
-                : FlLine(color: ColorSettings.lineColor, strokeWidth: 1);
+            return FlLine(
+              color:
+                  (value - baselineY).abs() < 0.1
+                      ? ColorSettings.lineColor
+                      : ColorSettings.lineColor,
+              strokeWidth: (value - baselineY).abs() < 0.1 ? 2 : 1,
+            );
           },
         ),
         titlesData: FlTitlesData(
@@ -102,30 +165,115 @@ class Sensordata {
             },
           ),
         ),
+        extraLinesData: ExtraLinesData(verticalLines: _getNotesVerticalLines()),
+        rangeAnnotations: RangeAnnotations(
+          horizontalRangeAnnotations: [
+            if (ranges['green'] != null && ranges['green']!.isNotEmpty)
+              ...ranges['green']!.map(
+                (range) => HorizontalRangeAnnotation(
+                  y1: range.lower,
+                  y2: range.upper,
+                  color: Colors.green.withOpacity(0.3),
+                ),
+              ),
+
+            if (ranges['yellow'] != null && ranges['yellow']!.isNotEmpty)
+              ...ranges['yellow']!.map(
+                (range) => HorizontalRangeAnnotation(
+                  y1: range.lower,
+                  y2: range.upper,
+                  color: Colors.orange.withOpacity(0.3),
+                ),
+              ),
+
+            if (ranges['red'] != null && ranges['red']!.isNotEmpty)
+              ...ranges['red']!.map(
+                (range) => HorizontalRangeAnnotation(
+                  y1: range.lower,
+                  y2: range.upper,
+                  color: Colors.red.withOpacity(0.3),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
   List<LineChartBarData> _getLineBarsData() {
     List<LineChartBarData> toReturn = [];
+    int index = 0;
 
-    for (MultiSelectDialogItem sensor in selectedLines) {
-      toReturn.add(_getCorrespondingLineChartBarData(sensor));
+    for (String device in selectedLines.keys) {
+      if (selectedLines[device] == null) {
+        continue;
+      }
+      for (MultiSelectDialogItem sensor in selectedLines[device]!) {
+        toReturn.add(_getCorrespondingLineChartBarData(sensor, index));
+        index++;
+      }
     }
 
     return toReturn;
   }
 
+  List<VerticalLine> _getNotesVerticalLines() {
+    List<VerticalLine> toReturn = [];
+
+    chartConfig.notes.forEach((noteTime, noteString) {
+      toReturn.add(
+        VerticalLine(
+          x: noteTime.toDouble(),
+          color: ColorSettings.noteLineColor,
+          strokeWidth: 2,
+          dashArray: [5, 10],
+          label: VerticalLineLabel(
+            show: true,
+            alignment: Alignment.bottomRight,
+            padding: const EdgeInsets.only(left: 5, bottom: 5),
+            style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold),
+            direction: LabelDirection.vertical,
+            labelResolver: (line) => noteString,
+          ),
+        ),
+      );
+    });
+
+    return toReturn;
+  }
+
+  Color _getSensorColor(String attribute) {
+    final colorMap = {
+      SensorOrientation.x.displayName: ColorSettings.sensorXAxisColor,
+      SensorOrientation.y.displayName: ColorSettings.sensorYAxisColor,
+      SensorOrientation.z.displayName: ColorSettings.sensorZAxisColor,
+    };
+
+    return colorMap[attribute] ?? Colors.grey;
+  }
+
   LineChartBarData _getCorrespondingLineChartBarData(
     MultiSelectDialogItem sensor,
+    int sensorIndex,
   ) {
+    List<List<int>?> dashPatterns = [
+      null, // solid
+      [10, 5], // dashed
+      [2, 4], // dotted
+      [15, 5, 5, 5], // dash-dot
+      [8, 3, 2, 3], // short-dash-dot
+      [20, 5, 5, 5, 5, 5], // complex pattern
+    ];
+
+    final dashPattern = dashPatterns[sensorIndex % dashPatterns.length];
+
     return LineChartBarData(
-      spots:
-          chartConfig.dataPoints[sensor.sensorName + sensor.attribute!] ?? [],
+      spots: getFilteredDataPoints(sensor.sensorName + sensor.attribute!),
       isCurved: true,
-      color: chartConfig.color,
+      color: _getSensorColor(sensor.attribute!),
       barWidth: 4,
       isStrokeCapRound: true,
+      dashArray: dashPattern,
       belowBarData: BarAreaData(
         show: true,
         color: chartConfig.color.withAlpha(75),

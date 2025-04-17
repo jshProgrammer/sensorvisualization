@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
 
 class SampleData {
   static List<FlSpot> getPoints1(int newIndex) {
@@ -27,61 +28,87 @@ class SampleData {
     ];
   }
 
-  static List<MultiSelectDialogItem> getSensorChoices() {
+  static List<MultiSelectDialogItem> getSensorChoices(String sensorName) {
+    if (sensorName == SensorType.simulatedData.displayName) {
+      return [
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          type: ItemType.seperator,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          attribute: 'x',
+          type: ItemType.data,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          attribute: 'y',
+          type: ItemType.data,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          attribute: 'z',
+          type: ItemType.data,
+        ),
+      ];
+    }
     return <MultiSelectDialogItem>[
       MultiSelectDialogItem(
-        sensorName: 'Beschleunigungs-Sensor',
+        sensorName: SensorType.accelerometer.displayName,
         type: ItemType.seperator,
       ),
       MultiSelectDialogItem(
-        sensorName: 'Beschleunigungs-Sensor',
+        sensorName: SensorType.accelerometer.displayName,
         attribute: 'x',
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: 'Beschleunigungs-Sensor',
+        sensorName: SensorType.accelerometer.displayName,
         attribute: 'y',
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: 'Beschleunigungs-Sensor',
-        attribute: 'z',
-        type: ItemType.data,
-      ),
-
-      MultiSelectDialogItem(sensorName: 'Gyroskop', type: ItemType.seperator),
-      MultiSelectDialogItem(
-        sensorName: 'Gyroskop',
-        attribute: 'x',
-        type: ItemType.data,
-      ),
-      MultiSelectDialogItem(
-        sensorName: 'Gyroskop',
-        attribute: 'y',
-        type: ItemType.data,
-      ),
-      MultiSelectDialogItem(
-        sensorName: 'Gyroskop',
+        sensorName: SensorType.accelerometer.displayName,
         attribute: 'z',
         type: ItemType.data,
       ),
 
       MultiSelectDialogItem(
-        sensorName: 'Magnetometer',
+        sensorName: SensorType.gyroscope.displayName,
         type: ItemType.seperator,
       ),
       MultiSelectDialogItem(
-        sensorName: 'Magnetometer',
+        sensorName: SensorType.gyroscope.displayName,
         attribute: 'x',
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: 'Magnetometer',
+        sensorName: SensorType.gyroscope.displayName,
         attribute: 'y',
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: 'Magnetometer',
+        sensorName: SensorType.gyroscope.displayName,
+        attribute: 'z',
+        type: ItemType.data,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer.displayName,
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer.displayName,
+        attribute: 'x',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer.displayName,
+        attribute: 'y',
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer.displayName,
         attribute: 'z',
         type: ItemType.data,
       ),

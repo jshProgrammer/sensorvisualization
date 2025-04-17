@@ -4,7 +4,6 @@ import 'package:fl_chart/fl_chart.dart';
 class ChartConfig {
   final String id;
   final String title;
-  //TODO: check which data structure (<List<List<FlSpot>> as alternative)
   final Map<String, List<FlSpot>> dataPoints;
   final Map<int, String> notes = {};
   final Color color;

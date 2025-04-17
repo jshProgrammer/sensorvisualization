@@ -1,16 +1,23 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/services/ChartExporter.dart';
+import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
 
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
+import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/ChartConfig.dart';
-import '../../data/services/BackgroundColorPainter.dart';
 import '../../data/models/ColorSettings.dart';
+import 'package:sensorvisualization/data/services/ChartExporter.dart';
+import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -22,41 +29,65 @@ class ChartPage extends StatefulWidget {
 }
 
 class _ChartPageState extends State<ChartPage> {
+  double baselineX = 0.0;
+  double baselineY = 0.0;
+  bool autoFollowLatestData = true;
+
   final TextEditingController _noteController = TextEditingController();
 
   late TransformationController _transformationController;
 
   int? selectedPointIndex;
 
-  Set<MultiSelectDialogItem> selectedValues = Set<MultiSelectDialogItem>();
+  Map<String, Set<MultiSelectDialogItem>> selectedValues = {};
 
   final GlobalKey _chartKey = GlobalKey();
 
-  late ConnectionToSender server;
+  late StreamSubscription _dataSubscription;
 
   late DateTime _startTime;
 
-  Timer? _debugTimer;
+  late SensorDataSimulator simulator;
+  bool isSimulationRunning = false;
 
+  Map<String, List<WarningRange>> warningRanges = {
+    'green': [],
+    'yellow': [],
+    'red': [],
+  };
+
+  //Only for Simulation
   @override
   void initState() {
     super.initState();
 
     _startTime = DateTime.now();
 
-    _debugTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      final data = widget.chartConfig.dataPoints;
-      print('[DEBUG TEST] Aktive Sensor-Daten:');
-      data.forEach((key, value) {
-        print('  $key: ${value.length} Punkte');
-      });
-    });
+    _dataSubscription = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).dataStream.listen(_handleSensorData);
 
-    server = ConnectionToSender(
-      onDataReceived: (data) {
+    Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).measurementStopped.listen((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Messung wurde gestoppt"),
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+    _transformationController = TransformationController();
+
+    simulator = SensorDataSimulator(
+      onDataGenerated: (data) {
         if (mounted) {
           setState(() {
-            //TODO: find out how exact timestamp should be displayed
             final double timestamp =
                 data["timestamp"] != null
                     ? DateTime.parse(
@@ -90,25 +121,64 @@ class _ChartPageState extends State<ChartPage> {
               data["sensor"].toString() + "z",
               FlSpot(timestamp, z),
             );
+
+            if (autoFollowLatestData) {
+              baselineX = timestamp;
+            }
           });
         }
       },
     );
-
-    //TODO: only when running on computer (not in browser!)
-    //server.startServer();
-    _transformationController = TransformationController();
+    simulator.init();
   }
 
+  //Working on real sceanario
   @override
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
+    _dataSubscription.cancel();
+    simulator.stopSimulation();
     super.dispose();
   }
 
-  Widget _buildBackgroundPainter() {
-    return CustomPaint(painter: BackgroundColorPainter(), child: Container());
+  void _handleSensorData(Map<String, dynamic> data) {
+    if (mounted) {
+      setState(() {
+        //TODO: find out how exact timestamp should be displayed
+        final double timestamp =
+            data["timestamp"] != null
+                ? DateTime.parse(
+                  data["timestamp"].toString(),
+                ).difference(_startTime).inSeconds.toDouble()
+                : 0.0;
+        final double x =
+            (data['x'] != null && data['x'] is num)
+                ? data['x'].toDouble()
+                : 0.0;
+        final double y =
+            (data['y'] != null && data['y'] is num)
+                ? data['y'].toDouble()
+                : 0.0;
+        final double z =
+            (data['z'] != null && data['z'] is num)
+                ? data['z'].toDouble()
+                : 0.0;
+
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "x",
+          FlSpot(timestamp, x),
+        );
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "y",
+          FlSpot(timestamp, y),
+        );
+        widget.chartConfig.addDataPoint(
+          data["sensor"].toString() + "z",
+          FlSpot(timestamp, z),
+        );
+      });
+    }
   }
 
   void _showAllNotes() {
@@ -164,13 +234,10 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void _showMultiSelect(BuildContext context) async {
-    final result = await showDialog<Set<MultiSelectDialogItem>>(
+    final result = await showDialog<Map<String, Set<MultiSelectDialogItem>>>(
       context: context,
       builder: (BuildContext context) {
-        return Multiselectdialogwidget(
-          items: SampleData.getSensorChoices(),
-          initialSelectedValues: selectedValues,
-        );
+        return Multiselectdialogwidget(initialSelectedValues: selectedValues);
       },
     );
 
@@ -183,14 +250,37 @@ class _ChartPageState extends State<ChartPage> {
     print(selectedValues);
   }
 
+  void _showWarnLevelSelection(BuildContext context) async {
+    final result = await showDialog<Map<String, List<WarningRange>>>(
+      context: context,
+      builder: (BuildContext context) {
+        return Warninglevelsselection();
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        warningRanges = result;
+      });
+    }
+  }
+
   List<Widget> buildAppBarActions() {
     return [
+      ElevatedButton(
+        child: Text("Warnschwellen"),
+        onPressed: () {
+          _showWarnLevelSelection(context);
+        },
+      ),
+      SizedBox(width: 8),
       ElevatedButton(
         child: Text("Sensorwahl"),
         onPressed: () {
           _showMultiSelect(context);
         },
       ),
+
       IconButton(
         icon: const Icon(Icons.zoom_in),
         onPressed: () {
@@ -203,7 +293,6 @@ class _ChartPageState extends State<ChartPage> {
                   ..translate(x, y)
                   ..scale(scale)
                   ..translate(-x, -y);
-
             final currentZoom = _transformationController.value.clone();
             currentZoom.multiply(zoom);
             _transformationController.value = currentZoom;
@@ -224,9 +313,21 @@ class _ChartPageState extends State<ChartPage> {
                   ..scale(scale)
                   ..translate(-x, -y);
 
-            final currentZoom = _transformationController.value.clone();
-            currentZoom.multiply(zoom);
-            _transformationController.value = currentZoom;
+            var currentZoom = _transformationController.value.clone();
+            if (currentZoom.getMaxScaleOnAxis() > 1.0) {
+              currentZoom.multiply(zoom);
+              if (currentZoom.getMaxScaleOnAxis() < 1.0) {
+                currentZoom = Matrix4.identity();
+              }
+              _transformationController.value = currentZoom;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Weiteres Herauszoomen nicht erlaubt'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           });
         },
         tooltip: 'Verkleinern',
@@ -240,6 +341,64 @@ class _ChartPageState extends State<ChartPage> {
         icon: const Icon(Icons.list),
         onPressed: _showAllNotes,
         tooltip: 'Alle Notizen anzeigen',
+      ),
+      IconButton(
+        icon: const Icon(Icons.picture_as_pdf),
+        onPressed: () async {
+          final exporter = ChartExporter(_chartKey);
+          final path = await exporter.exportToPDF("Diagramm_Export");
+          if (!mounted) return;
+          if (path == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Fehler beim Exportieren des Diagramms'),
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: GestureDetector(
+                  onTap: () async {
+                    final uri = Uri.file(path, windows: Platform.isWindows);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Konnte Pfad nicht öffnen.'),
+                        ),
+                      );
+                    }
+                  },
+
+                  child: Text('PDF gespeichert: $path'),
+                ),
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          ;
+        },
+        tooltip: 'Diagramm als PDF exportieren',
+      ),
+      ElevatedButton(
+        child: Text(
+          isSimulationRunning ? "Simulaton stoppen" : "Simulation start",
+        ),
+        onPressed: () {
+          if (!isSimulationRunning) {
+            simulator.startSimulation(intervalMs: 1000);
+            _startTime = DateTime.now();
+            isSimulationRunning = true;
+          } else {
+            isSimulationRunning = false;
+            simulator.stopSimulation();
+          }
+        },
       ),
     ];
   }
@@ -280,6 +439,14 @@ class _ChartPageState extends State<ChartPage> {
     );
   }
 
+  double get maxX => widget.chartConfig.dataPoints.values
+      .expand((list) => list)
+      .fold(0.0, (prev, spot) => spot.x > prev ? spot.x : prev);
+
+  double get maxY => widget.chartConfig.dataPoints.values
+      .expand((list) => list)
+      .fold(0.0, (prev, spot) => spot.y > prev ? spot.y : prev);
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -311,11 +478,87 @@ class _ChartPageState extends State<ChartPage> {
               key: _chartKey,
               child: Stack(
                 children: [
-                  _buildBackgroundPainter(),
-                  Sensordata(
-                    selectedLines: selectedValues,
-                    chartConfig: widget.chartConfig,
-                  ).getLineChart(),
+                  // _buildBackgroundPainter(),
+                  AspectRatio(
+                    aspectRatio: 1.5,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 18.0, right: 18.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                RotatedBox(
+                                  quarterTurns: 1,
+                                  child: Slider(
+                                    value: baselineY,
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        baselineY = newValue;
+                                      });
+                                    },
+                                    min: 0,
+                                    max: maxY,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Sensordata(
+                                    selectedLines: selectedValues,
+                                    chartConfig: widget.chartConfig,
+                                    autoFollowLatestData: autoFollowLatestData,
+                                    baselineX: baselineX,
+                                    warningRanges: warningRanges,
+                                  ).getLineChart(
+                                    baselineX,
+                                    (20 - (baselineY + 10)) - 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Slider(
+                                  value: baselineX,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      autoFollowLatestData = false;
+                                      baselineX = newValue;
+                                    });
+                                  },
+                                  min: 0,
+                                  max: maxX,
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  autoFollowLatestData
+                                      ? Icons.lock_clock
+                                      : Icons.lock_open,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    autoFollowLatestData =
+                                        !autoFollowLatestData;
+                                    if (autoFollowLatestData) {
+                                      baselineX = maxX;
+                                    }
+                                  });
+                                },
+                                tooltip:
+                                    autoFollowLatestData
+                                        ? 'Automatische Verfolgung deaktivieren'
+                                        : 'Automatische Verfolgung aktivieren',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:label="sensorvisualization"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <uses-feature android:name="android.hardware.camera" android:required="true" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

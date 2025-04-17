@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
 import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
-import 'package:sensorvisualization/presentation/widgets/SensorMessPage.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/QRScannerScreen.dart';
+
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensorvisualization/presentation/screens/ChartsHomeScreen.dart';
 
 class TabsHomeScreen extends StatefulWidget {
@@ -15,7 +18,7 @@ class _TabsHomeScreenState extends State<TabsHomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const SensorMessPage(),
+    const ScannerEntryScreen(),
     const ChartsHomeScreen(),
   ];
 

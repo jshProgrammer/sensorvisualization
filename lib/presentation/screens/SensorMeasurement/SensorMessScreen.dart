@@ -2,18 +2,27 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
-class SensorMessPage extends StatefulWidget {
-  const SensorMessPage({super.key, this.title});
+class SensorMessScreen extends StatefulWidget {
+  const SensorMessScreen({
+    super.key,
+    this.title,
+    required this.connection,
+    required this.deviceName,
+  });
 
   final String? title;
+  final ConnectionToRecipient connection;
+  final String deviceName;
 
   @override
-  State<SensorMessPage> createState() => _SensorMessPageState();
+  State<SensorMessScreen> createState() => _SensorMessScreenState();
 }
 
-class _SensorMessPageState extends State<SensorMessPage> {
+class _SensorMessScreenState extends State<SensorMessScreen> {
   static const Duration _ignoreDuration = Duration(milliseconds: 20);
 
   UserAccelerometerEvent? _userAccelerometerEvent;
@@ -37,12 +46,14 @@ class _SensorMessPageState extends State<SensorMessPage> {
 
   Duration sensorInterval = SensorInterval.normalInterval;
 
-  final connection = ConnectionToRecipient();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Messung'), elevation: 4),
+      appBar: AppBar(
+        title: const Text('Messung'),
+        elevation: 4,
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20.0),
         child: Column(
@@ -67,9 +78,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('User Beschleunigungssensor'),
+                        child: Text(SensorType.userAccelerometer.displayName),
                       ),
                       Text(
                         _userAccelerometerEvent?.x.toStringAsFixed(1) ?? '?',
@@ -87,9 +98,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Beschleunigungssensor'),
+                        child: Text(SensorType.accelerometer.displayName),
                       ),
                       Text(_accelerometerEvent?.x.toStringAsFixed(1) ?? '?'),
                       Text(_accelerometerEvent?.y.toStringAsFixed(1) ?? '?'),
@@ -101,9 +112,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Gyroskop'),
+                        child: Text(SensorType.gyroscope.displayName),
                       ),
                       Text(_gyroscopeEvent?.x.toStringAsFixed(1) ?? '?'),
                       Text(_gyroscopeEvent?.y.toStringAsFixed(1) ?? '?'),
@@ -113,9 +124,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Magnetometer'),
+                        child: Text(SensorType.magnetometer.displayName),
                       ),
                       Text(_magnetometerEvent?.x.toStringAsFixed(1) ?? '?'),
                       Text(_magnetometerEvent?.y.toStringAsFixed(1) ?? '?'),
@@ -146,9 +157,9 @@ class _SensorMessPageState extends State<SensorMessPage> {
                   ),
                   TableRow(
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text('Barometer'),
+                        child: Text(SensorType.barometer.displayName),
                       ),
                       Text(
                         '${_barometerEvent?.pressure.toStringAsFixed(1) ?? '?'} hPa',
@@ -199,6 +210,19 @@ class _SensorMessPageState extends State<SensorMessPage> {
                 ),
               ],
             ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              child: const Text("Messung abbrechen"),
+              onPressed: () async {
+                await widget.connection.stopMeasurement();
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ScannerEntryScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -217,7 +241,8 @@ class _SensorMessPageState extends State<SensorMessPage> {
   void initState() {
     super.initState();
     //TODO: only when running on phone
-    //connection.initSocket();
+
+    widget.connection.initSocket();
 
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(
