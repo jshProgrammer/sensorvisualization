@@ -265,6 +265,38 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
+  void _showAddNoteDialog() {
+  TextEditingController controller = TextEditingController();
+  
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text("Neue Notiz hinzufügen"),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: "Notiz eingeben..."),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Abbrechen"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                widget.chartConfig.addNote(DateTime.now(), controller.text);
+              });
+              Navigator.of(context).pop();
+            },
+            child: const Text("Speichern"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   List<Widget> buildAppBarActions() {
     return [
       ElevatedButton(
@@ -385,6 +417,13 @@ class _ChartPageState extends State<ChartPage> {
         },
         tooltip: 'Diagramm als PDF exportieren',
       ),
+      IconButton(
+      icon: const Icon(Icons.add_comment),
+      onPressed: () {
+        _showAddNoteDialog();
+      },
+      tooltip: 'Notiz hinzufügen',
+    ),
       ElevatedButton(
         child: Text(
           isSimulationRunning ? "Simulaton stoppen" : "Simulation start",
@@ -403,18 +442,53 @@ class _ChartPageState extends State<ChartPage> {
     ];
   }
 
-  void addNote(int index) {
+  // void addNote(int index) {
+  //   TextEditingController controller = TextEditingController();
+
+  //   if (widget.chartConfig.notes.containsKey(index)) {
+  //     controller.text = widget.chartConfig.notes[index]!;
+  //   }
+
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text("Notiz für Punkt $index"),
+  //         content: TextField(
+  //           controller: controller,
+  //           decoration: const InputDecoration(hintText: "Notiz eingeben..."),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text("Abbrechen"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               setState(() {
+  //                 widget.chartConfig.notes[index] = controller.text;
+  //               });
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text("Speichern"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+    void addNote(DateTime time) {
     TextEditingController controller = TextEditingController();
 
-    if (widget.chartConfig.notes.containsKey(index)) {
-      controller.text = widget.chartConfig.notes[index]!;
+    if (widget.chartConfig.notes.containsKey(time)) {
+      controller.text = widget.chartConfig.notes[time]!;
     }
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Notiz für Punkt $index"),
+          title: Text("Notiz für Punkt $time"),
           content: TextField(
             controller: controller,
             decoration: const InputDecoration(hintText: "Notiz eingeben..."),
@@ -427,7 +501,7 @@ class _ChartPageState extends State<ChartPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  widget.chartConfig.notes[index] = controller.text;
+                  widget.chartConfig.notes[time] = controller.text;
                 });
                 Navigator.pop(context);
               },
@@ -449,19 +523,31 @@ class _ChartPageState extends State<ChartPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapUp: (details) {
-        final touchX = details.localPosition.dx;
-        final chartWidth = MediaQuery.of(context).size.width - 32;
-        final pointSpacing =
-            chartWidth / (widget.chartConfig.dataPoints.length - 1);
+    return Scaffold(
+    appBar: AppBar(
+      title: Text(widget.chartConfig.title),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.note_add),
+          onPressed: () {
+            addNote(DateTime.now());
+          },
+        ),
+      ],
+    ),
+    body: GestureDetector(
+      // onTapUp: (details) {
+      //   final touchX = details.localPosition.dx;
+      //   final chartWidth = MediaQuery.of(context).size.width - 32;
+      //   final pointSpacing =
+      //       chartWidth / (widget.chartConfig.dataPoints.length - 1);
 
-        final index = (touchX / pointSpacing).round();
+      //   final index = (touchX / pointSpacing).round();
 
-        if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          addNote(index);
-        }
-      },
+      //   if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
+      //     addNote(index);
+      //   }
+      // },
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.chartConfig.title),
@@ -565,6 +651,7 @@ class _ChartPageState extends State<ChartPage> {
           ),
         ),
       ),
+    ),
     );
   }
 }

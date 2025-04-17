@@ -5,7 +5,7 @@ class ChartConfig {
   final String id;
   final String title;
   final Map<String, List<FlSpot>> dataPoints;
-  final Map<int, String> notes = {};
+  final Map<DateTime, String> notes = {};
   final Color color;
 
   ChartConfig({
@@ -18,5 +18,8 @@ class ChartConfig {
   void addDataPoint(String sensorName, FlSpot spot) {
     dataPoints.putIfAbsent(sensorName, () => []);
     dataPoints[sensorName]!.add(spot);
+  }
+  void addNote(DateTime time, String noteText) {
+    notes[time] = noteText;
   }
 }
