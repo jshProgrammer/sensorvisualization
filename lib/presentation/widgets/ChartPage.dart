@@ -37,7 +37,7 @@ class _ChartPageState extends State<ChartPage> {
 
   int? selectedPointIndex;
 
-  Set<MultiSelectDialogItem> selectedValues = Set<MultiSelectDialogItem>();
+  Map<String, Set<MultiSelectDialogItem>> selectedValues = {};
 
   final GlobalKey _chartKey = GlobalKey();
 
@@ -47,13 +47,34 @@ class _ChartPageState extends State<ChartPage> {
 
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
-  //Only for Simulation
-  /*@override
+
+  @override
   void initState() {
     super.initState();
 
     _startTime = DateTime.now();
+
+    _dataSubscription = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).dataStream.listen(_handleSensorData);
+
+    Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    ).measurementStopped.listen((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Messung wurde gestoppt"),
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
     _transformationController = TransformationController();
+
     simulator = SensorDataSimulator(
       onDataGenerated: (data) {
         if (mounted) {
@@ -102,50 +123,13 @@ class _ChartPageState extends State<ChartPage> {
     simulator.init();
   }
 
-  //Only for Simulation
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    simulator.stopSimulation();
-    _dataSubscription.cancel();
-    super.dispose();
-  }*/
-
-  //Working on real sceanario
-  @override
-  void initState() {
-    super.initState();
-
-    _startTime = DateTime.now();
-
-    _dataSubscription = Provider.of<ConnectionProvider>(
-      context,
-      listen: false,
-    ).dataStream.listen(_handleSensorData);
-
-    Provider.of<ConnectionProvider>(
-      context,
-      listen: false,
-    ).measurementStopped.listen((_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Messung wurde gestoppt"),
-            duration: Duration(seconds: 4),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    });
-    _transformationController = TransformationController();
-  }
-
   //Working on real sceanario
   @override
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
     _dataSubscription.cancel();
+    simulator.stopSimulation();
     super.dispose();
   }
 
@@ -240,13 +224,10 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void _showMultiSelect(BuildContext context) async {
-    final result = await showDialog<Set<MultiSelectDialogItem>>(
+    final result = await showDialog<Map<String, Set<MultiSelectDialogItem>>>(
       context: context,
       builder: (BuildContext context) {
-        return Multiselectdialogwidget(
-          items: SampleData.getSensorChoices(),
-          initialSelectedValues: selectedValues,
-        );
+        return Multiselectdialogwidget(initialSelectedValues: selectedValues);
       },
     );
 

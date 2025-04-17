@@ -28,7 +28,30 @@ class SampleData {
     ];
   }
 
-  static List<MultiSelectDialogItem> getSensorChoices() {
+  static List<MultiSelectDialogItem> getSensorChoices(String sensorName) {
+    if (sensorName == SensorType.simulatedData.displayName) {
+      return [
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          type: ItemType.seperator,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          attribute: 'x',
+          type: ItemType.data,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          attribute: 'y',
+          type: ItemType.data,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData.displayName,
+          attribute: 'z',
+          type: ItemType.data,
+        ),
+      ];
+    }
     return <MultiSelectDialogItem>[
       MultiSelectDialogItem(
         sensorName: SensorType.accelerometer.displayName,
@@ -86,25 +109,6 @@ class SampleData {
       ),
       MultiSelectDialogItem(
         sensorName: SensorType.magnetometer.displayName,
-        attribute: 'z',
-        type: ItemType.data,
-      ),
-      MultiSelectDialogItem(
-        sensorName: SensorType.simulatedData.displayName,
-        type: ItemType.seperator,
-      ),
-      MultiSelectDialogItem(
-        sensorName: SensorType.simulatedData.displayName,
-        attribute: 'x',
-        type: ItemType.data,
-      ),
-      MultiSelectDialogItem(
-        sensorName: SensorType.simulatedData.displayName,
-        attribute: 'y',
-        type: ItemType.data,
-      ),
-      MultiSelectDialogItem(
-        sensorName: SensorType.simulatedData.displayName,
         attribute: 'z',
         type: ItemType.data,
       ),

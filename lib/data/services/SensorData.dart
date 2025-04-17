@@ -6,7 +6,7 @@ import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 
 class Sensordata {
-  late Set<MultiSelectDialogItem> selectedLines;
+  late Map<String, Set<MultiSelectDialogItem>> selectedLines;
   late ChartConfig chartConfig;
   int secondsToDisplay = 10;
   double baselineX;
@@ -48,10 +48,12 @@ class Sensordata {
     bool Function(double a, double b) compare,
     double fallbackValue,
   ) {
-    final Iterable<double> values = selectedLines
+    final Iterable<double> values = selectedLines.values
         .expand(
-          (item) =>
-              chartConfig.dataPoints[item.sensorName + item.attribute!] ?? [],
+          (set) => set.expand(
+            (item) =>
+                chartConfig.dataPoints[item.sensorName + item.attribute!] ?? [],
+          ),
         )
         .cast<FlSpot>()
         .map(selector);
@@ -177,9 +179,14 @@ class Sensordata {
     List<LineChartBarData> toReturn = [];
     int index = 0;
 
-    for (MultiSelectDialogItem sensor in selectedLines) {
-      toReturn.add(_getCorrespondingLineChartBarData(sensor, index));
-      index++;
+    for (String device in selectedLines.keys) {
+      if (selectedLines[device] == null) {
+        continue;
+      }
+      for (MultiSelectDialogItem sensor in selectedLines[device]!) {
+        toReturn.add(_getCorrespondingLineChartBarData(sensor, index));
+        index++;
+      }
     }
 
     return toReturn;
