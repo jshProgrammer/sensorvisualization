@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:sensorvisualization/data/models/SensorType.dart';
 
-class ConnectionToSender {
+class SensorServer {
   final void Function(Map<String, dynamic>) onDataReceived;
   final void Function()? onMeasurementStopped;
   final void Function()? onConnectionChanged;
@@ -12,7 +12,7 @@ class ConnectionToSender {
   final Map<SensorType, Map<SensorOrientation, double>> nullMeasurementValues =
       {};
 
-  ConnectionToSender({
+  SensorServer({
     required this.onDataReceived,
     this.onMeasurementStopped,
     this.onConnectionChanged,

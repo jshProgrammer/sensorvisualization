@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class Warninglevelsselection extends StatefulWidget {
-  const Warninglevelsselection({super.key});
+  final Map<String, List<WarningRange>>? initialValues;
+
+  const Warninglevelsselection({super.key, this.initialValues});
 
   @override
   State<StatefulWidget> createState() => _WarningLevelSelectionState();
@@ -19,8 +21,107 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
   @override
   void initState() {
     super.initState();
-    _addYellowField();
-    _addRedField();
+
+    if (widget.initialValues != null) {
+      if (widget.initialValues!['green'] != null &&
+          widget.initialValues!['green']!.isNotEmpty) {
+        final greenRange = widget.initialValues!['green']![0];
+        if (greenRange.lower != 0.0 || greenRange.upper != 0.0) {
+          greenController1.text = greenRange.lower.toString();
+          greenController2.text = greenRange.upper.toString();
+        }
+      }
+
+      if (widget.initialValues!['yellow'] != null &&
+          widget.initialValues!['yellow']!.isNotEmpty) {
+        for (var range in widget.initialValues!['yellow']!) {
+          if (range.lower != 0.0 || range.upper != 0.0) {
+            yellowControllers.add({
+              'lower': TextEditingController(text: range.lower.toString()),
+              'upper': TextEditingController(text: range.upper.toString()),
+            });
+          }
+        }
+      }
+
+      // Rote Bereiche
+      if (widget.initialValues!['red'] != null &&
+          widget.initialValues!['red']!.isNotEmpty) {
+        for (var range in widget.initialValues!['red']!) {
+          if (range.lower != 0.0 || range.upper != 0.0) {
+            redControllers.add({
+              'lower': TextEditingController(text: range.lower.toString()),
+              'upper': TextEditingController(text: range.upper.toString()),
+            });
+          }
+        }
+      }
+    }
+
+    if (yellowControllers.isEmpty) {
+      _addYellowField();
+    }
+
+    if (redControllers.isEmpty) {
+      _addRedField();
+    }
+  }
+
+  Map<String, List<WarningRange>> _collectValues() {
+    List<WarningRange> greenRanges = [];
+
+    if (greenController1.text.isNotEmpty && greenController2.text.isNotEmpty) {
+      greenRanges.add(
+        WarningRange(
+          double.tryParse(greenController1.text.replaceAll(',', '.')) ?? 0.0,
+          double.tryParse(greenController2.text.replaceAll(',', '.')) ?? 0.0,
+        ),
+      );
+    }
+
+    List<WarningRange> yellowRanges =
+        yellowControllers
+            .where(
+              (controllers) =>
+                  controllers['lower']!.text.isNotEmpty &&
+                  controllers['upper']!.text.isNotEmpty,
+            )
+            .map((controllers) {
+              return WarningRange(
+                double.tryParse(
+                      controllers['lower']!.text.replaceAll(',', '.'),
+                    ) ??
+                    0.0,
+                double.tryParse(
+                      controllers['upper']!.text.replaceAll(',', '.'),
+                    ) ??
+                    0.0,
+              );
+            })
+            .toList();
+
+    List<WarningRange> redRanges =
+        redControllers
+            .where(
+              (controllers) =>
+                  controllers['lower']!.text.isNotEmpty &&
+                  controllers['upper']!.text.isNotEmpty,
+            )
+            .map((controllers) {
+              return WarningRange(
+                double.tryParse(
+                      controllers['lower']!.text.replaceAll(',', '.'),
+                    ) ??
+                    0.0,
+                double.tryParse(
+                      controllers['upper']!.text.replaceAll(',', '.'),
+                    ) ??
+                    0.0,
+              );
+            })
+            .toList();
+
+    return {'green': greenRanges, 'yellow': yellowRanges, 'red': redRanges};
   }
 
   void _addYellowField() {
@@ -149,7 +250,7 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
                     border: OutlineInputBorder(),
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,\s]')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,\s, -]')),
                   ],
                 ),
               ),
@@ -167,7 +268,7 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
                     border: OutlineInputBorder(),
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,\s]')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,\s, -]')),
                   ],
                 ),
               ),
@@ -176,37 +277,6 @@ class _WarningLevelSelectionState extends State<Warninglevelsselection> {
         ],
       ),
     );
-  }
-
-  Map<String, List<WarningRange>> _collectValues() {
-    List<WarningRange> greenRanges = [
-      WarningRange(
-        double.tryParse(greenController1.text.replaceAll(',', '.')) ?? 0.0,
-        double.tryParse(greenController2.text.replaceAll(',', '.')) ?? 0.0,
-      ),
-    ];
-
-    List<WarningRange> yellowRanges =
-        yellowControllers.map((controllers) {
-          return WarningRange(
-            double.tryParse(controllers['lower']!.text.replaceAll(',', '.')) ??
-                0.0,
-            double.tryParse(controllers['upper']!.text.replaceAll(',', '.')) ??
-                0.0,
-          );
-        }).toList();
-
-    List<WarningRange> redRanges =
-        redControllers.map((controllers) {
-          return WarningRange(
-            double.tryParse(controllers['lower']!.text.replaceAll(',', '.')) ??
-                0.0,
-            double.tryParse(controllers['upper']!.text.replaceAll(',', '.')) ??
-                0.0,
-          );
-        }).toList();
-
-    return {'green': greenRanges, 'yellow': yellowRanges, 'red': redRanges};
   }
 }
 

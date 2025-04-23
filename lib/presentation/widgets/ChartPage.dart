@@ -8,7 +8,7 @@ import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
 
-import 'package:sensorvisualization/data/services/ConnectionToSender.dart';
+import 'package:sensorvisualization/data/services/SensorServer.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
@@ -248,7 +248,7 @@ void _showAllNotes() {
     final result = await showDialog<Map<String, List<WarningRange>>>(
       context: context,
       builder: (BuildContext context) {
-        return Warninglevelsselection();
+        return Warninglevelsselection(initialValues: warningRanges);
       },
     );
 

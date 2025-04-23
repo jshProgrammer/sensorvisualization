@@ -2,24 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
+import 'package:sensorvisualization/data/services/SensorClient.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
-class StartMeasurementScreen extends StatefulWidget {
-  final String hostIPAddress;
-  final String deviceName;
+class StartNullMeasurementScreen extends StatefulWidget {
+  final SensorClient connection;
 
-  const StartMeasurementScreen({
-    required this.hostIPAddress,
-    required this.deviceName,
-  });
+  const StartNullMeasurementScreen({required this.connection});
 
   @override
-  State<StatefulWidget> createState() => _StartMeasurementScreenState();
+  State<StatefulWidget> createState() => _StartNullMeasurementScreenState();
 }
 
-class _StartMeasurementScreenState extends State<StartMeasurementScreen> {
+class _StartNullMeasurementScreenState
+    extends State<StartNullMeasurementScreen> {
   Duration sensorInterval = Duration(milliseconds: 100);
 
   final _accelData = <List<double>>[];
@@ -131,20 +128,12 @@ class _StartMeasurementScreenState extends State<StartMeasurementScreen> {
       SensorType.barometer.displayName: _averageSingle(_baroData),
     };
 
-    var connection = ConnectionToRecipient(
-      hostIPAddress: widget.hostIPAddress,
-      deviceName: widget.deviceName,
-    );
-    connection.sendNullMeasurementAverage(result);
+    widget.connection.sendNullMeasurementAverage(result);
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => SensorMessScreen(
-              connection: connection,
-              deviceName: widget.deviceName,
-            ),
+        builder: (context) => SensorMessScreen(connection: widget.connection),
       ),
     );
   }
