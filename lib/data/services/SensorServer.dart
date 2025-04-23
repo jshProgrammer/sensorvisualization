@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
 
 class SensorServer {
   final void Function(Map<String, dynamic>) onDataReceived;
@@ -60,49 +61,17 @@ class SensorServer {
                 if (parsed['sensor'].contains("Durchschnittswert")) {
                   _storeNullMeasurementValues(parsed);
                 } else {
-                  final rawX =
-                      (parsed['x'] is String)
-                          ? double.tryParse(parsed['x'])
-                          : parsed['x'];
-                  final rawY =
-                      (parsed['y'] is String)
-                          ? double.tryParse(parsed['y'])
-                          : parsed['y'];
-                  final rawZ =
-                      (parsed['z'] is String)
-                          ? double.tryParse(parsed['z'])
-                          : parsed['z'];
-
                   final sensorType = SensorTypeExtension.fromString(
                     parsed['sensor'],
                   );
 
-                  final nulls = nullMeasurementValues[sensorType];
-
-                  //TODO: Barometer is ignored yet
-                  final calibratedX =
-                      rawX != null && nulls != null
-                          ? rawX - (nulls[SensorOrientation.x] ?? 0.0)
-                          : rawX;
-                  final calibratedY =
-                      rawY != null && nulls != null
-                          ? rawY - (nulls[SensorOrientation.y] ?? 0.0)
-                          : rawY;
-                  final calibratedZ =
-                      rawZ != null && nulls != null
-                          ? rawZ - (nulls[SensorOrientation.z] ?? 0.0)
-                          : rawZ;
-
-                  final sensorData = {
-                    'sensor': parsed['sensor'],
-                    'timestamp': parsed['timestamp'],
-                    'x': calibratedX,
-                    'y': calibratedY,
-                    'z': calibratedZ,
-                  };
-
-                  print("Sensor Data: $sensorData");
-                  onDataReceived(sensorData);
+                  onDataReceived(
+                    SensorDataTransformation.returnRelativeSensorDataAsJson(
+                      nullMeasurementValues[sensorType]!,
+                      parsed,
+                      sensorType,
+                    ),
+                  );
                 }
               }
             } catch (e) {
