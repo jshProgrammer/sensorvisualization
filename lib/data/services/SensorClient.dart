@@ -7,7 +7,7 @@ import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-class ConnectionToRecipient {
+class SensorClient {
   late WebSocketChannel channel;
 
   late StreamSubscription accelerometerSub;
@@ -18,10 +18,7 @@ class ConnectionToRecipient {
   final String hostIPAddress;
   final String deviceName;
 
-  ConnectionToRecipient({
-    required this.hostIPAddress,
-    required this.deviceName,
-  }) {
+  SensorClient({required this.hostIPAddress, required this.deviceName}) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
   }
 
@@ -34,7 +31,9 @@ class ConnectionToRecipient {
 
   Duration sensorInterval = Duration(seconds: 1);
 
-  Future<void> initSocket() async {
+  Future<bool> initSocket() async {
+    final completer = Completer<bool>();
+
     final initializationMessage = jsonEncode({
       "type": "ConnectionRequest",
       "ip": await _retrieveLocalIP(),
@@ -42,27 +41,33 @@ class ConnectionToRecipient {
     });
     channel.sink.add(initializationMessage);
 
-    //TODO: wait for response if connection has been successful
+    channel.stream.listen(
+      (data) {
+        try {
+          final decoded = jsonDecode(data);
+          if (decoded['response'] == 'Connection accepted') {
+            completer.complete(true);
+          }
+        } catch (e) {
+          completer.complete(false);
+        }
+      },
+      onError: (err) {
+        completer.complete(false);
+      },
+    );
 
-    /*userAccelerometerEventStream(samplingPeriod: sensorInterval).listen((
-      UserAccelerometerEvent event,
-    ) {
-      final now = event.timestamp;
-      final message = {
-        'sensor': SensorType.userAccelerometer.displayName,
-        'timestamp': now.toString(),
-        'x': event.x,
-        'y': event.y,
-        'z': event.z,
-      };
-      channel.sink.add(jsonEncode(message));
-    });*/
+    return completer.future;
+  }
 
+  Future<void> startSensorStream() async {
+    final localIP = await _retrieveLocalIP();
     accelerometerSub = accelerometerEventStream(
       samplingPeriod: sensorInterval,
     ).listen((AccelerometerEvent event) {
       final now = event.timestamp;
       final message = {
+        'ip': localIP,
         'sensor': SensorType.accelerometer.displayName,
         'timestamp': now.toString(),
         'x': event.x,
@@ -77,6 +82,7 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
+        'ip': localIP,
         'sensor': SensorType.gyroscope.displayName,
         'timestamp': now.toString(),
         'x': event.x,
@@ -91,6 +97,7 @@ class ConnectionToRecipient {
     ).listen((MagnetometerEvent event) {
       final now = event.timestamp;
       final message = {
+        'ip': localIP,
         'sensor': SensorType.magnetometer.displayName,
         'timestamp': now.toString(),
         'x': event.x,
@@ -105,9 +112,10 @@ class ConnectionToRecipient {
     ) {
       final now = event.timestamp;
       final message = {
+        'ip': localIP,
         'sensor': SensorType.barometer.displayName,
         'timestamp': now.toString(),
-        'x': event.pressure,
+        'pressure': event.pressure,
       };
       channel.sink.add(jsonEncode(message));
     });

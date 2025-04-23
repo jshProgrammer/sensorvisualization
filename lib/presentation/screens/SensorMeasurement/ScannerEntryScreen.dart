@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartMeasurementScreen.dart';
+import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementScreen.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'QRScannerScreen.dart';
 
@@ -15,6 +16,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
   final TextEditingController _deviceNameController = TextEditingController();
 
   bool _isDeviceNameEntered = false;
+  late SensorClient connection;
 
   @override
   void initState() {
@@ -31,10 +33,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
       context,
       MaterialPageRoute(
         builder:
-            (context) => StartMeasurementScreen(
-              hostIPAddress: ipAddress,
-              deviceName: _deviceNameController.text.trim(),
-            ),
+            (context) => StartNullMeasurementScreen(connection: connection),
       ),
     );
   }
@@ -112,7 +111,34 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
             ElevatedButton(
               onPressed: () {
                 if (_ipController.text.isNotEmpty) {
-                  _navigateToStartMeasurementPage(_ipController.text.trim());
+                  var connection = SensorClient(
+                    hostIPAddress: _ipController.text.trim(),
+                    deviceName: _deviceNameController.text.trim(),
+                  );
+                  connection.initSocket().then((isConnected) {
+                    if (isConnected) {
+                      _navigateToStartMeasurementPage(
+                        _ipController.text.trim(),
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Verbindungsfehler'),
+                              content: const Text(
+                                'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                      );
+                    }
+                  });
                 }
               },
               child: const Text('Weiter zur Messung'),

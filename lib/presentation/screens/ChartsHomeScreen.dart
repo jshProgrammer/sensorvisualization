@@ -115,7 +115,17 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                 builder:
                     (BuildContext context) => AlertDialog(
                       title: Text('QR-Code der IP-Adresse'),
-                      content: PrettyQrView.data(data: ip!),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PrettyQrView.data(data: ip!),
+                          SizedBox(height: 10),
+                          Text(
+                            'IP-Adresse: $ip',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
                       actions: [
                         TextButton(
                           child: Text('Schließen'),
