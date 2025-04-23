@@ -254,7 +254,7 @@ class _ChartPageState extends State<ChartPage> {
     final result = await showDialog<Map<String, List<WarningRange>>>(
       context: context,
       builder: (BuildContext context) {
-        return Warninglevelsselection();
+        return Warninglevelsselection(initialValues: warningRanges);
       },
     );
 
