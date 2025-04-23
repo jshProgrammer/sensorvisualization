@@ -265,29 +265,33 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
-  void _showAddNoteDialog() {
-  TextEditingController controller = TextEditingController();
-  
+  void addNote(DateTime time, {String? initialText}) {
+  TextEditingController controller = TextEditingController(text: initialText);
+
+  if (widget.chartConfig.notes.containsKey(time)) {
+      controller.text = widget.chartConfig.notes[time]!;
+    }
+
   showDialog(
     context: context,
-    builder: (BuildContext context) {
+    builder: (context) {
       return AlertDialog(
-        title: const Text("Neue Notiz hinzufügen"),
+        title: Text("Notiz für Zeit $time"),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(hintText: "Notiz eingeben..."),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text("Abbrechen"),
           ),
           TextButton(
             onPressed: () {
               setState(() {
-                widget.chartConfig.addNote(DateTime.now(), controller.text);
+                widget.chartConfig.notes[time] = controller.text;
               });
-              Navigator.of(context).pop();
+              Navigator.pop(context);
             },
             child: const Text("Speichern"),
           ),
@@ -420,7 +424,8 @@ class _ChartPageState extends State<ChartPage> {
       IconButton(
       icon: const Icon(Icons.add_comment),
       onPressed: () {
-        _showAddNoteDialog();
+        DateTime now = DateTime.now();
+        addNote(now);
       },
       tooltip: 'Notiz hinzufügen',
     ),
@@ -477,41 +482,41 @@ class _ChartPageState extends State<ChartPage> {
   //     },
   //   );
   // }
-    void addNote(DateTime time) {
-    TextEditingController controller = TextEditingController();
+  //   void addNote(DateTime time) {
+  //   TextEditingController controller = TextEditingController();
 
-    if (widget.chartConfig.notes.containsKey(time)) {
-      controller.text = widget.chartConfig.notes[time]!;
-    }
+  //   if (widget.chartConfig.notes.containsKey(time)) {
+  //     controller.text = widget.chartConfig.notes[time]!;
+  //   }
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Notiz für Punkt $time"),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: "Notiz eingeben..."),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Abbrechen"),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  widget.chartConfig.notes[time] = controller.text;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("Speichern"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text("Notiz für Zeit $time"),
+  //         content: TextField(
+  //           controller: controller,
+  //           decoration: const InputDecoration(hintText: "Notiz eingeben..."),
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text("Abbrechen"),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               setState(() {
+  //                 widget.chartConfig.notes[time] = controller.text;
+  //               });
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text("Speichern"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   double get maxX => widget.chartConfig.dataPoints.values
       .expand((list) => list)
@@ -524,17 +529,17 @@ class _ChartPageState extends State<ChartPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    appBar: AppBar(
-      title: Text(widget.chartConfig.title),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.note_add),
-          onPressed: () {
-            addNote(DateTime.now());
-          },
-        ),
-      ],
-    ),
+    // appBar: AppBar(
+    //   title: Text(widget.chartConfig.title),
+    //   actions: [
+    //     IconButton(
+    //       icon: Icon(Icons.note_add),
+    //       onPressed: () {
+    //         addNote(DateTime.now());
+    //       },
+    //     ),
+    //   ],
+    // ),
     body: GestureDetector(
       // onTapUp: (details) {
       //   final touchX = details.localPosition.dx;
