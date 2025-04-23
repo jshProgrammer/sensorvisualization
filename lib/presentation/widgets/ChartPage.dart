@@ -181,51 +181,91 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
-  void _showAllNotes() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Alle Notizen'),
-          content:
-              widget.chartConfig.notes.isEmpty
-                  ? const Text('Keine Notizen vorhanden')
-                  : SingleChildScrollView(
-                    child: ListBody(
-                      children:
-                          widget.chartConfig.notes.entries.map((entry) {
-                            final spot = widget.chartConfig.dataPoints.values
-                                .expand((innerList) => innerList)
-                                .firstWhere((e) => e.x.toInt() == entry.key);
-                            return ListTile(
-                              title: Text(
-                                'Punkt ${entry.key} (Wert: ${spot.y.toStringAsFixed(1)})',
-                              ),
-                              subtitle: Text(entry.value),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  setState(() {
-                                    widget.chartConfig.notes.remove(entry.key);
-                                    Navigator.of(context).pop();
-                                    _showAllNotes();
-                                  });
-                                },
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Schließen'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showAllNotes() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text('Alle Notizen'),
+  //         content:
+  //             widget.chartConfig.notes.isEmpty
+  //                 ? const Text('Keine Notizen vorhanden')
+  //                 : SingleChildScrollView(
+  //                   child: ListBody(
+  //                     children:
+  //                         widget.chartConfig.notes.entries.map((entry) {
+  //                           final spot = widget.chartConfig.dataPoints.values
+  //                               .expand((innerList) => innerList)
+  //                               .firstWhere((e) => e.x.toInt() == entry.key);
+  //                           return ListTile(
+  //                             title: Text(
+  //                               'Punkt ${entry.key} (Wert: ${spot.y.toStringAsFixed(1)})',
+  //                             ),
+  //                             subtitle: Text(entry.value),
+  //                             trailing: IconButton(
+  //                               icon: const Icon(Icons.delete),
+  //                               onPressed: () {
+  //                                 setState(() {
+  //                                   widget.chartConfig.notes.remove(entry.key);
+  //                                   Navigator.of(context).pop();
+  //                                   _showAllNotes();
+  //                                 });
+  //                               },
+  //                             ),
+  //                           );
+  //                         }).toList(),
+  //                   ),
+  //                 ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: const Text('Schließen'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
+void _showAllNotes() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Alle Notizen'),
+        content: widget.chartConfig.notes.isEmpty
+            ? const Text('Keine Notizen vorhanden')
+            : SingleChildScrollView(
+                child: ListBody(
+                  children: widget.chartConfig.notes.entries.map((entry) {
+                    return ListTile(
+                      title: Text('Zeit: ${entry.key.toLocal()}'),
+                      subtitle: Text(entry.value),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          setState(() {
+                            widget.chartConfig.notes.remove(entry.key);
+                            Navigator.of(context).pop();
+                            _showAllNotes();
+                          });
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Schließen'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   void _resetZoom() {
     setState(() {
