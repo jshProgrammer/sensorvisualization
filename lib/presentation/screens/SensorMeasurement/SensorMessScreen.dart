@@ -3,20 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/ConnectionToRecipient.dart';
+import 'package:sensorvisualization/data/services/SensorClient.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
 class SensorMessScreen extends StatefulWidget {
-  const SensorMessScreen({
-    super.key,
-    this.title,
-    required this.connection,
-    required this.deviceName,
-  });
+  const SensorMessScreen({super.key, this.title, required this.connection});
 
   final String? title;
-  final ConnectionToRecipient connection;
-  final String deviceName;
+  final SensorClient connection;
 
   @override
   State<SensorMessScreen> createState() => _SensorMessScreenState();
@@ -242,7 +236,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
     super.initState();
     //TODO: only when running on phone
 
-    widget.connection.initSocket();
+    widget.connection.startSensorStream();
 
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(

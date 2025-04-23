@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../services/ConnectionToSender.dart';
+import 'SensorServer.dart';
 
 class ConnectionProvider extends ChangeNotifier {
-  late ConnectionToSender _connectionToSender;
+  late SensorServer _connectionToSender;
   final Map<String, dynamic> _latestData = {};
 
   ConnectionProvider() {
-    _connectionToSender = ConnectionToSender(
+    _connectionToSender = SensorServer(
       onDataReceived: _handleDataReceived,
       onMeasurementStopped: _handleMeasurementStopped,
       onConnectionChanged: _handleConnectionChanged,

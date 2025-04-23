@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartMeasurementScreen.dart';
+import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementScreen.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 
 class QRScannerScreen extends StatefulWidget {
@@ -31,17 +32,41 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     scannedCode = code;
                   });
                   debugPrint('Scanned QR Code: $code');
-                  //Navigator.pop(context, code);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => StartMeasurementScreen(
-                            hostIPAddress: code,
-                            deviceName: widget.deviceName,
-                          ),
-                    ),
+
+                  var connection = SensorClient(
+                    hostIPAddress: scannedCode!,
+                    deviceName: widget.deviceName,
                   );
+                  connection.initSocket().then((isConnected) {
+                    if (isConnected) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => StartNullMeasurementScreen(
+                                connection: connection,
+                              ),
+                        ),
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text('Verbindungsfehler'),
+                              content: const Text(
+                                'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                      );
+                    }
+                  });
                 }
               },
             ),
