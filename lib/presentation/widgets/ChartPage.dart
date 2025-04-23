@@ -181,52 +181,6 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
-  // void _showAllNotes() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text('Alle Notizen'),
-  //         content:
-  //             widget.chartConfig.notes.isEmpty
-  //                 ? const Text('Keine Notizen vorhanden')
-  //                 : SingleChildScrollView(
-  //                   child: ListBody(
-  //                     children:
-  //                         widget.chartConfig.notes.entries.map((entry) {
-  //                           final spot = widget.chartConfig.dataPoints.values
-  //                               .expand((innerList) => innerList)
-  //                               .firstWhere((e) => e.x.toInt() == entry.key);
-  //                           return ListTile(
-  //                             title: Text(
-  //                               'Punkt ${entry.key} (Wert: ${spot.y.toStringAsFixed(1)})',
-  //                             ),
-  //                             subtitle: Text(entry.value),
-  //                             trailing: IconButton(
-  //                               icon: const Icon(Icons.delete),
-  //                               onPressed: () {
-  //                                 setState(() {
-  //                                   widget.chartConfig.notes.remove(entry.key);
-  //                                   Navigator.of(context).pop();
-  //                                   _showAllNotes();
-  //                                 });
-  //                               },
-  //                             ),
-  //                           );
-  //                         }).toList(),
-  //                   ),
-  //                 ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: const Text('Schließen'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
 void _showAllNotes() {
   showDialog(
     context: context,
@@ -487,77 +441,6 @@ void _showAllNotes() {
     ];
   }
 
-  // void addNote(int index) {
-  //   TextEditingController controller = TextEditingController();
-
-  //   if (widget.chartConfig.notes.containsKey(index)) {
-  //     controller.text = widget.chartConfig.notes[index]!;
-  //   }
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text("Notiz für Punkt $index"),
-  //         content: TextField(
-  //           controller: controller,
-  //           decoration: const InputDecoration(hintText: "Notiz eingeben..."),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             child: const Text("Abbrechen"),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               setState(() {
-  //                 widget.chartConfig.notes[index] = controller.text;
-  //               });
-  //               Navigator.pop(context);
-  //             },
-  //             child: const Text("Speichern"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-  //   void addNote(DateTime time) {
-  //   TextEditingController controller = TextEditingController();
-
-  //   if (widget.chartConfig.notes.containsKey(time)) {
-  //     controller.text = widget.chartConfig.notes[time]!;
-  //   }
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: Text("Notiz für Zeit $time"),
-  //         content: TextField(
-  //           controller: controller,
-  //           decoration: const InputDecoration(hintText: "Notiz eingeben..."),
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             child: const Text("Abbrechen"),
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               setState(() {
-  //                 widget.chartConfig.notes[time] = controller.text;
-  //               });
-  //               Navigator.pop(context);
-  //             },
-  //             child: const Text("Speichern"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
   double get maxX => widget.chartConfig.dataPoints.values
       .expand((list) => list)
       .fold(0.0, (prev, spot) => spot.x > prev ? spot.x : prev);
@@ -569,36 +452,12 @@ void _showAllNotes() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    // appBar: AppBar(
-    //   title: Text(widget.chartConfig.title),
-    //   actions: [
-    //     IconButton(
-    //       icon: Icon(Icons.note_add),
-    //       onPressed: () {
-    //         addNote(DateTime.now());
-    //       },
-    //     ),
-    //   ],
-    // ),
-    body: GestureDetector(
-      // onTapUp: (details) {
-      //   final touchX = details.localPosition.dx;
-      //   final chartWidth = MediaQuery.of(context).size.width - 32;
-      //   final pointSpacing =
-      //       chartWidth / (widget.chartConfig.dataPoints.length - 1);
-
-      //   final index = (touchX / pointSpacing).round();
-
-      //   if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-      //     addNote(index);
-      //   }
-      // },
-      child: Scaffold(
         appBar: AppBar(
           title: Text(widget.chartConfig.title),
           actions: buildAppBarActions(),
         ),
-        body: InteractiveViewer(
+        body: GestureDetector(
+          child: InteractiveViewer(
           transformationController: _transformationController,
           minScale: 0.1,
           maxScale: 10.0,
@@ -696,7 +555,6 @@ void _showAllNotes() {
           ),
         ),
       ),
-    ),
     );
   }
 }
