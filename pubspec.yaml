@@ -46,6 +46,12 @@ dependencies:
   share_plus: ^10.1.4
   flutter_launcher_icons: ^0.14.3   
   url_launcher: ^6.2.5
+  drift: ^2.26.0
+  #drift_flutter: ^0.2.4
+  drift_sqflite: ^2.0.1
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  csv: ^5.0.2
 
   provider: ^6.1.4
 
@@ -54,6 +60,8 @@ dependencies:
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
+  drift_dev: ^2.26.0
+  build_runner: ^2.4.15
   flutter_test:
     sdk: flutter
 
