@@ -28,88 +28,88 @@ class SampleData {
     ];
   }
 
-  static List<MultiSelectDialogItem> getSensorChoices(String sensorName) {
-    if (sensorName == SensorType.simulatedData.displayName) {
+  static List<MultiSelectDialogItem> getSensorChoices(SensorType sensorName) {
+    if (sensorName == SensorType.simulatedData) {
       return [
         MultiSelectDialogItem(
-          sensorName: SensorType.simulatedData.displayName,
+          sensorName: SensorType.simulatedData,
           type: ItemType.seperator,
         ),
         MultiSelectDialogItem(
-          sensorName: SensorType.simulatedData.displayName,
-          attribute: 'x',
+          sensorName: SensorType.simulatedData,
+          attribute: SensorOrientation.x,
           type: ItemType.data,
         ),
         MultiSelectDialogItem(
-          sensorName: SensorType.simulatedData.displayName,
-          attribute: 'y',
+          sensorName: SensorType.simulatedData,
+          attribute: SensorOrientation.y,
           type: ItemType.data,
         ),
         MultiSelectDialogItem(
-          sensorName: SensorType.simulatedData.displayName,
-          attribute: 'z',
+          sensorName: SensorType.simulatedData,
+          attribute: SensorOrientation.z,
           type: ItemType.data,
         ),
       ];
     }
     return <MultiSelectDialogItem>[
       MultiSelectDialogItem(
-        sensorName: SensorType.accelerometer.displayName,
+        sensorName: SensorType.accelerometer,
         type: ItemType.seperator,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.accelerometer.displayName,
-        attribute: 'x',
+        sensorName: SensorType.accelerometer,
+        attribute: SensorOrientation.x,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.accelerometer.displayName,
-        attribute: 'y',
+        sensorName: SensorType.accelerometer,
+        attribute: SensorOrientation.y,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.accelerometer.displayName,
-        attribute: 'z',
+        sensorName: SensorType.accelerometer,
+        attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
 
       MultiSelectDialogItem(
-        sensorName: SensorType.gyroscope.displayName,
+        sensorName: SensorType.gyroscope,
         type: ItemType.seperator,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.gyroscope.displayName,
-        attribute: 'x',
+        sensorName: SensorType.gyroscope,
+        attribute: SensorOrientation.x,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.gyroscope.displayName,
-        attribute: 'y',
+        sensorName: SensorType.gyroscope,
+        attribute: SensorOrientation.y,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.gyroscope.displayName,
-        attribute: 'z',
+        sensorName: SensorType.gyroscope,
+        attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
 
       MultiSelectDialogItem(
-        sensorName: SensorType.magnetometer.displayName,
+        sensorName: SensorType.magnetometer,
         type: ItemType.seperator,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.magnetometer.displayName,
-        attribute: 'x',
+        sensorName: SensorType.magnetometer,
+        attribute: SensorOrientation.x,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.magnetometer.displayName,
-        attribute: 'y',
+        sensorName: SensorType.magnetometer,
+        attribute: SensorOrientation.y,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(
-        sensorName: SensorType.magnetometer.displayName,
-        attribute: 'z',
+        sensorName: SensorType.magnetometer,
+        attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
     ];

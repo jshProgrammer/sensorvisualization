@@ -10,8 +10,8 @@ class SensorServer {
   final void Function()? onMeasurementStopped;
   final void Function()? onConnectionChanged;
 
-  final Map<SensorType, Map<SensorOrientation, double>> nullMeasurementValues =
-      {};
+  static final Map<SensorType, Map<SensorOrientation, double>>
+  nullMeasurementValues = {};
 
   SensorServer({
     required this.onDataReceived,
@@ -66,8 +66,7 @@ class SensorServer {
                   );
 
                   onDataReceived(
-                    SensorDataTransformation.returnRelativeSensorDataAsJson(
-                      nullMeasurementValues[sensorType]!,
+                    SensorDataTransformation.returnAbsoluteSensorDataAsJson(
                       parsed,
                       sensorType,
                     ),

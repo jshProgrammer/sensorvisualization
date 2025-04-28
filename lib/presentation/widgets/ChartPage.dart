@@ -6,13 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
-import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
+import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
+import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 
 import 'package:sensorvisualization/data/services/SensorServer.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
+import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
+import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/ChartConfig.dart';
 import '../../data/models/ColorSettings.dart';
@@ -148,9 +152,9 @@ class _ChartPageState extends State<ChartPage> {
         //TODO: find out how exact timestamp should be displayed
         final double timestamp =
             data["timestamp"] != null
-                ? DateTime.parse(
-                  data["timestamp"].toString(),
-                ).difference(_startTime).inSeconds.toDouble()
+                ? SensorDataTransformation.transformDateTimeToSecondsAsDouble(
+                  DateTime.parse(data["timestamp"].toString()),
+                )
                 : 0.0;
         final double x =
             (data['x'] != null && data['x'] is num)
@@ -441,14 +445,50 @@ class _ChartPageState extends State<ChartPage> {
 
   double get maxX => widget.chartConfig.dataPoints.values
       .expand((list) => list)
-      .fold(0.0, (prev, spot) => spot.x > prev ? spot.x : prev);
+      .fold(
+        0.0,
+        (prev, spot) => spot.x > prev ? spot.x : prev,
+      ); // calculated in milliseconds * 1000 since epoch
 
   double get maxY => widget.chartConfig.dataPoints.values
       .expand((list) => list)
       .fold(0.0, (prev, spot) => spot.y > prev ? spot.y : prev);
 
+  Tuple2<double, double> getSliderMinMax(SettingsProvider settingsProvider) {
+    double sliderMin;
+    double sliderMax;
+
+    /*if (settingsProvider.selectedTimeChoice ==
+        TimeChoice.relativeToStart.value) {*/
+    sliderMin = 0;
+    sliderMax =
+        //maxX == 0
+        /*?*/ settingsProvider.scrollingSeconds.toDouble();
+    /*: SensorDataTransformation.transformDateTimeToSecondsSinceStart(
+                DateTime.fromMillisecondsSinceEpoch((maxX * 1000).toInt()),
+              ).toDouble();*/
+    /*} else {
+      sliderMin = SensorDataTransformation.transformDateTimeToSecondsAsDouble(
+        GlobalStartTime().startTime,
+      );
+      sliderMax = maxX;
+    }
+
+    if (sliderMax < sliderMin) {
+      // e.g. if no data has been sent yet
+      sliderMax = sliderMin + 1;
+    }*/
+
+    return Tuple2(sliderMin, sliderMax);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+
     return GestureDetector(
       onTapUp: (details) {
         final touchX = details.localPosition.dx;
@@ -509,6 +549,11 @@ class _ChartPageState extends State<ChartPage> {
                                     autoFollowLatestData: autoFollowLatestData,
                                     baselineX: baselineX,
                                     warningRanges: warningRanges,
+                                    settingsProvider:
+                                        Provider.of<SettingsProvider>(
+                                          context,
+                                          listen: false,
+                                        ),
                                   ).getLineChart(
                                     baselineX,
                                     (20 - (baselineY + 10)) - 10,
@@ -522,15 +567,23 @@ class _ChartPageState extends State<ChartPage> {
                             children: [
                               Expanded(
                                 child: Slider(
-                                  value: baselineX,
+                                  //TODO: bei zeit ab start geht er bis -unlimited
+                                  //TODO: Slider startet immer links?!
+                                  value: baselineX.clamp(
+                                    getSliderMinMax(settingsProvider).item1,
+                                    getSliderMinMax(settingsProvider).item2,
+                                  ),
                                   onChanged: (newValue) {
                                     setState(() {
                                       autoFollowLatestData = false;
-                                      baselineX = newValue;
+                                      baselineX = newValue.clamp(
+                                        getSliderMinMax(settingsProvider).item1,
+                                        getSliderMinMax(settingsProvider).item2,
+                                      );
                                     });
                                   },
-                                  min: 0,
-                                  max: maxX,
+                                  min: getSliderMinMax(settingsProvider).item1,
+                                  max: getSliderMinMax(settingsProvider).item2,
                                 ),
                               ),
                               IconButton(

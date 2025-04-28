@@ -1,14 +1,24 @@
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 
 class SensorDataTransformation {
-  static double _transformSingleAbsoluteToRelativeValue(
+  static double transformSingleAbsoluteToRelativeValue(
     double absoluteValue,
     double nullMeasurement,
   ) {
     return absoluteValue - nullMeasurement;
   }
 
-  static Map<SensorOrientation, double> _transformAbsoluteToRelativeValues(
+  static int transformDateTimeToSecondsSinceStart(DateTime dateTime) {
+    return dateTime.difference(GlobalStartTime().startTime).inSeconds;
+  }
+
+  static double transformDateTimeToSecondsAsDouble(DateTime dateTime) {
+    return dateTime.millisecondsSinceEpoch.toDouble() /
+        1000; // Convert milliseconds to seconds
+  }
+
+  static Map<SensorOrientation, double> transformAbsoluteToRelativeValues(
     Map<SensorOrientation, double> nullMeasurementValues,
     Map<String, dynamic> absoluteSensorValues,
     SensorType? sensorType,
@@ -18,7 +28,7 @@ class SensorDataTransformation {
     if (sensorType == null || sensorType != SensorType.barometer) {
       for (SensorOrientation sensorOrientation in nullMeasurementValues.keys) {
         relativeSensorValues[sensorOrientation] =
-            _transformSingleAbsoluteToRelativeValue(
+            transformSingleAbsoluteToRelativeValue(
               (absoluteSensorValues[sensorOrientation.displayName] is String)
                   ? double.tryParse(
                     absoluteSensorValues[sensorOrientation.displayName],
@@ -39,7 +49,7 @@ class SensorDataTransformation {
     SensorType? sensorType,
   ) {
     Map<SensorOrientation, double> relativeSensorValues =
-        SensorDataTransformation._transformAbsoluteToRelativeValues(
+        SensorDataTransformation.transformAbsoluteToRelativeValues(
           nullMeasurementValues,
           receivedJsonData,
           sensorType,
@@ -54,5 +64,17 @@ class SensorDataTransformation {
     };
   }
 
-  //TODO: vlt noch returnAbsoluteValues-Methode?!
+  static Map<String, dynamic> returnAbsoluteSensorDataAsJson(
+    Map<String, dynamic> receivedJsonData,
+    SensorType? sensorType,
+  ) {
+    return {
+      'sensor': receivedJsonData['sensor'],
+      //TODO: hier vlt problem!!!
+      'timestamp': receivedJsonData['timestamp'],
+      'x': receivedJsonData[SensorOrientation.x.displayName],
+      'y': receivedJsonData[SensorOrientation.y.displayName],
+      'z': receivedJsonData[SensorOrientation.z.displayName],
+    };
+  }
 }

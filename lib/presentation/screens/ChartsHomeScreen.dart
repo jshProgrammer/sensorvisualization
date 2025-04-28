@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
-import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
+import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
+import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
@@ -26,6 +28,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   void initState() {
     super.initState();
     _addNewChart();
+
+    GlobalStartTime().initializeStartTime();
   }
 
   void _addNewChart() {
@@ -62,10 +66,15 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
   int _selectedTimeChoice = 0;
   int _selectedAbsRelData = 0;
+
   TextEditingController _secondsController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensor visualization (THW)'),
@@ -94,8 +103,9 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                                 keyboardType: TextInputType.numberWithOptions(
                                   decimal: false,
                                 ),
-                                decoration: const InputDecoration(
-                                  labelText: 'default: 20s',
+                                decoration: InputDecoration(
+                                  labelText:
+                                      'default: ${SettingsProvider.DEFAULT_SCROLLING_SECONDS} s',
                                   border: OutlineInputBorder(),
                                 ),
                               ),
@@ -158,6 +168,31 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       TextButton(
                         child: Text('Schließen'),
                         onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      TextButton(
+                        child: Text('Speichern'),
+                        onPressed: () {
+                          if (_secondsController.text.isNotEmpty) {
+                            final seconds =
+                                int.tryParse(_secondsController.text) ??
+                                SettingsProvider.DEFAULT_SCROLLING_SECONDS;
+                            Provider.of<SettingsProvider>(
+                              context,
+                              listen: false,
+                            ).setScrollingSeconds(seconds);
+                          }
+
+                          Provider.of<SettingsProvider>(
+                            context,
+                            listen: false,
+                          ).setTimeChoice(_selectedTimeChoice);
+                          Provider.of<SettingsProvider>(
+                            context,
+                            listen: false,
+                          ).setDataMode(_selectedAbsRelData);
+
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ],
                   );
