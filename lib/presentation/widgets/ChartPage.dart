@@ -461,16 +461,16 @@ class _ChartPageState extends State<ChartPage> {
     double sliderMin;
     double sliderMax;
 
-    /*if (settingsProvider.selectedTimeChoice ==
-        TimeChoice.relativeToStart.value) {*/
-    sliderMin = 0;
-    sliderMax =
-        //maxX == 0
-        /*?*/ settingsProvider.scrollingSeconds.toDouble();
-    /*: SensorDataTransformation.transformDateTimeToSecondsSinceStart(
+    if (settingsProvider.selectedTimeChoice ==
+        TimeChoice.relativeToStart.value) {
+      sliderMin = 0;
+      sliderMax =
+          maxX == 0
+              ? settingsProvider.scrollingSeconds.toDouble()
+              : SensorDataTransformation.transformDateTimeToSecondsSinceStart(
                 DateTime.fromMillisecondsSinceEpoch((maxX * 1000).toInt()),
-              ).toDouble();*/
-    /*} else {
+              ).toDouble();
+    } else {
       sliderMin = SensorDataTransformation.transformDateTimeToSecondsAsDouble(
         GlobalStartTime().startTime,
       );
@@ -480,7 +480,7 @@ class _ChartPageState extends State<ChartPage> {
     if (sliderMax < sliderMin) {
       // e.g. if no data has been sent yet
       sliderMax = sliderMin + 1;
-    }*/
+    }
 
     return Tuple2(sliderMin, sliderMax);
   }

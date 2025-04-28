@@ -47,8 +47,6 @@ class Sensordata {
     final double xMax;
     final double currentMaxX = _getMaxX();
 
-    print("_getMaxX() returned: $currentMaxX");
-
     if (autoFollowLatestData) {
       xMin = currentMaxX - settingsProvider.scrollingSeconds;
       xMax = currentMaxX;
@@ -57,24 +55,16 @@ class Sensordata {
       xMax = baselineX;
     }
 
-    print("Filtering window: $xMin to $xMax (${xMax - xMin} seconds)");
-
     List<FlSpot> filteredData = [];
     final key = sensorName.displayName + attribute.displayName;
 
     if (chartConfig.dataPoints.containsKey(key)) {
       final allPoints = chartConfig.dataPoints[key]!;
-      print("Total points for $key: ${allPoints.length}");
-
-      // Print the actual x values to check their distribution
-      print("X values: ${allPoints.map((p) => p.x).toList()}");
 
       filteredData =
           allPoints
               .where((point) => point.x >= xMin && point.x <= xMax)
               .toList();
-
-      print("Filtered points count: ${filteredData.length}");
     }
 
     return filteredData;
@@ -83,8 +73,9 @@ class Sensordata {
   double _getExtremeValue(
     double Function(FlSpot spot) selector,
     bool Function(double a, double b) compare,
-    double fallbackValue,
-  ) {
+    double fallbackValue, {
+    bool Function(FlSpot spot)? filter,
+  }) {
     final Iterable<double> values = selectedLines.values
         .expand(
           (set) => set.expand(
@@ -95,6 +86,7 @@ class Sensordata {
           ),
         )
         .cast<FlSpot>()
+        .where((spot) => filter == null || filter(spot))
         .map(selector);
 
     return values.isEmpty
@@ -107,11 +99,33 @@ class Sensordata {
   }
 
   double _getMinY() {
-    return _getExtremeValue((spot) => spot.y, (a, b) => a < b, 10);
+    final double minX =
+        autoFollowLatestData
+            ? _getMaxX() - settingsProvider.scrollingSeconds
+            : baselineX - settingsProvider.scrollingSeconds;
+    final double maxX = autoFollowLatestData ? _getMaxX() : baselineX;
+
+    return _getExtremeValue(
+      (spot) => spot.y,
+      (a, b) => a < b,
+      0.0,
+      filter: (spot) => spot.x >= minX && spot.x <= maxX,
+    );
   }
 
   double _getMaxY() {
-    return _getExtremeValue((spot) => spot.y, (a, b) => a > b, 10);
+    final double minX =
+        autoFollowLatestData
+            ? _getMaxX() - settingsProvider.scrollingSeconds
+            : baselineX - settingsProvider.scrollingSeconds;
+    final double maxX = autoFollowLatestData ? _getMaxX() : baselineX;
+
+    return _getExtremeValue(
+      (spot) => spot.y,
+      (a, b) => a > b,
+      0.0,
+      filter: (spot) => spot.x >= minX && spot.x <= maxX,
+    );
   }
 
   LineChart getLineChart(double baselineX, double baselineY) {
@@ -147,7 +161,6 @@ class Sensordata {
               reservedSize: 30,
               interval: settingsProvider.scrollingSeconds / 5,
               getTitlesWidget: (value, meta) {
-                //TODO: PROBLEM!
                 if (settingsProvider.selectedTimeChoice ==
                     TimeChoice.timestamp.value) {
                   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(

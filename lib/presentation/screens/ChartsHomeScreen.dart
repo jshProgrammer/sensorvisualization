@@ -119,11 +119,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                               SegmentedButton<int>(
                                 segments: [
                                   ButtonSegment<int>(
-                                    value: 0,
+                                    value: TimeChoice.timestamp.value,
                                     label: Text('Systemzeit'),
                                   ),
                                   ButtonSegment<int>(
-                                    value: 1,
+                                    value: TimeChoice.relativeToStart.value,
                                     label: Text('Zeit ab Start'),
                                   ),
                                 ],
@@ -144,11 +144,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                               SegmentedButton<int>(
                                 segments: [
                                   ButtonSegment<int>(
-                                    value: 0,
+                                    value: AbsRelDataChoice.relative.value,
                                     label: Text('Relative Werte'),
                                   ),
                                   ButtonSegment<int>(
-                                    value: 1,
+                                    value: AbsRelDataChoice.absolute.value,
                                     label: Text('Absolute Werte'),
                                   ),
                                 ],
