@@ -40,44 +40,42 @@ class Sensordata {
   List<FlSpot> getFilteredDataPoints(
     SensorType sensorName,
     SensorOrientation attribute, {
+    //TODO: to be implemented
     int baselineY = 0,
   }) {
     final double xMin;
     final double xMax;
+    final double currentMaxX = _getMaxX();
+
+    print("_getMaxX() returned: $currentMaxX");
 
     if (autoFollowLatestData) {
-      xMin = _getMaxX() - settingsProvider.scrollingSeconds;
-      xMax = _getMaxX();
+      xMin = currentMaxX - settingsProvider.scrollingSeconds;
+      xMax = currentMaxX;
     } else {
       xMin = baselineX - settingsProvider.scrollingSeconds;
-      xMax = baselineX + settingsProvider.scrollingSeconds;
+      xMax = baselineX;
     }
 
-    List<FlSpot> filteredData = [];
+    print("Filtering window: $xMin to $xMax (${xMax - xMin} seconds)");
 
-    chartConfig.dataPoints.forEach((key, points) {
-      if (key == sensorName.displayName + attribute.displayName) {
-        filteredData =
-            points
-                .where((point) {
-                  return point.x >= xMin && point.x <= xMax;
-                })
-                .map(
-                  (point) => FlSpot(
-                    point.x,
-                    settingsProvider.selectedAbsRelData ==
-                            AbsRelDataChoice.absolute.value
-                        ? point.y
-                        : SensorDataTransformation.transformSingleAbsoluteToRelativeValue(
-                          point.y,
-                          SensorServer
-                              .nullMeasurementValues[sensorName]![attribute]!,
-                        ),
-                  ),
-                )
-                .toList();
-      }
-    });
+    List<FlSpot> filteredData = [];
+    final key = sensorName.displayName + attribute.displayName;
+
+    if (chartConfig.dataPoints.containsKey(key)) {
+      final allPoints = chartConfig.dataPoints[key]!;
+      print("Total points for $key: ${allPoints.length}");
+
+      // Print the actual x values to check their distribution
+      print("X values: ${allPoints.map((p) => p.x).toList()}");
+
+      filteredData =
+          allPoints
+              .where((point) => point.x >= xMin && point.x <= xMax)
+              .toList();
+
+      print("Filtered points count: ${filteredData.length}");
+    }
 
     return filteredData;
   }
@@ -121,18 +119,12 @@ class Sensordata {
       LineChartData(
         minX:
             autoFollowLatestData
-                ? _getMaxX() < settingsProvider.scrollingSeconds
-                    ? 0
-                    : _getMaxX() - settingsProvider.scrollingSeconds
+                ? _getMaxX() - settingsProvider.scrollingSeconds
                 : baselineX - settingsProvider.scrollingSeconds,
-        maxX:
-            autoFollowLatestData
-                ? _getMaxX() < settingsProvider.scrollingSeconds
-                    ? settingsProvider.scrollingSeconds.toDouble()
-                    : _getMaxX()
-                : baselineX,
+        maxX: autoFollowLatestData ? _getMaxX() : baselineX,
+        //TODO: to be implemented
         minY: _getMinY(),
-        maxY: (_getMaxY() - _getMinY()),
+        maxY: _getMaxY(),
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
@@ -155,10 +147,11 @@ class Sensordata {
               reservedSize: 30,
               interval: settingsProvider.scrollingSeconds / 5,
               getTitlesWidget: (value, meta) {
+                //TODO: PROBLEM!
                 if (settingsProvider.selectedTimeChoice ==
                     TimeChoice.timestamp.value) {
                   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
-                    (value * 1000).toInt(),
+                    value.toInt() * 1000,
                   );
 
                   final formatter = DateFormat('HH:mm:ss');
@@ -176,7 +169,7 @@ class Sensordata {
 
                 return Text(
                   SensorDataTransformation.transformDateTimeToSecondsSinceStart(
-                    DateTime.fromMillisecondsSinceEpoch((value * 1000).toInt()),
+                    DateTime.fromMillisecondsSinceEpoch(value.toInt() * 1000),
                   ).toStringAsFixed(1),
                   style: const TextStyle(
                     color: Color(0xff68737d),

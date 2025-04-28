@@ -28,6 +28,7 @@ class SampleData {
     ];
   }
 
+  //TODO: move to another file
   static List<MultiSelectDialogItem> getSensorChoices(SensorType sensorName) {
     if (sensorName == SensorType.simulatedData) {
       return [

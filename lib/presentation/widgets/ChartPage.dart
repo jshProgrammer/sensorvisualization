@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
@@ -149,38 +150,40 @@ class _ChartPageState extends State<ChartPage> {
   void _handleSensorData(Map<String, dynamic> data) {
     if (mounted) {
       setState(() {
-        //TODO: find out how exact timestamp should be displayed
-        final double timestamp =
-            data["timestamp"] != null
-                ? SensorDataTransformation.transformDateTimeToSecondsAsDouble(
-                  DateTime.parse(data["timestamp"].toString()),
-                )
-                : 0.0;
-        final double x =
-            (data['x'] != null && data['x'] is num)
-                ? data['x'].toDouble()
-                : 0.0;
-        final double y =
-            (data['y'] != null && data['y'] is num)
-                ? data['y'].toDouble()
-                : 0.0;
-        final double z =
-            (data['z'] != null && data['z'] is num)
-                ? data['z'].toDouble()
-                : 0.0;
+        var jsonData = SensorDataTransformation.returnAbsoluteSensorDataAsJson(
+          data,
+          SensorTypeExtension.fromString(data["sensor"]),
+        );
 
-        widget.chartConfig.addDataPoint(
-          data["sensor"].toString() + "x",
-          FlSpot(timestamp, x),
-        );
-        widget.chartConfig.addDataPoint(
-          data["sensor"].toString() + "y",
-          FlSpot(timestamp, y),
-        );
-        widget.chartConfig.addDataPoint(
-          data["sensor"].toString() + "z",
-          FlSpot(timestamp, z),
-        );
+        double timestampAsDouble =
+            SensorDataTransformation.transformDateTimeToSecondsAsDouble(
+              jsonData["timestamp"],
+            );
+
+        if (jsonData.containsKey('x') && jsonData['x'] != null) {
+          widget.chartConfig.addDataPoint(
+            jsonData['sensor'] + 'x',
+            FlSpot(timestampAsDouble, jsonData['x'] as double),
+          );
+        }
+        if (jsonData.containsKey('y') && jsonData['y'] != null) {
+          widget.chartConfig.addDataPoint(
+            jsonData['sensor'] + 'y',
+            FlSpot(timestampAsDouble, jsonData['y'] as double),
+          );
+        }
+        if (jsonData.containsKey('z') && jsonData['z'] != null) {
+          widget.chartConfig.addDataPoint(
+            jsonData['sensor'] + 'z',
+            FlSpot(timestampAsDouble, jsonData['z'] as double),
+          );
+        }
+        if (jsonData.containsKey('pressure') && jsonData['pressure'] != null) {
+          widget.chartConfig.addDataPoint(
+            jsonData['sensor'] + '_pressure',
+            FlSpot(timestampAsDouble, jsonData['pressure'] as double),
+          );
+        }
       });
     }
   }

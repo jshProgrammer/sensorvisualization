@@ -13,11 +13,12 @@ class SensorDataTransformation {
     return dateTime.difference(GlobalStartTime().startTime).inSeconds;
   }
 
+  // transformation necessary due to restriction of fl_chart (only num values for x-axis)
   static double transformDateTimeToSecondsAsDouble(DateTime dateTime) {
-    return dateTime.millisecondsSinceEpoch.toDouble() /
-        1000; // Convert milliseconds to seconds
+    return dateTime.millisecondsSinceEpoch.toDouble() / 1000.0;
   }
 
+  //TODO: funktioniert das hier wirklich schon für mehrere Geräte?
   static Map<SensorOrientation, double> transformAbsoluteToRelativeValues(
     Map<SensorOrientation, double> nullMeasurementValues,
     Map<String, dynamic> absoluteSensorValues,
@@ -43,6 +44,7 @@ class SensorDataTransformation {
     return relativeSensorValues;
   }
 
+  /*
   static Map<String, dynamic> returnRelativeSensorDataAsJson(
     Map<SensorOrientation, double> nullMeasurementValues,
     Map<String, dynamic> receivedJsonData,
@@ -62,19 +64,40 @@ class SensorDataTransformation {
       'y': relativeSensorValues[SensorOrientation.y],
       'z': relativeSensorValues[SensorOrientation.z],
     };
-  }
+  }*/
 
   static Map<String, dynamic> returnAbsoluteSensorDataAsJson(
     Map<String, dynamic> receivedJsonData,
     SensorType? sensorType,
   ) {
-    return {
-      'sensor': receivedJsonData['sensor'],
-      //TODO: hier vlt problem!!!
-      'timestamp': receivedJsonData['timestamp'],
-      'x': receivedJsonData[SensorOrientation.x.displayName],
-      'y': receivedJsonData[SensorOrientation.y.displayName],
-      'z': receivedJsonData[SensorOrientation.z.displayName],
-    };
+    double? _parseToDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
+    if (receivedJsonData['sensor'] == SensorType.barometer.displayName) {
+      return {
+        'sensor': receivedJsonData['sensor'],
+        'timestamp':
+            receivedJsonData['timestamp'] is String
+                ? DateTime.parse(receivedJsonData['timestamp'])
+                : receivedJsonData['timestamp'],
+        'pressure': _parseToDouble(receivedJsonData['pressure']),
+      };
+    } else {
+      return {
+        'sensor': receivedJsonData['sensor'],
+        'timestamp':
+            receivedJsonData['timestamp'] is String
+                ? DateTime.parse(receivedJsonData['timestamp'])
+                : receivedJsonData['timestamp'],
+        'x': _parseToDouble(receivedJsonData[SensorOrientation.x.displayName]),
+        'y': _parseToDouble(receivedJsonData[SensorOrientation.y.displayName]),
+        'z': _parseToDouble(receivedJsonData[SensorOrientation.z.displayName]),
+      };
+    }
   }
 }
