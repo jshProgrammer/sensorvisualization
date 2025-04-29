@@ -18,6 +18,8 @@ import '../../data/models/ChartConfig.dart';
 import '../../data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
+import 'DangerDetector.dart';
+import 'DangerNavigationController.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -50,6 +52,10 @@ class _ChartPageState extends State<ChartPage> {
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
 
+  late DangerNavigationController _dangerNavigationController;
+
+  late DangerDetector _dangerDetector;
+
   Map<String, List<WarningRange>> warningRanges = {
     'green': [],
     'yellow': [],
@@ -62,6 +68,8 @@ class _ChartPageState extends State<ChartPage> {
     super.initState();
 
     _startTime = DateTime.now();
+
+    _dangerNavigationController = DangerNavigationController();
 
     _dataSubscription = Provider.of<ConnectionProvider>(
       context,
@@ -121,6 +129,22 @@ class _ChartPageState extends State<ChartPage> {
               data["sensor"].toString() + "z",
               FlSpot(timestamp, z),
             );
+
+          List<DateTime> dangerTimestamps = DangerDetector.findDangerTimestamps(
+            points: [
+              FlSpot(timestamp, x),
+              FlSpot(timestamp, y),
+              FlSpot(timestamp, z),
+            ],
+            timestamps: [DateTime.now()],
+            warningLevels: warningRanges,
+          );
+
+          _dangerDetector = DangerDetector(dangerTimestamps);
+
+          if (dangerTimestamps.isNotEmpty) {
+            _dangerNavigationController.setCurrent(dangerTimestamps[0]);
+          }
 
             if (autoFollowLatestData) {
               baselineX = timestamp;
@@ -524,7 +548,45 @@ void addNote({String? initialText}) {
                               ],
                             ),
                           ),
-
+                          if (_dangerNavigationController.current != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_back),
+                                  onPressed: _dangerNavigationController.hasPrevious
+                                      ? () {
+                                          setState(() {
+                                            _dangerDetector.goToPrevious();
+                                            baselineX = _dangerNavigationController
+                                                .current!.millisecondsSinceEpoch
+                                                .toDouble();
+                                          });
+                                        }
+                                      : null,
+                                ),
+                                Text(
+                                  _dangerNavigationController.current!.toIso8601String(),
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_forward),
+                                  onPressed: _dangerNavigationController.hasNext
+                                      ? () {
+                                          setState(() {
+                                            _dangerDetector.goToNext();
+                                            baselineX = _dangerNavigationController
+                                                .current!.millisecondsSinceEpoch
+                                                .toDouble();
+                                          });
+                                        }
+                                      : null,
+                                ),
+                              ],
+                            ),
+                          ),
                           Row(
                             children: [
                               Expanded(
