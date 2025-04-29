@@ -8,4 +8,11 @@ class Sensor extends Table {
   RealColumn get accelerationX => real()();
   RealColumn get accelerationY => real()();
   RealColumn get accelerationZ => real()();
+  RealColumn get gyroskopX => real()();
+  RealColumn get gyroskopY => real()();
+  RealColumn get gyroskopZ => real()();
+  RealColumn get magnetometerX => real()();
+  RealColumn get magnetometerY => real()();
+  RealColumn get magnetometerZ => real()();
+  RealColumn get barometer => real()();
 }

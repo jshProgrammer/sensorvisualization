@@ -2,13 +2,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
+import 'package:sensorvisualization/database/AppDatabase.dart';
+import 'package:sensorvisualization/database/DatabaseOperations.dart';
+import 'package:sensorvisualization/database/SensorTable.dart';
 
 class SensorServer {
   final void Function(Map<String, dynamic>) onDataReceived;
   final void Function()? onMeasurementStopped;
   final void Function()? onConnectionChanged;
+  final _databaseOperations = Databaseoperations();
 
   static final Map<SensorType, Map<SensorOrientation, double>>
   nullMeasurementValues = {};
@@ -41,6 +46,13 @@ class SensorServer {
 
                 print('Neue Verbindung von $deviceName mit IP $senderIp');
 
+                _databaseOperations.insertIdentificationData(
+                  IdentificationCompanion(
+                    ip: Value(senderIp),
+                    name: Value(deviceName),
+                  ),
+                );
+
                 connectedDevices.putIfAbsent(senderIp, () => deviceName);
                 onConnectionChanged?.call();
 
@@ -65,6 +77,23 @@ class SensorServer {
                 } else {
                   final sensorType = SensorTypeExtension.fromString(
                     parsed['sensor'],
+                  );
+                  //Writing to database
+                  _databaseOperations.insertSensorData(
+                    SensorCompanion(
+                      date: Value(DateTime.parse(parsed['timestamp'])),
+                      ip: Value(parsed['ip']),
+                      accelerationX: Value(parsed['x']),
+                      accelerationY: Value(parsed['y']),
+                      accelerationZ: Value(parsed['z']),
+                      gyroskopX: Value(parsed['gyroscopeX']),
+                      gyroskopY: Value(parsed['gyroscopeY']),
+                      gyroskopZ: Value(parsed['gyroscopeZ']),
+                      magnetometerX: Value(parsed['magnetometerX']),
+                      magnetometerY: Value(parsed['magnetometerY']),
+                      magnetometerZ: Value(parsed['magnetometerZ']),
+                      barometer: Value(parsed['barometer']),
+                    ),
                   );
 
                   onDataReceived(

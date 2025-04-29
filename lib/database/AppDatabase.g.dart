@@ -72,6 +72,83 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _gyroskopXMeta = const VerificationMeta(
+    'gyroskopX',
+  );
+  @override
+  late final GeneratedColumn<double> gyroskopX = GeneratedColumn<double>(
+    'gyroskop_x',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _gyroskopYMeta = const VerificationMeta(
+    'gyroskopY',
+  );
+  @override
+  late final GeneratedColumn<double> gyroskopY = GeneratedColumn<double>(
+    'gyroskop_y',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _gyroskopZMeta = const VerificationMeta(
+    'gyroskopZ',
+  );
+  @override
+  late final GeneratedColumn<double> gyroskopZ = GeneratedColumn<double>(
+    'gyroskop_z',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _magnetometerXMeta = const VerificationMeta(
+    'magnetometerX',
+  );
+  @override
+  late final GeneratedColumn<double> magnetometerX = GeneratedColumn<double>(
+    'magnetometer_x',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _magnetometerYMeta = const VerificationMeta(
+    'magnetometerY',
+  );
+  @override
+  late final GeneratedColumn<double> magnetometerY = GeneratedColumn<double>(
+    'magnetometer_y',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _magnetometerZMeta = const VerificationMeta(
+    'magnetometerZ',
+  );
+  @override
+  late final GeneratedColumn<double> magnetometerZ = GeneratedColumn<double>(
+    'magnetometer_z',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _barometerMeta = const VerificationMeta(
+    'barometer',
+  );
+  @override
+  late final GeneratedColumn<double> barometer = GeneratedColumn<double>(
+    'barometer',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -80,6 +157,13 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
     accelerationX,
     accelerationY,
     accelerationZ,
+    gyroskopX,
+    gyroskopY,
+    gyroskopZ,
+    magnetometerX,
+    magnetometerY,
+    magnetometerZ,
+    barometer,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -142,6 +226,71 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
     } else if (isInserting) {
       context.missing(_accelerationZMeta);
     }
+    if (data.containsKey('gyroskop_x')) {
+      context.handle(
+        _gyroskopXMeta,
+        gyroskopX.isAcceptableOrUnknown(data['gyroskop_x']!, _gyroskopXMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gyroskopXMeta);
+    }
+    if (data.containsKey('gyroskop_y')) {
+      context.handle(
+        _gyroskopYMeta,
+        gyroskopY.isAcceptableOrUnknown(data['gyroskop_y']!, _gyroskopYMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gyroskopYMeta);
+    }
+    if (data.containsKey('gyroskop_z')) {
+      context.handle(
+        _gyroskopZMeta,
+        gyroskopZ.isAcceptableOrUnknown(data['gyroskop_z']!, _gyroskopZMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gyroskopZMeta);
+    }
+    if (data.containsKey('magnetometer_x')) {
+      context.handle(
+        _magnetometerXMeta,
+        magnetometerX.isAcceptableOrUnknown(
+          data['magnetometer_x']!,
+          _magnetometerXMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_magnetometerXMeta);
+    }
+    if (data.containsKey('magnetometer_y')) {
+      context.handle(
+        _magnetometerYMeta,
+        magnetometerY.isAcceptableOrUnknown(
+          data['magnetometer_y']!,
+          _magnetometerYMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_magnetometerYMeta);
+    }
+    if (data.containsKey('magnetometer_z')) {
+      context.handle(
+        _magnetometerZMeta,
+        magnetometerZ.isAcceptableOrUnknown(
+          data['magnetometer_z']!,
+          _magnetometerZMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_magnetometerZMeta);
+    }
+    if (data.containsKey('barometer')) {
+      context.handle(
+        _barometerMeta,
+        barometer.isAcceptableOrUnknown(data['barometer']!, _barometerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_barometerMeta);
+    }
     return context;
   }
 
@@ -181,6 +330,41 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
             DriftSqlType.double,
             data['${effectivePrefix}acceleration_z'],
           )!,
+      gyroskopX:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}gyroskop_x'],
+          )!,
+      gyroskopY:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}gyroskop_y'],
+          )!,
+      gyroskopZ:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}gyroskop_z'],
+          )!,
+      magnetometerX:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}magnetometer_x'],
+          )!,
+      magnetometerY:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}magnetometer_y'],
+          )!,
+      magnetometerZ:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}magnetometer_z'],
+          )!,
+      barometer:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}barometer'],
+          )!,
     );
   }
 
@@ -197,6 +381,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
   final double accelerationX;
   final double accelerationY;
   final double accelerationZ;
+  final double gyroskopX;
+  final double gyroskopY;
+  final double gyroskopZ;
+  final double magnetometerX;
+  final double magnetometerY;
+  final double magnetometerZ;
+  final double barometer;
   const SensorData({
     required this.id,
     required this.date,
@@ -204,6 +395,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
     required this.accelerationX,
     required this.accelerationY,
     required this.accelerationZ,
+    required this.gyroskopX,
+    required this.gyroskopY,
+    required this.gyroskopZ,
+    required this.magnetometerX,
+    required this.magnetometerY,
+    required this.magnetometerZ,
+    required this.barometer,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -214,6 +412,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
     map['acceleration_x'] = Variable<double>(accelerationX);
     map['acceleration_y'] = Variable<double>(accelerationY);
     map['acceleration_z'] = Variable<double>(accelerationZ);
+    map['gyroskop_x'] = Variable<double>(gyroskopX);
+    map['gyroskop_y'] = Variable<double>(gyroskopY);
+    map['gyroskop_z'] = Variable<double>(gyroskopZ);
+    map['magnetometer_x'] = Variable<double>(magnetometerX);
+    map['magnetometer_y'] = Variable<double>(magnetometerY);
+    map['magnetometer_z'] = Variable<double>(magnetometerZ);
+    map['barometer'] = Variable<double>(barometer);
     return map;
   }
 
@@ -225,6 +430,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
       accelerationX: Value(accelerationX),
       accelerationY: Value(accelerationY),
       accelerationZ: Value(accelerationZ),
+      gyroskopX: Value(gyroskopX),
+      gyroskopY: Value(gyroskopY),
+      gyroskopZ: Value(gyroskopZ),
+      magnetometerX: Value(magnetometerX),
+      magnetometerY: Value(magnetometerY),
+      magnetometerZ: Value(magnetometerZ),
+      barometer: Value(barometer),
     );
   }
 
@@ -240,6 +452,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
       accelerationX: serializer.fromJson<double>(json['accelerationX']),
       accelerationY: serializer.fromJson<double>(json['accelerationY']),
       accelerationZ: serializer.fromJson<double>(json['accelerationZ']),
+      gyroskopX: serializer.fromJson<double>(json['gyroskopX']),
+      gyroskopY: serializer.fromJson<double>(json['gyroskopY']),
+      gyroskopZ: serializer.fromJson<double>(json['gyroskopZ']),
+      magnetometerX: serializer.fromJson<double>(json['magnetometerX']),
+      magnetometerY: serializer.fromJson<double>(json['magnetometerY']),
+      magnetometerZ: serializer.fromJson<double>(json['magnetometerZ']),
+      barometer: serializer.fromJson<double>(json['barometer']),
     );
   }
   @override
@@ -252,6 +471,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
       'accelerationX': serializer.toJson<double>(accelerationX),
       'accelerationY': serializer.toJson<double>(accelerationY),
       'accelerationZ': serializer.toJson<double>(accelerationZ),
+      'gyroskopX': serializer.toJson<double>(gyroskopX),
+      'gyroskopY': serializer.toJson<double>(gyroskopY),
+      'gyroskopZ': serializer.toJson<double>(gyroskopZ),
+      'magnetometerX': serializer.toJson<double>(magnetometerX),
+      'magnetometerY': serializer.toJson<double>(magnetometerY),
+      'magnetometerZ': serializer.toJson<double>(magnetometerZ),
+      'barometer': serializer.toJson<double>(barometer),
     };
   }
 
@@ -262,6 +488,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
     double? accelerationX,
     double? accelerationY,
     double? accelerationZ,
+    double? gyroskopX,
+    double? gyroskopY,
+    double? gyroskopZ,
+    double? magnetometerX,
+    double? magnetometerY,
+    double? magnetometerZ,
+    double? barometer,
   }) => SensorData(
     id: id ?? this.id,
     date: date ?? this.date,
@@ -269,6 +502,13 @@ class SensorData extends DataClass implements Insertable<SensorData> {
     accelerationX: accelerationX ?? this.accelerationX,
     accelerationY: accelerationY ?? this.accelerationY,
     accelerationZ: accelerationZ ?? this.accelerationZ,
+    gyroskopX: gyroskopX ?? this.gyroskopX,
+    gyroskopY: gyroskopY ?? this.gyroskopY,
+    gyroskopZ: gyroskopZ ?? this.gyroskopZ,
+    magnetometerX: magnetometerX ?? this.magnetometerX,
+    magnetometerY: magnetometerY ?? this.magnetometerY,
+    magnetometerZ: magnetometerZ ?? this.magnetometerZ,
+    barometer: barometer ?? this.barometer,
   );
   SensorData copyWithCompanion(SensorCompanion data) {
     return SensorData(
@@ -287,6 +527,22 @@ class SensorData extends DataClass implements Insertable<SensorData> {
           data.accelerationZ.present
               ? data.accelerationZ.value
               : this.accelerationZ,
+      gyroskopX: data.gyroskopX.present ? data.gyroskopX.value : this.gyroskopX,
+      gyroskopY: data.gyroskopY.present ? data.gyroskopY.value : this.gyroskopY,
+      gyroskopZ: data.gyroskopZ.present ? data.gyroskopZ.value : this.gyroskopZ,
+      magnetometerX:
+          data.magnetometerX.present
+              ? data.magnetometerX.value
+              : this.magnetometerX,
+      magnetometerY:
+          data.magnetometerY.present
+              ? data.magnetometerY.value
+              : this.magnetometerY,
+      magnetometerZ:
+          data.magnetometerZ.present
+              ? data.magnetometerZ.value
+              : this.magnetometerZ,
+      barometer: data.barometer.present ? data.barometer.value : this.barometer,
     );
   }
 
@@ -298,14 +554,34 @@ class SensorData extends DataClass implements Insertable<SensorData> {
           ..write('ip: $ip, ')
           ..write('accelerationX: $accelerationX, ')
           ..write('accelerationY: $accelerationY, ')
-          ..write('accelerationZ: $accelerationZ')
+          ..write('accelerationZ: $accelerationZ, ')
+          ..write('gyroskopX: $gyroskopX, ')
+          ..write('gyroskopY: $gyroskopY, ')
+          ..write('gyroskopZ: $gyroskopZ, ')
+          ..write('magnetometerX: $magnetometerX, ')
+          ..write('magnetometerY: $magnetometerY, ')
+          ..write('magnetometerZ: $magnetometerZ, ')
+          ..write('barometer: $barometer')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, date, ip, accelerationX, accelerationY, accelerationZ);
+  int get hashCode => Object.hash(
+    id,
+    date,
+    ip,
+    accelerationX,
+    accelerationY,
+    accelerationZ,
+    gyroskopX,
+    gyroskopY,
+    gyroskopZ,
+    magnetometerX,
+    magnetometerY,
+    magnetometerZ,
+    barometer,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -315,7 +591,14 @@ class SensorData extends DataClass implements Insertable<SensorData> {
           other.ip == this.ip &&
           other.accelerationX == this.accelerationX &&
           other.accelerationY == this.accelerationY &&
-          other.accelerationZ == this.accelerationZ);
+          other.accelerationZ == this.accelerationZ &&
+          other.gyroskopX == this.gyroskopX &&
+          other.gyroskopY == this.gyroskopY &&
+          other.gyroskopZ == this.gyroskopZ &&
+          other.magnetometerX == this.magnetometerX &&
+          other.magnetometerY == this.magnetometerY &&
+          other.magnetometerZ == this.magnetometerZ &&
+          other.barometer == this.barometer);
 }
 
 class SensorCompanion extends UpdateCompanion<SensorData> {
@@ -325,6 +608,13 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
   final Value<double> accelerationX;
   final Value<double> accelerationY;
   final Value<double> accelerationZ;
+  final Value<double> gyroskopX;
+  final Value<double> gyroskopY;
+  final Value<double> gyroskopZ;
+  final Value<double> magnetometerX;
+  final Value<double> magnetometerY;
+  final Value<double> magnetometerZ;
+  final Value<double> barometer;
   const SensorCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
@@ -332,6 +622,13 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     this.accelerationX = const Value.absent(),
     this.accelerationY = const Value.absent(),
     this.accelerationZ = const Value.absent(),
+    this.gyroskopX = const Value.absent(),
+    this.gyroskopY = const Value.absent(),
+    this.gyroskopZ = const Value.absent(),
+    this.magnetometerX = const Value.absent(),
+    this.magnetometerY = const Value.absent(),
+    this.magnetometerZ = const Value.absent(),
+    this.barometer = const Value.absent(),
   });
   SensorCompanion.insert({
     this.id = const Value.absent(),
@@ -340,11 +637,25 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     required double accelerationX,
     required double accelerationY,
     required double accelerationZ,
+    required double gyroskopX,
+    required double gyroskopY,
+    required double gyroskopZ,
+    required double magnetometerX,
+    required double magnetometerY,
+    required double magnetometerZ,
+    required double barometer,
   }) : date = Value(date),
        ip = Value(ip),
        accelerationX = Value(accelerationX),
        accelerationY = Value(accelerationY),
-       accelerationZ = Value(accelerationZ);
+       accelerationZ = Value(accelerationZ),
+       gyroskopX = Value(gyroskopX),
+       gyroskopY = Value(gyroskopY),
+       gyroskopZ = Value(gyroskopZ),
+       magnetometerX = Value(magnetometerX),
+       magnetometerY = Value(magnetometerY),
+       magnetometerZ = Value(magnetometerZ),
+       barometer = Value(barometer);
   static Insertable<SensorData> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
@@ -352,6 +663,13 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     Expression<double>? accelerationX,
     Expression<double>? accelerationY,
     Expression<double>? accelerationZ,
+    Expression<double>? gyroskopX,
+    Expression<double>? gyroskopY,
+    Expression<double>? gyroskopZ,
+    Expression<double>? magnetometerX,
+    Expression<double>? magnetometerY,
+    Expression<double>? magnetometerZ,
+    Expression<double>? barometer,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -360,6 +678,13 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
       if (accelerationX != null) 'acceleration_x': accelerationX,
       if (accelerationY != null) 'acceleration_y': accelerationY,
       if (accelerationZ != null) 'acceleration_z': accelerationZ,
+      if (gyroskopX != null) 'gyroskop_x': gyroskopX,
+      if (gyroskopY != null) 'gyroskop_y': gyroskopY,
+      if (gyroskopZ != null) 'gyroskop_z': gyroskopZ,
+      if (magnetometerX != null) 'magnetometer_x': magnetometerX,
+      if (magnetometerY != null) 'magnetometer_y': magnetometerY,
+      if (magnetometerZ != null) 'magnetometer_z': magnetometerZ,
+      if (barometer != null) 'barometer': barometer,
     });
   }
 
@@ -370,6 +695,13 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     Value<double>? accelerationX,
     Value<double>? accelerationY,
     Value<double>? accelerationZ,
+    Value<double>? gyroskopX,
+    Value<double>? gyroskopY,
+    Value<double>? gyroskopZ,
+    Value<double>? magnetometerX,
+    Value<double>? magnetometerY,
+    Value<double>? magnetometerZ,
+    Value<double>? barometer,
   }) {
     return SensorCompanion(
       id: id ?? this.id,
@@ -378,6 +710,13 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
       accelerationX: accelerationX ?? this.accelerationX,
       accelerationY: accelerationY ?? this.accelerationY,
       accelerationZ: accelerationZ ?? this.accelerationZ,
+      gyroskopX: gyroskopX ?? this.gyroskopX,
+      gyroskopY: gyroskopY ?? this.gyroskopY,
+      gyroskopZ: gyroskopZ ?? this.gyroskopZ,
+      magnetometerX: magnetometerX ?? this.magnetometerX,
+      magnetometerY: magnetometerY ?? this.magnetometerY,
+      magnetometerZ: magnetometerZ ?? this.magnetometerZ,
+      barometer: barometer ?? this.barometer,
     );
   }
 
@@ -402,6 +741,27 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     if (accelerationZ.present) {
       map['acceleration_z'] = Variable<double>(accelerationZ.value);
     }
+    if (gyroskopX.present) {
+      map['gyroskop_x'] = Variable<double>(gyroskopX.value);
+    }
+    if (gyroskopY.present) {
+      map['gyroskop_y'] = Variable<double>(gyroskopY.value);
+    }
+    if (gyroskopZ.present) {
+      map['gyroskop_z'] = Variable<double>(gyroskopZ.value);
+    }
+    if (magnetometerX.present) {
+      map['magnetometer_x'] = Variable<double>(magnetometerX.value);
+    }
+    if (magnetometerY.present) {
+      map['magnetometer_y'] = Variable<double>(magnetometerY.value);
+    }
+    if (magnetometerZ.present) {
+      map['magnetometer_z'] = Variable<double>(magnetometerZ.value);
+    }
+    if (barometer.present) {
+      map['barometer'] = Variable<double>(barometer.value);
+    }
     return map;
   }
 
@@ -413,7 +773,14 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
           ..write('ip: $ip, ')
           ..write('accelerationX: $accelerationX, ')
           ..write('accelerationY: $accelerationY, ')
-          ..write('accelerationZ: $accelerationZ')
+          ..write('accelerationZ: $accelerationZ, ')
+          ..write('gyroskopX: $gyroskopX, ')
+          ..write('gyroskopY: $gyroskopY, ')
+          ..write('gyroskopZ: $gyroskopZ, ')
+          ..write('magnetometerX: $magnetometerX, ')
+          ..write('magnetometerY: $magnetometerY, ')
+          ..write('magnetometerZ: $magnetometerZ, ')
+          ..write('barometer: $barometer')
           ..write(')'))
         .toString();
   }
@@ -892,6 +1259,13 @@ typedef $$SensorTableCreateCompanionBuilder =
       required double accelerationX,
       required double accelerationY,
       required double accelerationZ,
+      required double gyroskopX,
+      required double gyroskopY,
+      required double gyroskopZ,
+      required double magnetometerX,
+      required double magnetometerY,
+      required double magnetometerZ,
+      required double barometer,
     });
 typedef $$SensorTableUpdateCompanionBuilder =
     SensorCompanion Function({
@@ -901,6 +1275,13 @@ typedef $$SensorTableUpdateCompanionBuilder =
       Value<double> accelerationX,
       Value<double> accelerationY,
       Value<double> accelerationZ,
+      Value<double> gyroskopX,
+      Value<double> gyroskopY,
+      Value<double> gyroskopZ,
+      Value<double> magnetometerX,
+      Value<double> magnetometerY,
+      Value<double> magnetometerZ,
+      Value<double> barometer,
     });
 
 class $$SensorTableFilterComposer
@@ -939,6 +1320,41 @@ class $$SensorTableFilterComposer
 
   ColumnFilters<double> get accelerationZ => $composableBuilder(
     column: $table.accelerationZ,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get gyroskopX => $composableBuilder(
+    column: $table.gyroskopX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get gyroskopY => $composableBuilder(
+    column: $table.gyroskopY,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get gyroskopZ => $composableBuilder(
+    column: $table.gyroskopZ,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get magnetometerX => $composableBuilder(
+    column: $table.magnetometerX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get magnetometerY => $composableBuilder(
+    column: $table.magnetometerY,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get magnetometerZ => $composableBuilder(
+    column: $table.magnetometerZ,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get barometer => $composableBuilder(
+    column: $table.barometer,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -981,6 +1397,41 @@ class $$SensorTableOrderingComposer
     column: $table.accelerationZ,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get gyroskopX => $composableBuilder(
+    column: $table.gyroskopX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get gyroskopY => $composableBuilder(
+    column: $table.gyroskopY,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get gyroskopZ => $composableBuilder(
+    column: $table.gyroskopZ,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get magnetometerX => $composableBuilder(
+    column: $table.magnetometerX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get magnetometerY => $composableBuilder(
+    column: $table.magnetometerY,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get magnetometerZ => $composableBuilder(
+    column: $table.magnetometerZ,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get barometer => $composableBuilder(
+    column: $table.barometer,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SensorTableAnnotationComposer
@@ -1015,6 +1466,33 @@ class $$SensorTableAnnotationComposer
     column: $table.accelerationZ,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get gyroskopX =>
+      $composableBuilder(column: $table.gyroskopX, builder: (column) => column);
+
+  GeneratedColumn<double> get gyroskopY =>
+      $composableBuilder(column: $table.gyroskopY, builder: (column) => column);
+
+  GeneratedColumn<double> get gyroskopZ =>
+      $composableBuilder(column: $table.gyroskopZ, builder: (column) => column);
+
+  GeneratedColumn<double> get magnetometerX => $composableBuilder(
+    column: $table.magnetometerX,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get magnetometerY => $composableBuilder(
+    column: $table.magnetometerY,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get magnetometerZ => $composableBuilder(
+    column: $table.magnetometerZ,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get barometer =>
+      $composableBuilder(column: $table.barometer, builder: (column) => column);
 }
 
 class $$SensorTableTableManager
@@ -1051,6 +1529,13 @@ class $$SensorTableTableManager
                 Value<double> accelerationX = const Value.absent(),
                 Value<double> accelerationY = const Value.absent(),
                 Value<double> accelerationZ = const Value.absent(),
+                Value<double> gyroskopX = const Value.absent(),
+                Value<double> gyroskopY = const Value.absent(),
+                Value<double> gyroskopZ = const Value.absent(),
+                Value<double> magnetometerX = const Value.absent(),
+                Value<double> magnetometerY = const Value.absent(),
+                Value<double> magnetometerZ = const Value.absent(),
+                Value<double> barometer = const Value.absent(),
               }) => SensorCompanion(
                 id: id,
                 date: date,
@@ -1058,6 +1543,13 @@ class $$SensorTableTableManager
                 accelerationX: accelerationX,
                 accelerationY: accelerationY,
                 accelerationZ: accelerationZ,
+                gyroskopX: gyroskopX,
+                gyroskopY: gyroskopY,
+                gyroskopZ: gyroskopZ,
+                magnetometerX: magnetometerX,
+                magnetometerY: magnetometerY,
+                magnetometerZ: magnetometerZ,
+                barometer: barometer,
               ),
           createCompanionCallback:
               ({
@@ -1067,6 +1559,13 @@ class $$SensorTableTableManager
                 required double accelerationX,
                 required double accelerationY,
                 required double accelerationZ,
+                required double gyroskopX,
+                required double gyroskopY,
+                required double gyroskopZ,
+                required double magnetometerX,
+                required double magnetometerY,
+                required double magnetometerZ,
+                required double barometer,
               }) => SensorCompanion.insert(
                 id: id,
                 date: date,
@@ -1074,6 +1573,13 @@ class $$SensorTableTableManager
                 accelerationX: accelerationX,
                 accelerationY: accelerationY,
                 accelerationZ: accelerationZ,
+                gyroskopX: gyroskopX,
+                gyroskopY: gyroskopY,
+                gyroskopZ: gyroskopZ,
+                magnetometerX: magnetometerX,
+                magnetometerY: magnetometerY,
+                magnetometerZ: magnetometerZ,
+                barometer: barometer,
               ),
           withReferenceMapper:
               (p0) =>
