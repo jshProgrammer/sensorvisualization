@@ -223,7 +223,7 @@ class Sensordata {
     chartConfig.notes.forEach((noteTime, noteString) {
       toReturn.add(
         VerticalLine(
-          x: noteTime.toDouble(),
+          x: noteTime.millisecondsSinceEpoch.toDouble(),
           color: ColorSettings.noteLineColor,
           strokeWidth: 2,
           dashArray: [5, 10],
