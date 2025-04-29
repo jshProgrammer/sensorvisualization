@@ -259,21 +259,32 @@ void _showAllNotes() {
     }
   }
 
-  void addNote(DateTime time, {String? initialText}) {
-  TextEditingController controller = TextEditingController(text: initialText);
-
-  if (widget.chartConfig.notes.containsKey(time)) {
-      controller.text = widget.chartConfig.notes[time]!;
-    }
+void addNote({String? initialText}) {
+  DateTime defaultTime = DateTime.now();
+  TextEditingController textController = TextEditingController(text: initialText);
+  TextEditingController timeController = TextEditingController(text: defaultTime.toString());
 
   showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text("Notiz für Zeit $time"),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: "Notiz eingeben..."),
+        title: const Text("Notiz hinzufügen"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: timeController,
+              decoration: const InputDecoration(
+                labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
+              ),
+            ),
+            TextField(
+              controller: textController,
+              decoration: const InputDecoration(
+                hintText: "Notiz eingeben...",
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -282,10 +293,17 @@ void _showAllNotes() {
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                widget.chartConfig.notes[time] = controller.text;
-              });
-              Navigator.pop(context);
+              try {
+                DateTime parsedTime = DateTime.parse(timeController.text);
+                setState(() {
+                  widget.chartConfig.notes[parsedTime] = textController.text;
+                });
+                Navigator.pop(context);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Ungültiges Zeitformat.")),
+                );
+              }
             },
             child: const Text("Speichern"),
           ),
@@ -418,8 +436,7 @@ void _showAllNotes() {
       IconButton(
       icon: const Icon(Icons.add_comment),
       onPressed: () {
-        DateTime now = DateTime.now();
-        addNote(now);
+        addNote();
       },
       tooltip: 'Notiz hinzufügen',
     ),
