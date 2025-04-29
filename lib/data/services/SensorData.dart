@@ -332,23 +332,7 @@ class Sensordata {
         show: true,
         color: chartConfig.color.withAlpha(75),
       ),
-      dotData: FlDotData(
-        show: true,
-        getDotPainter: (spot, percent, barData, index) {
-          final hasNote = chartConfig.notes.containsKey(index);
-          return FlDotCirclePainter(
-            radius: hasNote ? 8 : 6,
-            color:
-                hasNote
-                    ? ColorSettings.pointWithNoteColor
-                    : (spot.y >= 2.5
-                        ? ColorSettings.pointCriticalColor
-                        : ColorSettings.pointWithNoteColor),
-            strokeWidth: 2,
-            strokeColor: ColorSettings.pointStrokeColor,
-          );
-        },
-      ),
+      dotData: FlDotData(show: false),
     );
   }
 }
