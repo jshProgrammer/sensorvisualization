@@ -41,6 +41,33 @@ enum TimeChoice {
   }
 }
 
+enum TimeUnitChoice {
+  seconds(0),
+  minutes(1),
+  hours(2);
+
+  final int value;
+  const TimeUnitChoice(this.value);
+
+  static TimeUnitChoice fromValue(int value) {
+    return TimeUnitChoice.values.firstWhere(
+      (choice) => choice.value == value,
+      orElse: () => TimeUnitChoice.seconds,
+    );
+  }
+
+  String asString() {
+    switch (this) {
+      case TimeUnitChoice.seconds:
+        return 'Sekunden';
+      case TimeUnitChoice.minutes:
+        return 'Minuten';
+      case TimeUnitChoice.hours:
+        return 'Stunden';
+    }
+  }
+}
+
 enum AbsRelDataChoice {
   relative(0),
   absolute(1);

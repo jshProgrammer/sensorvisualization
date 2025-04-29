@@ -64,8 +64,9 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
-  int _selectedTimeChoice = 0;
-  int _selectedAbsRelData = 0;
+  int _selectedTimeChoice = TimeChoice.timestamp.value;
+  int _selectedAbsRelData = AbsRelDataChoice.relative.value;
+  int _selectedTimeUnit = TimeUnitChoice.seconds.value;
 
   TextEditingController _secondsController = TextEditingController();
 
@@ -98,16 +99,53 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                             children: [
                               Text("Mitlaufende Sekunden:"),
                               SizedBox(height: 8),
-                              TextField(
-                                controller: _secondsController,
-                                keyboardType: TextInputType.numberWithOptions(
-                                  decimal: false,
-                                ),
-                                decoration: InputDecoration(
-                                  labelText:
-                                      'default: ${SettingsProvider.DEFAULT_SCROLLING_SECONDS} s',
-                                  border: OutlineInputBorder(),
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _secondsController,
+                                      keyboardType:
+                                          TextInputType.numberWithOptions(
+                                            decimal: false,
+                                          ),
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            'default: ${SettingsProvider.DEFAULT_SCROLLING_SECONDS} s',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  DropdownButton<String>(
+                                    value:
+                                        TimeUnitChoice.fromValue(
+                                          _selectedTimeUnit,
+                                        ).asString(),
+                                    onChanged: (String? newValue) {
+                                      setStateDialog(() {
+                                        _selectedTimeUnit =
+                                            TimeUnitChoice.values
+                                                .firstWhere(
+                                                  (e) =>
+                                                      e.asString() == newValue,
+                                                )
+                                                .value;
+                                      });
+                                    },
+                                    items:
+                                        TimeUnitChoice.values
+                                            .map((e) => e.asString())
+                                            .toList()
+                                            .map(
+                                              (value) =>
+                                                  DropdownMenuItem<String>(
+                                                    value: value,
+                                                    child: Text(value),
+                                                  ),
+                                            )
+                                            .toList(),
+                                  ),
+                                ],
                               ),
                               Divider(
                                 color: Colors.grey,
@@ -173,9 +211,17 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                         child: Text('Speichern'),
                         onPressed: () {
                           if (_secondsController.text.isNotEmpty) {
-                            final seconds =
+                            final value =
                                 int.tryParse(_secondsController.text) ??
                                 SettingsProvider.DEFAULT_SCROLLING_SECONDS;
+                            TimeUnitChoice unitChoice =
+                                TimeUnitChoice.fromValue(_selectedTimeUnit);
+                            final seconds =
+                                (unitChoice == TimeUnitChoice.seconds
+                                    ? value
+                                    : unitChoice == TimeUnitChoice.minutes
+                                    ? value * 60
+                                    : value * 3600);
                             Provider.of<SettingsProvider>(
                               context,
                               listen: false,

@@ -136,7 +136,6 @@ class Sensordata {
                 ? _getMaxX() - settingsProvider.scrollingSeconds
                 : baselineX - settingsProvider.scrollingSeconds,
         maxX: autoFollowLatestData ? _getMaxX() : baselineX,
-        //TODO: to be implemented
         minY: _getMinY(),
         maxY: _getMaxY(),
         gridData: FlGridData(
