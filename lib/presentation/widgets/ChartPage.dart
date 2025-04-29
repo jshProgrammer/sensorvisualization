@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide Column;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,7 @@ import 'package:sensorvisualization/data/services/SensorServer.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
+import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 import 'package:tuple/tuple.dart';
@@ -23,6 +25,8 @@ import '../../data/models/ChartConfig.dart';
 import '../../data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:sensorvisualization/database/DatabaseOperations.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -60,6 +64,8 @@ class _ChartPageState extends State<ChartPage> {
     'yellow': [],
     'red': [],
   };
+
+  final _databaseOperations = Databaseoperations();
 
   //Only for Simulation
   @override
@@ -304,12 +310,18 @@ class _ChartPageState extends State<ChartPage> {
               child: const Text("Abbrechen"),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 try {
                   DateTime parsedTime = DateTime.parse(timeController.text);
                   setState(() {
                     widget.chartConfig.notes[parsedTime] = textController.text;
                   });
+                  await _databaseOperations.insertNoteData(
+                    NoteCompanion(
+                      date: Value(parsedTime),
+                      note: Value(textController.text),
+                    ),
+                  );
                   Navigator.pop(context);
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
