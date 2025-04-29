@@ -10,8 +10,8 @@ class SensorServer {
   final void Function()? onMeasurementStopped;
   final void Function()? onConnectionChanged;
 
-  final Map<SensorType, Map<SensorOrientation, double>> nullMeasurementValues =
-      {};
+  static final Map<SensorType, Map<SensorOrientation, double>>
+  nullMeasurementValues = {};
 
   SensorServer({
     required this.onDataReceived,
@@ -33,6 +33,7 @@ class SensorServer {
 
             try {
               var decoded = jsonDecode(data);
+              // Check if the data is a connection request sent by a client
               if (decoded is Map<String, dynamic> &&
                   decoded['type'] == 'ConnectionRequest') {
                 final senderIp = decoded['ip'];
@@ -43,6 +44,7 @@ class SensorServer {
                 connectedDevices.putIfAbsent(senderIp, () => deviceName);
                 onConnectionChanged?.call();
 
+                // Send acknowledgement to the client
                 ws.add(
                   jsonEncode({
                     "response": "Connection accepted",
@@ -66,8 +68,7 @@ class SensorServer {
                   );
 
                   onDataReceived(
-                    SensorDataTransformation.returnRelativeSensorDataAsJson(
-                      nullMeasurementValues[sensorType]!,
+                    SensorDataTransformation.returnAbsoluteSensorDataAsJson(
                       parsed,
                       sensorType,
                     ),
@@ -88,22 +89,34 @@ class SensorServer {
       SensorType.accelerometer,
       () => {
         SensorOrientation.x:
-            nullMeasurement[SensorType.accelerometer.displayName]['x'],
+            nullMeasurement[SensorType
+                .accelerometer
+                .displayName][SensorOrientation.x.displayName],
         SensorOrientation.y:
-            nullMeasurement[SensorType.accelerometer.displayName]['y'],
+            nullMeasurement[SensorType
+                .accelerometer
+                .displayName][SensorOrientation.y.displayName],
         SensorOrientation.z:
-            nullMeasurement[SensorType.accelerometer.displayName]['z'],
+            nullMeasurement[SensorType
+                .accelerometer
+                .displayName][SensorOrientation.z.displayName],
       },
     );
     nullMeasurementValues.putIfAbsent(
       SensorType.gyroscope,
       () => {
         SensorOrientation.x:
-            nullMeasurement[SensorType.gyroscope.displayName]['x'],
+            nullMeasurement[SensorType.gyroscope.displayName][SensorOrientation
+                .x
+                .displayName],
         SensorOrientation.y:
-            nullMeasurement[SensorType.gyroscope.displayName]['y'],
+            nullMeasurement[SensorType.gyroscope.displayName][SensorOrientation
+                .y
+                .displayName],
         SensorOrientation.z:
-            nullMeasurement[SensorType.gyroscope.displayName]['z'],
+            nullMeasurement[SensorType.gyroscope.displayName][SensorOrientation
+                .z
+                .displayName],
       },
     );
 
@@ -111,17 +124,26 @@ class SensorServer {
       SensorType.magnetometer,
       () => {
         SensorOrientation.x:
-            nullMeasurement[SensorType.magnetometer.displayName]['x'],
+            nullMeasurement[SensorType
+                .magnetometer
+                .displayName][SensorOrientation.x.displayName],
         SensorOrientation.y:
-            nullMeasurement[SensorType.magnetometer.displayName]['y'],
+            nullMeasurement[SensorType
+                .magnetometer
+                .displayName][SensorOrientation.y.displayName],
         SensorOrientation.z:
-            nullMeasurement[SensorType.magnetometer.displayName]['z'],
+            nullMeasurement[SensorType
+                .magnetometer
+                .displayName][SensorOrientation.z.displayName],
       },
     );
 
     nullMeasurementValues.putIfAbsent(
       SensorType.barometer,
-      nullMeasurement[SensorType.barometer.displayName],
+      () => {
+        SensorOrientation.pressure:
+            nullMeasurement[SensorType.barometer.displayName],
+      },
     );
   }
 }

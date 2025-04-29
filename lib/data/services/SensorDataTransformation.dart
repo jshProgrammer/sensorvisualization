@@ -1,14 +1,25 @@
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 
 class SensorDataTransformation {
-  static double _transformSingleAbsoluteToRelativeValue(
+  static double transformSingleAbsoluteToRelativeValue(
     double absoluteValue,
     double nullMeasurement,
   ) {
     return absoluteValue - nullMeasurement;
   }
 
-  static Map<SensorOrientation, double> _transformAbsoluteToRelativeValues(
+  static int transformDateTimeToSecondsSinceStart(DateTime dateTime) {
+    return dateTime.difference(GlobalStartTime().startTime).inSeconds;
+  }
+
+  // transformation necessary due to restriction of fl_chart (only num values for x-axis)
+  static double transformDateTimeToSecondsAsDouble(DateTime dateTime) {
+    return dateTime.millisecondsSinceEpoch.toDouble() / 1000.0;
+  }
+
+  //TODO: funktioniert das hier wirklich schon für mehrere Geräte?
+  static Map<SensorOrientation, double> transformAbsoluteToRelativeValues(
     Map<SensorOrientation, double> nullMeasurementValues,
     Map<String, dynamic> absoluteSensorValues,
     SensorType? sensorType,
@@ -18,7 +29,7 @@ class SensorDataTransformation {
     if (sensorType == null || sensorType != SensorType.barometer) {
       for (SensorOrientation sensorOrientation in nullMeasurementValues.keys) {
         relativeSensorValues[sensorOrientation] =
-            _transformSingleAbsoluteToRelativeValue(
+            transformSingleAbsoluteToRelativeValue(
               (absoluteSensorValues[sensorOrientation.displayName] is String)
                   ? double.tryParse(
                     absoluteSensorValues[sensorOrientation.displayName],
@@ -33,13 +44,14 @@ class SensorDataTransformation {
     return relativeSensorValues;
   }
 
+  /*
   static Map<String, dynamic> returnRelativeSensorDataAsJson(
     Map<SensorOrientation, double> nullMeasurementValues,
     Map<String, dynamic> receivedJsonData,
     SensorType? sensorType,
   ) {
     Map<SensorOrientation, double> relativeSensorValues =
-        SensorDataTransformation._transformAbsoluteToRelativeValues(
+        SensorDataTransformation.transformAbsoluteToRelativeValues(
           nullMeasurementValues,
           receivedJsonData,
           sensorType,
@@ -52,7 +64,40 @@ class SensorDataTransformation {
       'y': relativeSensorValues[SensorOrientation.y],
       'z': relativeSensorValues[SensorOrientation.z],
     };
-  }
+  }*/
 
-  //TODO: vlt noch returnAbsoluteValues-Methode?!
+  static Map<String, dynamic> returnAbsoluteSensorDataAsJson(
+    Map<String, dynamic> receivedJsonData,
+    SensorType? sensorType,
+  ) {
+    double? _parseToDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
+    if (receivedJsonData['sensor'] == SensorType.barometer.displayName) {
+      return {
+        'sensor': receivedJsonData['sensor'],
+        'timestamp':
+            receivedJsonData['timestamp'] is String
+                ? DateTime.parse(receivedJsonData['timestamp'])
+                : receivedJsonData['timestamp'],
+        'pressure': _parseToDouble(receivedJsonData['pressure']),
+      };
+    } else {
+      return {
+        'sensor': receivedJsonData['sensor'],
+        'timestamp':
+            receivedJsonData['timestamp'] is String
+                ? DateTime.parse(receivedJsonData['timestamp'])
+                : receivedJsonData['timestamp'],
+        'x': _parseToDouble(receivedJsonData[SensorOrientation.x.displayName]),
+        'y': _parseToDouble(receivedJsonData[SensorOrientation.y.displayName]),
+        'z': _parseToDouble(receivedJsonData[SensorOrientation.z.displayName]),
+      };
+    }
+  }
 }

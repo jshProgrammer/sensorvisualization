@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'SensorServer.dart';
+import '../SensorServer.dart';
 
 class ConnectionProvider extends ChangeNotifier {
   late SensorServer _connectionToSender;

@@ -34,6 +34,7 @@ class SensorClient {
   Future<bool> initSocket() async {
     final completer = Completer<bool>();
 
+    // send connection request including ip and custom device name to server
     final initializationMessage = jsonEncode({
       "type": "ConnectionRequest",
       "ip": await _retrieveLocalIP(),
@@ -41,6 +42,7 @@ class SensorClient {
     });
     channel.sink.add(initializationMessage);
 
+    // wait for acknowledgement
     channel.stream.listen(
       (data) {
         try {
