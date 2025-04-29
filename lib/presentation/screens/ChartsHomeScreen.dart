@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
@@ -59,12 +60,112 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
+  int _selectedTimeChoice = 0;
+  int _selectedAbsRelData = 0;
+  TextEditingController _secondsController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensor visualization (THW)'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text("Einstellungen"),
+                    content: StatefulBuilder(
+                      builder: (
+                        BuildContext context,
+                        StateSetter setStateDialog,
+                      ) {
+                        return SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("Mitlaufende Sekunden:"),
+                              SizedBox(height: 8),
+                              TextField(
+                                controller: _secondsController,
+                                keyboardType: TextInputType.numberWithOptions(
+                                  decimal: false,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'default: 20s',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              Divider(
+                                color: Colors.grey,
+                                thickness: 1,
+                                height: 20,
+                              ),
+                              Text("Zeiteinstellung:"),
+                              SizedBox(height: 8),
+                              SegmentedButton<int>(
+                                segments: [
+                                  ButtonSegment<int>(
+                                    value: 0,
+                                    label: Text('Systemzeit'),
+                                  ),
+                                  ButtonSegment<int>(
+                                    value: 1,
+                                    label: Text('Zeit ab Start'),
+                                  ),
+                                ],
+                                selected: {_selectedTimeChoice},
+                                onSelectionChanged: (Set<int> newSelection) {
+                                  setStateDialog(() {
+                                    _selectedTimeChoice = newSelection.first;
+                                  });
+                                },
+                              ),
+                              Divider(
+                                color: Colors.grey,
+                                thickness: 1,
+                                height: 20,
+                              ),
+                              Text("Sensordaten:"),
+                              SizedBox(height: 8),
+                              SegmentedButton<int>(
+                                segments: [
+                                  ButtonSegment<int>(
+                                    value: 0,
+                                    label: Text('Relative Werte'),
+                                  ),
+                                  ButtonSegment<int>(
+                                    value: 1,
+                                    label: Text('Absolute Werte'),
+                                  ),
+                                ],
+                                selected: {_selectedAbsRelData},
+                                onSelectionChanged: (Set<int> newSelection) {
+                                  setStateDialog(() {
+                                    _selectedAbsRelData = newSelection.first;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    actions: [
+                      TextButton(
+                        child: Text('Schließen'),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+
           IconButton(
             icon: Icon(Icons.smartphone),
             onPressed: () {
