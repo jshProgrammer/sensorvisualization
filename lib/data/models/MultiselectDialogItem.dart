@@ -1,9 +1,11 @@
+import 'package:sensorvisualization/data/models/SensorType.dart';
+
 enum ItemType { seperator, data }
 
 class MultiSelectDialogItem {
-  String sensorName;
+  SensorType sensorName;
 
-  String? attribute;
+  SensorOrientation? attribute;
   ItemType type;
 
   MultiSelectDialogItem({

@@ -1,17 +1,22 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
+import 'package:sensorvisualization/data/services/SensorServer.dart';
+import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 
 class Sensordata {
   late Map<String, Set<MultiSelectDialogItem>> selectedLines;
   late ChartConfig chartConfig;
-  int secondsToDisplay = 10;
+
   double baselineX;
   bool autoFollowLatestData;
+  final SettingsProvider settingsProvider;
 
   Map<String, List<WarningRange>> ranges = {
     'green': [],
@@ -25,34 +30,42 @@ class Sensordata {
     required this.baselineX,
     required this.autoFollowLatestData,
     Map<String, List<WarningRange>>? warningRanges,
+    required this.settingsProvider,
   }) {
     if (warningRanges != null) {
       ranges = warningRanges;
     }
   }
 
-  List<FlSpot> getFilteredDataPoints(String sensorName, {int baselineY = 0}) {
+  List<FlSpot> getFilteredDataPoints(
+    SensorType sensorName,
+    SensorOrientation attribute, {
+    //TODO: to be implemented
+    int baselineY = 0,
+  }) {
     final double xMin;
     final double xMax;
+    final double currentMaxX = _getMaxX();
 
     if (autoFollowLatestData) {
-      xMin = _getMaxX() - secondsToDisplay;
-      xMax = _getMaxX();
+      xMin = currentMaxX - settingsProvider.scrollingSeconds;
+      xMax = currentMaxX;
     } else {
-      xMin = baselineX - secondsToDisplay;
-      xMax = baselineX + secondsToDisplay;
+      xMin = baselineX - settingsProvider.scrollingSeconds;
+      xMax = baselineX;
     }
 
     List<FlSpot> filteredData = [];
+    final key = sensorName.displayName + attribute.displayName;
 
-    chartConfig.dataPoints.forEach((key, points) {
-      if (key == sensorName) {
-        filteredData =
-            points.where((point) {
-              return point.x >= xMin && point.x <= xMax;
-            }).toList();
-      }
-    });
+    if (chartConfig.dataPoints.containsKey(key)) {
+      final allPoints = chartConfig.dataPoints[key]!;
+
+      filteredData =
+          allPoints
+              .where((point) => point.x >= xMin && point.x <= xMax)
+              .toList();
+    }
 
     return filteredData;
   }
@@ -60,16 +73,20 @@ class Sensordata {
   double _getExtremeValue(
     double Function(FlSpot spot) selector,
     bool Function(double a, double b) compare,
-    double fallbackValue,
-  ) {
+    double fallbackValue, {
+    bool Function(FlSpot spot)? filter,
+  }) {
     final Iterable<double> values = selectedLines.values
         .expand(
           (set) => set.expand(
             (item) =>
-                chartConfig.dataPoints[item.sensorName + item.attribute!] ?? [],
+                chartConfig.dataPoints[item.sensorName.displayName +
+                    item.attribute!.displayName] ??
+                [],
           ),
         )
         .cast<FlSpot>()
+        .where((spot) => filter == null || filter(spot))
         .map(selector);
 
     return values.isEmpty
@@ -82,11 +99,33 @@ class Sensordata {
   }
 
   double _getMinY() {
-    return _getExtremeValue((spot) => spot.y, (a, b) => a < b, 10);
+    final double minX =
+        autoFollowLatestData
+            ? _getMaxX() - settingsProvider.scrollingSeconds
+            : baselineX - settingsProvider.scrollingSeconds;
+    final double maxX = autoFollowLatestData ? _getMaxX() : baselineX;
+
+    return _getExtremeValue(
+      (spot) => spot.y,
+      (a, b) => a < b,
+      0.0,
+      filter: (spot) => spot.x >= minX && spot.x <= maxX,
+    );
   }
 
   double _getMaxY() {
-    return _getExtremeValue((spot) => spot.y, (a, b) => a > b, 10);
+    final double minX =
+        autoFollowLatestData
+            ? _getMaxX() - settingsProvider.scrollingSeconds
+            : baselineX - settingsProvider.scrollingSeconds;
+    final double maxX = autoFollowLatestData ? _getMaxX() : baselineX;
+
+    return _getExtremeValue(
+      (spot) => spot.y,
+      (a, b) => a > b,
+      0.0,
+      filter: (spot) => spot.x >= minX && spot.x <= maxX,
+    );
   }
 
   LineChart getLineChart(double baselineX, double baselineY) {
@@ -94,18 +133,11 @@ class Sensordata {
       LineChartData(
         minX:
             autoFollowLatestData
-                ? _getMaxX() < secondsToDisplay
-                    ? 0
-                    : _getMaxX() - secondsToDisplay
-                : baselineX - secondsToDisplay,
-        maxX:
-            autoFollowLatestData
-                ? _getMaxX() < secondsToDisplay
-                    ? secondsToDisplay.toDouble()
-                    : _getMaxX()
-                : baselineX,
+                ? _getMaxX() - settingsProvider.scrollingSeconds
+                : baselineX - settingsProvider.scrollingSeconds,
+        maxX: autoFollowLatestData ? _getMaxX() : baselineX,
         minY: _getMinY(),
-        maxY: (_getMaxY() - _getMinY()),
+        maxY: _getMaxY(),
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
@@ -122,24 +154,46 @@ class Sensordata {
         ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: AxisTitles(
+          bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 44,
+              reservedSize: 30,
+              interval: settingsProvider.scrollingSeconds / 5,
               getTitlesWidget: (value, meta) {
-                if (value == 2.5) {
+                if (settingsProvider.selectedTimeChoice ==
+                    TimeChoice.timestamp.value) {
+                  DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
+                    value.toInt() * 1000,
+                  );
+
+                  final formatter = DateFormat('HH:mm:ss');
+                  String formattedTime = formatter.format(dateTime);
+
                   return Text(
-                    'Grenze',
-                    style: TextStyle(
-                      color: ColorSettings.borderColor,
+                    formattedTime,
+                    style: const TextStyle(
+                      color: Color(0xff68737d),
+                      fontWeight: FontWeight.bold,
                       fontSize: 10,
                     ),
                   );
                 }
-                return const Text('');
+
+                return Text(
+                  SensorDataTransformation.transformDateTimeToSecondsSinceStart(
+                    DateTime.fromMillisecondsSinceEpoch(value.toInt() * 1000),
+                  ).toStringAsFixed(1),
+                  style: const TextStyle(
+                    color: Color(0xff68737d),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                );
               },
             ),
           ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(
           show: true,
@@ -223,7 +277,7 @@ class Sensordata {
     chartConfig.notes.forEach((noteTime, noteString) {
       toReturn.add(
         VerticalLine(
-          x: noteTime.toDouble(),
+          x: noteTime.millisecondsSinceEpoch.toDouble(),
           color: ColorSettings.noteLineColor,
           strokeWidth: 2,
           dashArray: [5, 10],
@@ -268,9 +322,9 @@ class Sensordata {
     final dashPattern = dashPatterns[sensorIndex % dashPatterns.length];
 
     return LineChartBarData(
-      spots: getFilteredDataPoints(sensor.sensorName + sensor.attribute!),
+      spots: getFilteredDataPoints(sensor.sensorName, sensor.attribute!),
       isCurved: true,
-      color: _getSensorColor(sensor.attribute!),
+      color: _getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
       isStrokeCapRound: true,
       dashArray: dashPattern,

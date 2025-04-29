@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 
 class Multiselectdialogwidget extends StatefulWidget {
@@ -18,7 +18,7 @@ class Multiselectdialogwidget extends StatefulWidget {
 
 class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   Map<String, Set<MultiSelectDialogItem>> _selectedSensors = {};
-  late String _currentSelectedDevice;
+  late String _currentSelectedDevice; // ip-address
 
   @override
   void initState() {
@@ -101,7 +101,10 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
               child: ListBody(
                 children:
                     SampleData.getSensorChoices(
-                      _currentSelectedDevice,
+                      _currentSelectedDevice ==
+                              SensorType.simulatedData.displayName
+                          ? SensorType.simulatedData
+                          : SensorType.accelerometer,
                     ).map(_buildItem).toList(),
               ),
             ),
@@ -122,7 +125,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
     return item.type == ItemType.data
         ? CheckboxListTile(
           value: checked,
-          title: Text(item.attribute!),
+          title: Text(item.attribute!.displayName),
           controlAffinity: ListTileControlAffinity.leading,
           onChanged: (checked) => _onItemCheckedChange(item, checked!),
         )
@@ -130,7 +133,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Text(
-              item.sensorName,
+              item.sensorName.displayName,
               style: TextStyle(color: Color.fromARGB(255, 91, 91, 91)),
             ),
           ),

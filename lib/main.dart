@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
@@ -20,8 +21,11 @@ void main() {
   _initializeNotifications();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ConnectionProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ConnectionProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+      ],
       child: MyApp(),
     ),
   );

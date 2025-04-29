@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
-import 'package:sensorvisualization/data/services/ConnectionProvider.dart';
+import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
+import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
+import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
@@ -26,6 +28,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   void initState() {
     super.initState();
     _addNewChart();
+
+    GlobalStartTime().initializeStartTime();
   }
 
   void _addNewChart() {
@@ -60,12 +64,18 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
-  int _selectedTimeChoice = 0;
-  int _selectedAbsRelData = 0;
+  int _selectedTimeChoice = TimeChoice.timestamp.value;
+  int _selectedAbsRelData = AbsRelDataChoice.relative.value;
+  int _selectedTimeUnit = TimeUnitChoice.seconds.value;
+
   TextEditingController _secondsController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensor visualization (THW)'),
@@ -89,15 +99,53 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                             children: [
                               Text("Mitlaufende Sekunden:"),
                               SizedBox(height: 8),
-                              TextField(
-                                controller: _secondsController,
-                                keyboardType: TextInputType.numberWithOptions(
-                                  decimal: false,
-                                ),
-                                decoration: const InputDecoration(
-                                  labelText: 'default: 20s',
-                                  border: OutlineInputBorder(),
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _secondsController,
+                                      keyboardType:
+                                          TextInputType.numberWithOptions(
+                                            decimal: false,
+                                          ),
+                                      decoration: InputDecoration(
+                                        labelText:
+                                            'default: ${SettingsProvider.DEFAULT_SCROLLING_SECONDS} s',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  DropdownButton<String>(
+                                    value:
+                                        TimeUnitChoice.fromValue(
+                                          _selectedTimeUnit,
+                                        ).asString(),
+                                    onChanged: (String? newValue) {
+                                      setStateDialog(() {
+                                        _selectedTimeUnit =
+                                            TimeUnitChoice.values
+                                                .firstWhere(
+                                                  (e) =>
+                                                      e.asString() == newValue,
+                                                )
+                                                .value;
+                                      });
+                                    },
+                                    items:
+                                        TimeUnitChoice.values
+                                            .map((e) => e.asString())
+                                            .toList()
+                                            .map(
+                                              (value) =>
+                                                  DropdownMenuItem<String>(
+                                                    value: value,
+                                                    child: Text(value),
+                                                  ),
+                                            )
+                                            .toList(),
+                                  ),
+                                ],
                               ),
                               Divider(
                                 color: Colors.grey,
@@ -109,11 +157,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                               SegmentedButton<int>(
                                 segments: [
                                   ButtonSegment<int>(
-                                    value: 0,
+                                    value: TimeChoice.timestamp.value,
                                     label: Text('Systemzeit'),
                                   ),
                                   ButtonSegment<int>(
-                                    value: 1,
+                                    value: TimeChoice.relativeToStart.value,
                                     label: Text('Zeit ab Start'),
                                   ),
                                 ],
@@ -134,11 +182,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                               SegmentedButton<int>(
                                 segments: [
                                   ButtonSegment<int>(
-                                    value: 0,
+                                    value: AbsRelDataChoice.relative.value,
                                     label: Text('Relative Werte'),
                                   ),
                                   ButtonSegment<int>(
-                                    value: 1,
+                                    value: AbsRelDataChoice.absolute.value,
                                     label: Text('Absolute Werte'),
                                   ),
                                 ],
@@ -158,6 +206,39 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       TextButton(
                         child: Text('Schließen'),
                         onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      TextButton(
+                        child: Text('Speichern'),
+                        onPressed: () {
+                          if (_secondsController.text.isNotEmpty) {
+                            final value =
+                                int.tryParse(_secondsController.text) ??
+                                SettingsProvider.DEFAULT_SCROLLING_SECONDS;
+                            TimeUnitChoice unitChoice =
+                                TimeUnitChoice.fromValue(_selectedTimeUnit);
+                            final seconds =
+                                (unitChoice == TimeUnitChoice.seconds
+                                    ? value
+                                    : unitChoice == TimeUnitChoice.minutes
+                                    ? value * 60
+                                    : value * 3600);
+                            Provider.of<SettingsProvider>(
+                              context,
+                              listen: false,
+                            ).setScrollingSeconds(seconds);
+                          }
+
+                          Provider.of<SettingsProvider>(
+                            context,
+                            listen: false,
+                          ).setTimeChoice(_selectedTimeChoice);
+                          Provider.of<SettingsProvider>(
+                            context,
+                            listen: false,
+                          ).setDataMode(_selectedAbsRelData);
+
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ],
                   );
