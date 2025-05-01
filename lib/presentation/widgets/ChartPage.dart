@@ -27,6 +27,8 @@ import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
+import 'DangerDetector.dart';
+ import 'DangerNavigationController.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -56,8 +58,14 @@ class _ChartPageState extends State<ChartPage> {
 
   late DateTime _startTime;
 
+  List<DateTime> _allDangerTimestamps = [];
+
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
+
+  late DangerNavigationController _dangerNavigationController;
+ 
+   late DangerDetector _dangerDetector;
 
   Map<String, List<WarningRange>> warningRanges = {
     'green': [],
@@ -73,6 +81,8 @@ class _ChartPageState extends State<ChartPage> {
     super.initState();
 
     _startTime = DateTime.now();
+
+    _dangerNavigationController = DangerNavigationController();
 
     _dataSubscription = Provider.of<ConnectionProvider>(
       context,
@@ -132,6 +142,36 @@ class _ChartPageState extends State<ChartPage> {
               data["sensor"].toString() + "z",
               FlSpot(timestamp, z),
             );
+
+            final dateTime = _startTime.add(Duration(milliseconds: (timestamp * 1000).toInt()));
+
+            final newDangers = DangerDetector.findDangerTimestamps(
+              points: [
+                FlSpot(timestamp, x),
+                FlSpot(timestamp, y),
+                FlSpot(timestamp, z),
+              ],
+              timestamps: [
+                dateTime,
+                dateTime,
+                dateTime,
+              ],
+              warningLevels: warningRanges,
+            );
+
+            for (final t in newDangers) {
+              if (!_allDangerTimestamps.contains(t)) {
+                _allDangerTimestamps.add(t);
+              }
+            }
+
+            _allDangerTimestamps.sort();
+ 
+           _dangerDetector = DangerDetector(_allDangerTimestamps);
+ 
+           if (newDangers.isNotEmpty) {
+             _dangerNavigationController.setCurrent(newDangers.first);
+           }
 
             if (autoFollowLatestData) {
               baselineX = timestamp;
@@ -272,70 +312,107 @@ class _ChartPageState extends State<ChartPage> {
       });
     }
   }
+      void addNote({String? initialText, DateTime? initialTime}) {
+      DateTime defaultTime = initialTime ?? DateTime.now();
+      final textController = TextEditingController(text: initialText);
+      final timeController = TextEditingController(text: defaultTime.toString());
 
-  void addNote({String? initialText}) {
-    DateTime defaultTime = DateTime.now();
-    TextEditingController textController = TextEditingController(
-      text: initialText,
-    );
-    TextEditingController timeController = TextEditingController(
-      text: defaultTime.toString(),
-    );
+      final List<DateTime> allDangerTimes = _dangerNavigationController.all;
+      int localIndex = _dangerNavigationController.all.indexOf(_dangerNavigationController.current ?? defaultTime);
 
-    showDialog(
+      showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Notiz hinzufügen"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: timeController,
-                decoration: const InputDecoration(
-                  labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
-                ),
-              ),
-              TextField(
-                controller: textController,
-                decoration: const InputDecoration(
-                  hintText: "Notiz eingeben...",
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Abbrechen"),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  DateTime parsedTime = DateTime.parse(timeController.text);
-                  setState(() {
-                    widget.chartConfig.notes[parsedTime] = textController.text;
-                  });
-                  await _databaseOperations.insertNoteData(
-                    NoteCompanion(
-                      date: Value(parsedTime),
-                      note: Value(textController.text),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void updateTimeField() {
+              timeController.text = allDangerTimes[localIndex].toString();
+            }
+
+            return AlertDialog(
+              title: const Text("Notiz hinzufügen"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: localIndex > 0
+                            ? () {
+                                setState(() {
+                                  localIndex--;
+                                  updateTimeField();
+                                });
+                              }
+                            : null,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: timeController,
+                          decoration: const InputDecoration(
+                            labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        onPressed: localIndex < allDangerTimes.length - 1
+                            ? () {
+                                setState(() {
+                                  localIndex++;
+                                  updateTimeField();
+                                });
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: textController,
+                    decoration: const InputDecoration(
+                      hintText: "Notiz eingeben...",
                     ),
-                  );
-                  Navigator.pop(context);
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Ungültiges Zeitformat.")),
-                  );
-                }
-              },
-              child: const Text("Speichern"),
-            ),
-          ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Abbrechen"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      DateTime parsedTime = DateTime.parse(timeController.text);
+                      setState(() {
+                        widget.chartConfig.notes[parsedTime] = textController.text;
+                      });
+                      await _databaseOperations.insertNoteData(
+                        NoteCompanion(
+                          date: Value(parsedTime),
+                          note: Value(textController.text),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Ungültiges Zeitformat.")),
+                      );
+                    }
+                  },
+                  child: const Text("Speichern"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
 
   List<Widget> buildAppBarActions() {
     return [
@@ -460,7 +537,7 @@ class _ChartPageState extends State<ChartPage> {
       IconButton(
         icon: const Icon(Icons.add_comment),
         onPressed: () {
-          addNote();
+          addNote(initialTime: _dangerNavigationController.current);
         },
         tooltip: 'Notiz hinzufügen',
       ),
@@ -529,18 +606,6 @@ class _ChartPageState extends State<ChartPage> {
     );
 
     return GestureDetector(
-      onTapUp: (details) {
-        final touchX = details.localPosition.dx;
-        final chartWidth = MediaQuery.of(context).size.width - 32;
-        final pointSpacing =
-            chartWidth / (widget.chartConfig.dataPoints.length - 1);
-
-        final index = (touchX / pointSpacing).round();
-
-        if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          addNote();
-        }
-      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.chartConfig.title),
