@@ -111,7 +111,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
             ElevatedButton(
               onPressed: () {
                 if (_ipController.text.isNotEmpty) {
-                  var connection = SensorClient(
+                  connection = SensorClient(
                     hostIPAddress: _ipController.text.trim(),
                     deviceName: _deviceNameController.text.trim(),
                   );
