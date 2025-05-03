@@ -32,13 +32,18 @@ Sensorik (Neigungsmesser, Beschleunigungsmesser, Kompass, …)
 - Anpassbare Zeitbereiche (fortlaufend und verschiebbar)
 - „Event“-Markierung mit Notizfunktion
 - Auf „Null“ setzen der Startwerte
+- „Null“-Messung (z.B. 10sek.) zur Ermittlung der Startwerte
 - Hinzufügen weiterer Diagramme
 - Export (*.csv)
+- Plotten der Graphen (zur Dokumentation und Weitergabe mit pdf-Export)
+- Definition von Warnschwellen (Alarmierung bei Überschreitung)
+- „Systemzeit“ oder „Zeit ab Start“ für die Zeitachse wählbar
 
 
 ## Tech Stack
 
 - **Frontend**: Flutter (Mobile & Web)
+- **Database**: SQFLite (lokal) und FireStore-Database
 
 
 #### Flutter-App starten
@@ -53,11 +58,9 @@ flutter run
 
 - Frei wählbarer Kombination der Messwerte (mehrere Skalen am Diagrammrand)
 - Umrechnung der Messwerte (z.B. Winkeländerung in °Grad oder mm/m)
-- Plotten der Graphen (zur Dokumentation und Weitergabe)
-- Definition von Warnschwellen (Alarmierung bei Überschreitung)
-- „Null“-Messung (z.B. 10sek.) zur Ermittlung der Startwerte
-- „Systemzeit“ oder „Zeit ab Start“ für die Zeitachse wählbar
-
+- "Selbstauslöser" für Handymessung
+- Zeit-Anzeige im NATO-Format
+- Automatische Alarmierung bei Überschreitung von Grenzwerten
 
 ## Projektstruktur
 
@@ -66,9 +69,12 @@ sensorvisualization/
 ├── lib/
 │   ├── data/                 
 │   |   ├── models/         
-│   |   ├── services/              
+│   |   ├── services/ 
+│   │   |   ├── providers/ 
+│   ├── database/                
 │   ├── presentation/    
 │   |   ├── screens/
+│   │   |   ├── SensorMeasurement/ 
 │   |   ├── widgets/          
 │   └── main.dart       # entry point
 ├── pubspec.yaml
@@ -120,15 +126,21 @@ sensors (inclinometer, accelerometer, compass, ...)
 - Linking of different data sources (in the same diagram)
 - Customizable time ranges (continuous and movable)
 - “Event” marking with note function
-- Setting the start values to “zero
+- Setting the start values to “zero"
+- “Zero” measurement (e.g. 10 sec.) to determine the start values
 - Add further diagrams
 - Export (*.csv)
+- Plotting of graphs (for documentation and dissemination with pdf export)
+- Definition of warning thresholds (alarm if exceeded)
+- “System time” or “Time from start” can be selected for the time axis
+
 
 Translated with DeepL.com (free version)
 
 ## Tech Stack
 
 - **Frontend**: Flutter (Mobile & Web)
+- **Database**: SQFLite (locally) and FireStore-Database
 
 #### starting Flutter-App 
 
@@ -143,10 +155,9 @@ flutter run
 
 - Freely selectable combination of measured values (several scales at the edge of the diagram)
 - Conversion of the measured values (e.g. angle change in °degrees or mm/m)
-- Plotting of graphs (for documentation and dissemination)
-- Definition of warning thresholds (alarm if exceeded)
-- “Zero” measurement (e.g. 10 sec.) to determine the start values
-- “System time” or “Time from start” can be selected for the time axis
+- Timer for phone measurement
+- Time display in NATO format
+- Automatic alarm in case of exceeding limits
 
 ## Projectstructur
 
@@ -155,9 +166,12 @@ sensorvisualization/
 ├── lib/
 │   ├── data/                 
 │   |   ├── models/         
-│   |   ├── services/              
+│   |   ├── services/   
+│   │   |   ├── providers/   
+│   ├── database/                
 │   ├── presentation/    
 │   |   ├── screens/
+│   │   |   ├── SensorMeasurement/
 │   |   ├── widgets/          
 │   └── main.dart       # entry point
 ├── pubspec.yaml
