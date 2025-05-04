@@ -28,7 +28,7 @@ import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'DangerDetector.dart';
- import 'DangerNavigationController.dart';
+import 'DangerNavigationController.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -64,8 +64,8 @@ class _ChartPageState extends State<ChartPage> {
   bool isSimulationRunning = false;
 
   late DangerNavigationController _dangerNavigationController;
- 
-   late DangerDetector _dangerDetector;
+
+  late DangerDetector _dangerDetector;
 
   Map<String, List<WarningRange>> warningRanges = {
     'green': [],
@@ -143,7 +143,9 @@ class _ChartPageState extends State<ChartPage> {
               FlSpot(timestamp, z),
             );
 
-            final dateTime = _startTime.add(Duration(milliseconds: (timestamp * 1000).toInt()));
+            final dateTime = _startTime.add(
+              Duration(milliseconds: (timestamp * 1000).toInt()),
+            );
 
             final newDangers = DangerDetector.findDangerTimestamps(
               points: [
@@ -151,11 +153,7 @@ class _ChartPageState extends State<ChartPage> {
                 FlSpot(timestamp, y),
                 FlSpot(timestamp, z),
               ],
-              timestamps: [
-                dateTime,
-                dateTime,
-                dateTime,
-              ],
+              timestamps: [dateTime, dateTime, dateTime],
               warningLevels: warningRanges,
             );
 
@@ -166,12 +164,12 @@ class _ChartPageState extends State<ChartPage> {
             }
 
             _allDangerTimestamps.sort();
- 
-           _dangerDetector = DangerDetector(_allDangerTimestamps);
- 
-           if (newDangers.isNotEmpty) {
-             _dangerNavigationController.setCurrent(newDangers.first);
-           }
+
+            _dangerDetector = DangerDetector(_allDangerTimestamps);
+
+            if (newDangers.isNotEmpty) {
+              _dangerNavigationController.setCurrent(newDangers.first);
+            }
 
             if (autoFollowLatestData) {
               baselineX = timestamp;
@@ -312,15 +310,18 @@ class _ChartPageState extends State<ChartPage> {
       });
     }
   }
-      void addNote({String? initialText, DateTime? initialTime}) {
-      DateTime defaultTime = initialTime ?? DateTime.now();
-      final textController = TextEditingController(text: initialText);
-      final timeController = TextEditingController(text: defaultTime.toString());
 
-      final List<DateTime> allDangerTimes = _dangerNavigationController.all;
-      int localIndex = _dangerNavigationController.all.indexOf(_dangerNavigationController.current ?? defaultTime);
+  void addNote({String? initialText, DateTime? initialTime}) {
+    DateTime defaultTime = initialTime ?? DateTime.now();
+    final textController = TextEditingController(text: initialText);
+    final timeController = TextEditingController(text: defaultTime.toString());
 
-      showDialog(
+    final List<DateTime> allDangerTimes = _dangerNavigationController.all;
+    int localIndex = _dangerNavigationController.all.indexOf(
+      _dangerNavigationController.current ?? defaultTime,
+    );
+
+    showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -339,14 +340,15 @@ class _ChartPageState extends State<ChartPage> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
-                        onPressed: localIndex > 0
-                            ? () {
-                                setState(() {
-                                  localIndex--;
-                                  updateTimeField();
-                                });
-                              }
-                            : null,
+                        onPressed:
+                            localIndex > 0
+                                ? () {
+                                  setState(() {
+                                    localIndex--;
+                                    updateTimeField();
+                                  });
+                                }
+                                : null,
                       ),
                       Expanded(
                         child: TextField(
@@ -358,14 +360,15 @@ class _ChartPageState extends State<ChartPage> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.arrow_forward),
-                        onPressed: localIndex < allDangerTimes.length - 1
-                            ? () {
-                                setState(() {
-                                  localIndex++;
-                                  updateTimeField();
-                                });
-                              }
-                            : null,
+                        onPressed:
+                            localIndex < allDangerTimes.length - 1
+                                ? () {
+                                  setState(() {
+                                    localIndex++;
+                                    updateTimeField();
+                                  });
+                                }
+                                : null,
                       ),
                     ],
                   ),
@@ -388,7 +391,8 @@ class _ChartPageState extends State<ChartPage> {
                     try {
                       DateTime parsedTime = DateTime.parse(timeController.text);
                       setState(() {
-                        widget.chartConfig.notes[parsedTime] = textController.text;
+                        widget.chartConfig.notes[parsedTime] =
+                            textController.text;
                       });
                       await _databaseOperations.insertNoteData(
                         NoteCompanion(
@@ -412,7 +416,6 @@ class _ChartPageState extends State<ChartPage> {
       },
     );
   }
-
 
   List<Widget> buildAppBarActions() {
     return [
@@ -491,49 +494,98 @@ class _ChartPageState extends State<ChartPage> {
         onPressed: _showAllNotes,
         tooltip: 'Alle Notizen anzeigen',
       ),
-      IconButton(
-        icon: const Icon(Icons.picture_as_pdf),
-        onPressed: () async {
-          final exporter = ChartExporter(_chartKey);
-          final path = await exporter.exportToPDF("Diagramm_Export");
-          if (!mounted) return;
-          if (path == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Fehler beim Exportieren des Diagramms'),
-                duration: Duration(seconds: 4),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: GestureDetector(
-                  onTap: () async {
-                    final uri = Uri.file(path, windows: Platform.isWindows);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Konnte Pfad nicht öffnen.'),
-                        ),
-                      );
-                    }
-                  },
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.save_alt),
+        tooltip: 'Diagramm exportieren',
+        onSelected: (value) async {
+          if (value == 'pdf') {
+            final exporter = ChartExporter(_chartKey);
+            final path = await exporter.exportToPDF("Diagramm_Export");
 
-                  child: Text('PDF gespeichert: $path'),
+            if (!context.mounted) return;
+
+            if (path == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fehler beim Exportieren des Diagramms'),
+                  duration: Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
                 ),
-                duration: Duration(seconds: 4),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.file(path, windows: Platform.isWindows);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Konnte Pfad nicht öffnen.'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text('PDF gespeichert: $path'),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          } else if (value == 'csv') {
+            final path = await _databaseOperations.exportSensorDataCSV(context);
+
+            if (!context.mounted) return;
+
+            if (path == "Fehler") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fehler beim Exportieren der CSV-Datei'),
+                  duration: Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.file(path, windows: Platform.isWindows);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Konnte Pfad nicht öffnen.'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text('CSV gespeichert: $path'),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
           }
-          ;
         },
-        tooltip: 'Diagramm als PDF exportieren',
+        itemBuilder:
+            (context) => [
+              const PopupMenuItem(
+                value: 'pdf',
+                child: Text('Als PDF exportieren'),
+              ),
+              const PopupMenuItem(
+                value: 'csv',
+                child: Text('Sensor-Daten als CSV exportieren'),
+              ),
+            ],
       ),
+
       IconButton(
         icon: const Icon(Icons.add_comment),
         onPressed: () {
