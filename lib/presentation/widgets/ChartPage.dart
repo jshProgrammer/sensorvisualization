@@ -503,49 +503,98 @@ class _ChartPageState extends State<ChartPage> {
         onPressed: _showAllNotes,
         tooltip: 'Alle Notizen anzeigen',
       ),
-      IconButton(
-        icon: const Icon(Icons.picture_as_pdf),
-        onPressed: () async {
-          final exporter = ChartExporter(_chartKey);
-          final path = await exporter.exportToPDF("Diagramm_Export");
-          if (!mounted) return;
-          if (path == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Fehler beim Exportieren des Diagramms'),
-                duration: Duration(seconds: 4),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: GestureDetector(
-                  onTap: () async {
-                    final uri = Uri.file(path, windows: Platform.isWindows);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Konnte Pfad nicht öffnen.'),
-                        ),
-                      );
-                    }
-                  },
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.save_alt),
+        tooltip: 'Diagramm exportieren',
+        onSelected: (value) async {
+          if (value == 'pdf') {
+            final exporter = ChartExporter(_chartKey);
+            final path = await exporter.exportToPDF("Diagramm_Export");
 
-                  child: Text('PDF gespeichert: $path'),
+            if (!context.mounted) return;
+
+            if (path == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fehler beim Exportieren des Diagramms'),
+                  duration: Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
                 ),
-                duration: Duration(seconds: 4),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.file(path, windows: Platform.isWindows);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Konnte Pfad nicht öffnen.'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text('PDF gespeichert: $path'),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          } else if (value == 'csv') {
+            final path = await _databaseOperations.exportSensorDataCSV(context);
+
+            if (!context.mounted) return;
+
+            if (path == "Fehler") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fehler beim Exportieren der CSV-Datei'),
+                  duration: Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.file(path, windows: Platform.isWindows);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Konnte Pfad nicht öffnen.'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text('CSV gespeichert: $path'),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
           }
-          ;
         },
-        tooltip: 'Diagramm als PDF exportieren',
+        itemBuilder:
+            (context) => [
+              const PopupMenuItem(
+                value: 'pdf',
+                child: Text('Als PDF exportieren'),
+              ),
+              const PopupMenuItem(
+                value: 'csv',
+                child: Text('Sensor-Daten als CSV exportieren'),
+              ),
+            ],
       ),
+
       IconButton(
         icon: const Icon(Icons.add_comment),
         onPressed: () {
