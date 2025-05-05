@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
@@ -32,6 +34,10 @@ class _StartNullMeasurementScreenState
   late DateTime _startTime;
   int remainingSeconds = measurementSeconds;
 
+  TextEditingController _delayController = TextEditingController();
+  int _selectedTimeUnit = TimeUnitChoice.seconds.value;
+  bool activeDelay = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,9 +56,11 @@ class _StartNullMeasurementScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              child: Text("Nullmessung starten"),
+              child: Text(
+                activeDelay ? "Selbstauslöser starten" : "Nullmessung starten",
+              ),
               onPressed: () {
-                startNullMeasurement();
+                activeDelay ? startDelayTimer() : startNullMeasurement();
               },
             ),
             SizedBox(height: 20),
@@ -86,8 +94,48 @@ class _StartNullMeasurementScreenState
     );
   }
 
-  void startNullMeasurement() {
+  void startDelayTimer() {
+    int amountOfSeconds = int.tryParse(_delayController.text.trim()) ?? 0;
+    amountOfSeconds =
+        (TimeUnitChoice.fromValue(_selectedTimeUnit) == TimeUnitChoice.hours)
+            ? amountOfSeconds * 3600
+            : (TimeUnitChoice.fromValue(_selectedTimeUnit) ==
+                TimeUnitChoice.minutes)
+            ? amountOfSeconds * 60
+            : amountOfSeconds;
+    _setTimer(
+      amountOfSeconds,
+      DateTime.now().add(Duration(seconds: amountOfSeconds)),
+      startNullMeasurement,
+    );
+  }
+
+  void _setTimer(int duration, DateTime endTime, Function onFinish) {
     _startTime = DateTime.now();
+
+    _progressTimer = Timer.periodic(Duration(milliseconds: 20), (timer) {
+      final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
+      final totalMillis = duration * 1000;
+
+      setState(() {
+        progress = elapsed / totalMillis;
+        remainingSeconds = duration - (elapsed / 1000).floor();
+      });
+
+      if (DateTime.now().isAfter(endTime)) {
+        timer.cancel();
+        onFinish();
+      }
+    });
+  }
+
+  void startNullMeasurement() {
+    final DateTime endTime = DateTime.now().add(
+      Duration(seconds: measurementSeconds),
+    );
+    _setTimer(measurementSeconds, endTime, _finishMeasurement);
+
+    /*_startTime = DateTime.now();
 
     final endTime = DateTime.now().add(Duration(seconds: measurementSeconds));
 
@@ -104,7 +152,7 @@ class _StartNullMeasurementScreenState
         timer.cancel();
         _finishMeasurement();
       }
-    });
+    });*/
 
     accelerometerEventStream(samplingPeriod: sensorInterval).listen((event) {
       if (DateTime.now().isBefore(endTime)) {
@@ -198,6 +246,82 @@ class _StartNullMeasurementScreenState
                     },
                   ),
                   Text('$selectedDuration Sekunden'),
+
+                  SizedBox(height: 10),
+
+                  Divider(),
+
+                  SizedBox(height: 10),
+
+                  Row(
+                    children: [
+                      Text("Selbstauslöser"),
+                      Spacer(),
+                      Switch(
+                        value: activeDelay,
+                        activeColor: Colors.blue,
+                        onChanged: (bool value) {
+                          setState(() {
+                            activeDelay = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                  if (activeDelay)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextField(
+                              controller: _delayController,
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: false,
+                              ),
+                              decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value:
+                                  TimeUnitChoice.fromValue(
+                                    _selectedTimeUnit,
+                                  ).asString(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedTimeUnit =
+                                      TimeUnitChoice.values
+                                          .firstWhere(
+                                            (e) => e.asString() == newValue,
+                                          )
+                                          .value;
+                                });
+                              },
+                              items:
+                                  TimeUnitChoice.values
+                                      .map((e) => e.asString())
+                                      .toList()
+                                      .map(
+                                        (value) => DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        ),
+                                      )
+                                      .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               );
             },
