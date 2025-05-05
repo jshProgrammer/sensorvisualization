@@ -28,7 +28,7 @@ import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'DangerDetector.dart';
- import 'DangerNavigationController.dart';
+import 'DangerNavigationController.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -64,8 +64,8 @@ class _ChartPageState extends State<ChartPage> {
   bool isSimulationRunning = false;
 
   late DangerNavigationController _dangerNavigationController;
- 
-   late DangerDetector _dangerDetector;
+
+  late DangerDetector _dangerDetector;
 
   Map<String, List<WarningRange>> warningRanges = {
     'green': [],
@@ -128,22 +128,28 @@ class _ChartPageState extends State<ChartPage> {
                     ? data['z'].toDouble()
                     : 0.0;
 
-            print("timestamp: ${timestamp}");
-
             widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "x",
+              SensorDataSimulator.simualtedIpAddress,
+              SensorType.simulatedData,
+              SensorOrientation.x,
               FlSpot(timestamp, x),
             );
             widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "y",
+              SensorDataSimulator.simualtedIpAddress,
+              SensorType.simulatedData,
+              SensorOrientation.y,
               FlSpot(timestamp, y),
             );
             widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "z",
+              SensorDataSimulator.simualtedIpAddress,
+              SensorType.simulatedData,
+              SensorOrientation.z,
               FlSpot(timestamp, z),
             );
 
-            final dateTime = _startTime.add(Duration(milliseconds: (timestamp * 1000).toInt()));
+            final dateTime = _startTime.add(
+              Duration(milliseconds: (timestamp * 1000).toInt()),
+            );
 
             final newDangers = DangerDetector.findDangerTimestamps(
               points: [
@@ -151,11 +157,7 @@ class _ChartPageState extends State<ChartPage> {
                 FlSpot(timestamp, y),
                 FlSpot(timestamp, z),
               ],
-              timestamps: [
-                dateTime,
-                dateTime,
-                dateTime,
-              ],
+              timestamps: [dateTime, dateTime, dateTime],
               warningLevels: warningRanges,
             );
 
@@ -166,12 +168,12 @@ class _ChartPageState extends State<ChartPage> {
             }
 
             _allDangerTimestamps.sort();
- 
-           _dangerDetector = DangerDetector(_allDangerTimestamps);
- 
-           if (newDangers.isNotEmpty) {
-             _dangerNavigationController.setCurrent(newDangers.first);
-           }
+
+            _dangerDetector = DangerDetector(_allDangerTimestamps);
+
+            if (newDangers.isNotEmpty) {
+              _dangerNavigationController.setCurrent(newDangers.first);
+            }
 
             if (autoFollowLatestData) {
               baselineX = timestamp;
@@ -198,7 +200,6 @@ class _ChartPageState extends State<ChartPage> {
       setState(() {
         var jsonData = SensorDataTransformation.returnAbsoluteSensorDataAsJson(
           data,
-          SensorTypeExtension.fromString(data["sensor"]),
         );
 
         double timestampAsDouble =
@@ -208,25 +209,33 @@ class _ChartPageState extends State<ChartPage> {
 
         if (jsonData.containsKey('x') && jsonData['x'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + 'x',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.x,
             FlSpot(timestampAsDouble, jsonData['x'] as double),
           );
         }
         if (jsonData.containsKey('y') && jsonData['y'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + 'y',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.y,
             FlSpot(timestampAsDouble, jsonData['y'] as double),
           );
         }
         if (jsonData.containsKey('z') && jsonData['z'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + 'z',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.z,
             FlSpot(timestampAsDouble, jsonData['z'] as double),
           );
         }
         if (jsonData.containsKey('pressure') && jsonData['pressure'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + '_pressure',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.pressure,
             FlSpot(timestampAsDouble, jsonData['pressure'] as double),
           );
         }
@@ -294,8 +303,6 @@ class _ChartPageState extends State<ChartPage> {
         selectedValues = result;
       });
     }
-
-    print(selectedValues);
   }
 
   void _showWarnLevelSelection(BuildContext context) async {
@@ -312,15 +319,18 @@ class _ChartPageState extends State<ChartPage> {
       });
     }
   }
-      void addNote({String? initialText, DateTime? initialTime}) {
-      DateTime defaultTime = initialTime ?? DateTime.now();
-      final textController = TextEditingController(text: initialText);
-      final timeController = TextEditingController(text: defaultTime.toString());
 
-      final List<DateTime> allDangerTimes = _dangerNavigationController.all;
-      int localIndex = _dangerNavigationController.all.indexOf(_dangerNavigationController.current ?? defaultTime);
+  void addNote({String? initialText, DateTime? initialTime}) {
+    DateTime defaultTime = initialTime ?? DateTime.now();
+    final textController = TextEditingController(text: initialText);
+    final timeController = TextEditingController(text: defaultTime.toString());
 
-      showDialog(
+    final List<DateTime> allDangerTimes = _dangerNavigationController.all;
+    int localIndex = _dangerNavigationController.all.indexOf(
+      _dangerNavigationController.current ?? defaultTime,
+    );
+
+    showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -339,14 +349,15 @@ class _ChartPageState extends State<ChartPage> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
-                        onPressed: localIndex > 0
-                            ? () {
-                                setState(() {
-                                  localIndex--;
-                                  updateTimeField();
-                                });
-                              }
-                            : null,
+                        onPressed:
+                            localIndex > 0
+                                ? () {
+                                  setState(() {
+                                    localIndex--;
+                                    updateTimeField();
+                                  });
+                                }
+                                : null,
                       ),
                       Expanded(
                         child: TextField(
@@ -358,14 +369,15 @@ class _ChartPageState extends State<ChartPage> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.arrow_forward),
-                        onPressed: localIndex < allDangerTimes.length - 1
-                            ? () {
-                                setState(() {
-                                  localIndex++;
-                                  updateTimeField();
-                                });
-                              }
-                            : null,
+                        onPressed:
+                            localIndex < allDangerTimes.length - 1
+                                ? () {
+                                  setState(() {
+                                    localIndex++;
+                                    updateTimeField();
+                                  });
+                                }
+                                : null,
                       ),
                     ],
                   ),
@@ -388,7 +400,8 @@ class _ChartPageState extends State<ChartPage> {
                     try {
                       DateTime parsedTime = DateTime.parse(timeController.text);
                       setState(() {
-                        widget.chartConfig.notes[parsedTime] = textController.text;
+                        widget.chartConfig.notes[parsedTime] =
+                            textController.text;
                       });
                       await _databaseOperations.insertNoteData(
                         NoteCompanion(
@@ -412,7 +425,6 @@ class _ChartPageState extends State<ChartPage> {
       },
     );
   }
-
 
   List<Widget> buildAppBarActions() {
     return [
@@ -560,6 +572,7 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   double get maxX => widget.chartConfig.dataPoints.values
+      .expand((map) => map.values)
       .expand((list) => list)
       .fold(
         0.0,
@@ -567,6 +580,7 @@ class _ChartPageState extends State<ChartPage> {
       ); // calculated in milliseconds * 1000 since epoch
 
   double get maxY => widget.chartConfig.dataPoints.values
+      .expand((map) => map.values)
       .expand((list) => list)
       .fold(0.0, (prev, spot) => spot.y > prev ? spot.y : prev);
 
@@ -657,6 +671,11 @@ class _ChartPageState extends State<ChartPage> {
                                       warningRanges: warningRanges,
                                       settingsProvider:
                                           Provider.of<SettingsProvider>(
+                                            context,
+                                            listen: false,
+                                          ),
+                                      connectionProvider:
+                                          Provider.of<ConnectionProvider>(
                                             context,
                                             listen: false,
                                           ),

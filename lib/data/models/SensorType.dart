@@ -35,7 +35,7 @@ extension SensorTypeExtension on SensorType {
         return SensorType.magnetometer;
       case 'barometer':
         return SensorType.barometer;
-      case 'Simulierte Daten':
+      case 'simulierte daten':
         return SensorType.simulatedData;
       default:
         return null;

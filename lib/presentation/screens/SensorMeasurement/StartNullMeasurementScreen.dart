@@ -119,8 +119,10 @@ class _StartNullMeasurementScreenState
     });
   }
 
-  void _finishMeasurement() {
+  Future<void> _finishMeasurement() async {
+    await widget.connection.retrieveLocalIP();
     final result = {
+      'ip': widget.connection.ownIPAddress,
       'sensor': 'Durchschnittswerte nach 10s',
       SensorType.accelerometer.displayName: _averageTriplet(_accelData),
       SensorType.gyroscope.displayName: _averageTriplet(_gyroData),

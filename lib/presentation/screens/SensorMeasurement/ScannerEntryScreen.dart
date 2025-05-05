@@ -110,37 +110,57 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                if (_ipController.text.isNotEmpty) {
-                  connection = SensorClient(
-                    hostIPAddress: _ipController.text.trim(),
-                    deviceName: _deviceNameController.text.trim(),
-                  );
-                  connection.initSocket().then((isConnected) {
-                    if (isConnected) {
-                      _navigateToStartMeasurementPage(
-                        _ipController.text.trim(),
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: const Text('Verbindungsfehler'),
-                              content: const Text(
-                                'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
+                if (_isDeviceNameEntered) {
+                  if (_ipController.text.isNotEmpty) {
+                    connection = SensorClient(
+                      hostIPAddress: _ipController.text.trim(),
+                      deviceName: _deviceNameController.text.trim(),
+                    );
+                    connection.initSocket().then((isConnected) {
+                      if (isConnected) {
+                        _navigateToStartMeasurementPage(
+                          _ipController.text.trim(),
+                        );
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: const Text('Verbindungsfehler'),
+                                content: const Text(
+                                  'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
                                 ),
-                              ],
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                        );
+                      }
+                    });
+                  }
+                } else {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Fehlender Gerätename'),
+                          content: const Text(
+                            'Bitte gib zuerst einen Gerätenamen ein.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('OK'),
                             ),
-                      );
-                    }
-                  });
+                          ],
+                        ),
+                  );
                 }
               },
+
               child: const Text('Weiter zur Messung'),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
