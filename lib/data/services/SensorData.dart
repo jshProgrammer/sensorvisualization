@@ -356,10 +356,6 @@ class Sensordata {
       barWidth: 4,
       isStrokeCapRound: true,
       dashArray: dashPattern,
-      belowBarData: BarAreaData(
-        show: true,
-        color: chartConfig.color.withAlpha(75),
-      ),
       dotData: FlDotData(show: false),
     );
   }
