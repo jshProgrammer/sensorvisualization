@@ -19,6 +19,9 @@ class _StartNullMeasurementScreenState
     extends State<StartNullMeasurementScreen> {
   Duration sensorInterval = Duration(milliseconds: 100);
 
+  static const int defaultMeasurementSeconds = 10;
+  static int measurementSeconds = defaultMeasurementSeconds;
+
   final _accelData = <List<double>>[];
   final _gyroData = <List<double>>[];
   final _magnetData = <List<double>>[];
@@ -27,12 +30,21 @@ class _StartNullMeasurementScreenState
   double progress = 0;
   late Timer _progressTimer;
   late DateTime _startTime;
-  int remainingSeconds = 10;
+  int remainingSeconds = measurementSeconds;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nullmessung')),
+      appBar: AppBar(
+        title: const Text('Nullmessung'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: _openDurationSettings,
+            tooltip: 'Messzeit einstellen',
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -58,15 +70,14 @@ class _StartNullMeasurementScreenState
                   ),
                 ),
 
-                if (remainingSeconds != 10)
-                  Text(
-                    '$remainingSeconds',
-                    style: TextStyle(
-                      fontSize: 50,
-                      fontWeight: FontWeight.normal,
-                      color: Colors.black,
-                    ),
+                Text(
+                  '$remainingSeconds',
+                  style: TextStyle(
+                    fontSize: 50,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black,
                   ),
+                ),
               ],
             ),
           ],
@@ -78,14 +89,15 @@ class _StartNullMeasurementScreenState
   void startNullMeasurement() {
     _startTime = DateTime.now();
 
-    final endTime = DateTime.now().add(Duration(seconds: 10));
+    final endTime = DateTime.now().add(Duration(seconds: measurementSeconds));
 
     _progressTimer = Timer.periodic(Duration(milliseconds: 20), (timer) {
       final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
+      final totalMillis = measurementSeconds * 1000;
 
       setState(() {
-        progress = elapsed / 10000;
-        remainingSeconds = 10 - (elapsed / 1000).floor();
+        progress = elapsed / totalMillis;
+        remainingSeconds = measurementSeconds - (elapsed / 1000).floor();
       });
 
       if (DateTime.now().isAfter(endTime)) {
@@ -123,7 +135,7 @@ class _StartNullMeasurementScreenState
     await widget.connection.retrieveLocalIP();
     final result = {
       'ip': widget.connection.ownIPAddress,
-      'sensor': 'Durchschnittswerte nach 10s',
+      'sensor': 'Durchschnittswerte nach ${measurementSeconds}s',
       SensorType.accelerometer.displayName: _averageTriplet(_accelData),
       SensorType.gyroscope.displayName: _averageTriplet(_gyroData),
       SensorType.magnetometer.displayName: _averageTriplet(_magnetData),
@@ -158,5 +170,58 @@ class _StartNullMeasurementScreenState
   double _averageSingle(List<double> data) {
     if (data.isEmpty) return 0;
     return data.reduce((a, b) => a + b) / data.length;
+  }
+
+  void _openDurationSettings() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        int selectedDuration = measurementSeconds;
+        return AlertDialog(
+          title: Text('Messzeit einstellen'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Dauer der Nullmessung in Sekunden:'),
+                  Slider(
+                    value: selectedDuration.toDouble(),
+                    min: 5,
+                    max: 30,
+                    divisions: 25,
+                    label: selectedDuration.toString(),
+                    onChanged: (double value) {
+                      setState(() {
+                        selectedDuration = value.round();
+                      });
+                    },
+                  ),
+                  Text('$selectedDuration Sekunden'),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Speichern'),
+              onPressed: () {
+                setState(() {
+                  measurementSeconds = selectedDuration;
+                  remainingSeconds = measurementSeconds;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
