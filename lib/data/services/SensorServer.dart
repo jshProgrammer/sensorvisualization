@@ -15,7 +15,7 @@ class SensorServer {
   final void Function()? onConnectionChanged;
   late Databaseoperations _databaseOperations;
 
-  static final Map<SensorType, Map<SensorOrientation, double>>
+  static final Map<String, Map<SensorType, Map<SensorOrientation, double>>>
   nullMeasurementValues = {};
 
   SensorServer({
@@ -24,6 +24,16 @@ class SensorServer {
     this.onConnectionChanged,
     required Databaseoperations databaseOperations,
   }) : _databaseOperations = databaseOperations;
+
+  String getIpAddressByDeviceName(String deviceName) {
+    for (var entry in connectedDevices.entries) {
+      if (entry.value == deviceName) {
+        return entry.key;
+      }
+    }
+    //TODO: improve error-handling
+    return "";
+  }
 
   Map<String, String> connectedDevices = {}; // ip-address => device-name
 
@@ -73,14 +83,16 @@ class SensorServer {
                   data is String ? decoded : {},
                 );
 
+                //TODO: improve json handling here
                 if (parsed['sensor'].contains("Durchschnittswert")) {
                   _storeNullMeasurementValues(parsed);
                 } else {
-                  final sensorType = SensorTypeExtension.fromString(
+                  /*final sensorType = SensorTypeExtension.fromString(
                     parsed['sensor'],
-                  );
+                  );*/
                   //Writing to database
-                  _databaseOperations.insertSensorData(
+                  //TODO: macht noch Probleme da noch nicht alle Daten komplett als Paket gesendet werden
+                  /*_databaseOperations.insertSensorData(
                     SensorCompanion(
                       date: Value(DateTime.parse(parsed['timestamp'])),
                       ip: Value(parsed['ip']),
@@ -95,12 +107,11 @@ class SensorServer {
                       magnetometerZ: Value(parsed['magnetometerZ']),
                       barometer: Value(parsed['barometer']),
                     ),
-                  );
+                  );*/
 
                   onDataReceived(
                     SensorDataTransformation.returnAbsoluteSensorDataAsJson(
                       parsed,
-                      sensorType,
                     ),
                   );
                 }
@@ -115,7 +126,8 @@ class SensorServer {
   }
 
   void _storeNullMeasurementValues(Map<String, dynamic> nullMeasurement) {
-    nullMeasurementValues.putIfAbsent(
+    nullMeasurementValues.putIfAbsent(nullMeasurement['ip'], () => {});
+    nullMeasurementValues['ip']!.putIfAbsent(
       SensorType.accelerometer,
       () => {
         SensorOrientation.x:
@@ -132,7 +144,7 @@ class SensorServer {
                 .displayName][SensorOrientation.z.displayName],
       },
     );
-    nullMeasurementValues.putIfAbsent(
+    nullMeasurementValues['ip']!.putIfAbsent(
       SensorType.gyroscope,
       () => {
         SensorOrientation.x:
@@ -150,7 +162,7 @@ class SensorServer {
       },
     );
 
-    nullMeasurementValues.putIfAbsent(
+    nullMeasurementValues['ip']!.putIfAbsent(
       SensorType.magnetometer,
       () => {
         SensorOrientation.x:
@@ -168,7 +180,7 @@ class SensorServer {
       },
     );
 
-    nullMeasurementValues.putIfAbsent(
+    nullMeasurementValues['ip']!.putIfAbsent(
       SensorType.barometer,
       () => {
         SensorOrientation.pressure:

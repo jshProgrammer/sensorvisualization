@@ -8,6 +8,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class SensorDataSimulator {
   final void Function(Map<String, dynamic>) onDataGenerated;
   late Timer _timer;
+  static String simualtedIpAddress = 'simulatedIpAddress';
   final Random _random = Random();
   late WebSocketChannel channel;
   final info = NetworkInfo();
@@ -28,6 +29,7 @@ class SensorDataSimulator {
   void startSimulation({int intervalMs = 1000}) {
     _timer = Timer.periodic(Duration(milliseconds: intervalMs), (timer) {
       final simulatedData = {
+        'ip': simualtedIpAddress,
         'sensor': SensorType.simulatedData.displayName,
         'timestamp': DateTime.now().toIso8601String(),
         'x': _random.nextDouble() * 10 - 5, // Werte zwischen -5 und 5

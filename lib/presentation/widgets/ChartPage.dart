@@ -27,6 +27,8 @@ import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
+import 'DangerDetector.dart';
+import 'DangerNavigationController.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -56,8 +58,14 @@ class _ChartPageState extends State<ChartPage> {
 
   late DateTime _startTime;
 
+  List<DateTime> _allDangerTimestamps = [];
+
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
+
+  late DangerNavigationController _dangerNavigationController;
+
+  late DangerDetector _dangerDetector;
 
   Map<String, List<WarningRange>> warningRanges = {
     'green': [],
@@ -79,6 +87,8 @@ class _ChartPageState extends State<ChartPage> {
         listen: false,
       );
     });
+    _dangerNavigationController = DangerNavigationController();
+
     _dataSubscription = Provider.of<ConnectionProvider>(
       context,
       listen: false,
@@ -123,20 +133,52 @@ class _ChartPageState extends State<ChartPage> {
                     ? data['z'].toDouble()
                     : 0.0;
 
-            print("timestamp: ${timestamp}");
-
             widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "x",
+              SensorDataSimulator.simualtedIpAddress,
+              SensorType.simulatedData,
+              SensorOrientation.x,
               FlSpot(timestamp, x),
             );
             widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "y",
+              SensorDataSimulator.simualtedIpAddress,
+              SensorType.simulatedData,
+              SensorOrientation.y,
               FlSpot(timestamp, y),
             );
             widget.chartConfig.addDataPoint(
-              data["sensor"].toString() + "z",
+              SensorDataSimulator.simualtedIpAddress,
+              SensorType.simulatedData,
+              SensorOrientation.z,
               FlSpot(timestamp, z),
             );
+
+            final dateTime = _startTime.add(
+              Duration(milliseconds: (timestamp * 1000).toInt()),
+            );
+
+            final newDangers = DangerDetector.findDangerTimestamps(
+              points: [
+                FlSpot(timestamp, x),
+                FlSpot(timestamp, y),
+                FlSpot(timestamp, z),
+              ],
+              timestamps: [dateTime, dateTime, dateTime],
+              warningLevels: warningRanges,
+            );
+
+            for (final t in newDangers) {
+              if (!_allDangerTimestamps.contains(t)) {
+                _allDangerTimestamps.add(t);
+              }
+            }
+
+            _allDangerTimestamps.sort();
+
+            _dangerDetector = DangerDetector(_allDangerTimestamps);
+
+            if (newDangers.isNotEmpty) {
+              _dangerNavigationController.setCurrent(newDangers.first);
+            }
 
             if (autoFollowLatestData) {
               baselineX = timestamp;
@@ -163,7 +205,6 @@ class _ChartPageState extends State<ChartPage> {
       setState(() {
         var jsonData = SensorDataTransformation.returnAbsoluteSensorDataAsJson(
           data,
-          SensorTypeExtension.fromString(data["sensor"]),
         );
 
         double timestampAsDouble =
@@ -173,25 +214,33 @@ class _ChartPageState extends State<ChartPage> {
 
         if (jsonData.containsKey('x') && jsonData['x'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + 'x',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.x,
             FlSpot(timestampAsDouble, jsonData['x'] as double),
           );
         }
         if (jsonData.containsKey('y') && jsonData['y'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + 'y',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.y,
             FlSpot(timestampAsDouble, jsonData['y'] as double),
           );
         }
         if (jsonData.containsKey('z') && jsonData['z'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + 'z',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.z,
             FlSpot(timestampAsDouble, jsonData['z'] as double),
           );
         }
         if (jsonData.containsKey('pressure') && jsonData['pressure'] != null) {
           widget.chartConfig.addDataPoint(
-            jsonData['sensor'] + '_pressure',
+            jsonData['ip'],
+            jsonData['sensor'],
+            SensorOrientation.pressure,
             FlSpot(timestampAsDouble, jsonData['pressure'] as double),
           );
         }
@@ -259,8 +308,6 @@ class _ChartPageState extends State<ChartPage> {
         selectedValues = result;
       });
     }
-
-    print(selectedValues);
   }
 
   void _showWarnLevelSelection(BuildContext context) async {
@@ -278,65 +325,107 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
-  void addNote({String? initialText}) {
-    DateTime defaultTime = DateTime.now();
-    TextEditingController textController = TextEditingController(
-      text: initialText,
-    );
-    TextEditingController timeController = TextEditingController(
-      text: defaultTime.toString(),
+  void addNote({String? initialText, DateTime? initialTime}) {
+    DateTime defaultTime = initialTime ?? DateTime.now();
+    final textController = TextEditingController(text: initialText);
+    final timeController = TextEditingController(text: defaultTime.toString());
+
+    final List<DateTime> allDangerTimes = _dangerNavigationController.all;
+    int localIndex = _dangerNavigationController.all.indexOf(
+      _dangerNavigationController.current ?? defaultTime,
     );
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Notiz hinzufügen"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: timeController,
-                decoration: const InputDecoration(
-                  labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
-                ),
-              ),
-              TextField(
-                controller: textController,
-                decoration: const InputDecoration(
-                  hintText: "Notiz eingeben...",
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Abbrechen"),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  DateTime parsedTime = DateTime.parse(timeController.text);
-                  setState(() {
-                    widget.chartConfig.notes[parsedTime] = textController.text;
-                  });
-                  await _databaseOperations.insertNoteData(
-                    NoteCompanion(
-                      date: Value(parsedTime),
-                      note: Value(textController.text),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void updateTimeField() {
+              timeController.text = allDangerTimes[localIndex].toString();
+            }
+
+            return AlertDialog(
+              title: const Text("Notiz hinzufügen"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed:
+                            localIndex > 0
+                                ? () {
+                                  setState(() {
+                                    localIndex--;
+                                    updateTimeField();
+                                  });
+                                }
+                                : null,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: timeController,
+                          decoration: const InputDecoration(
+                            labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        onPressed:
+                            localIndex < allDangerTimes.length - 1
+                                ? () {
+                                  setState(() {
+                                    localIndex++;
+                                    updateTimeField();
+                                  });
+                                }
+                                : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: textController,
+                    decoration: const InputDecoration(
+                      hintText: "Notiz eingeben...",
                     ),
-                  );
-                  Navigator.pop(context);
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Ungültiges Zeitformat.")),
-                  );
-                }
-              },
-              child: const Text("Speichern"),
-            ),
-          ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Abbrechen"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      DateTime parsedTime = DateTime.parse(timeController.text);
+                      setState(() {
+                        widget.chartConfig.notes[parsedTime] =
+                            textController.text;
+                      });
+                      await _databaseOperations.insertNoteData(
+                        NoteCompanion(
+                          date: Value(parsedTime),
+                          note: Value(textController.text),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Ungültiges Zeitformat.")),
+                      );
+                    }
+                  },
+                  child: const Text("Speichern"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -419,53 +508,102 @@ class _ChartPageState extends State<ChartPage> {
         onPressed: _showAllNotes,
         tooltip: 'Alle Notizen anzeigen',
       ),
-      IconButton(
-        icon: const Icon(Icons.picture_as_pdf),
-        onPressed: () async {
-          final exporter = ChartExporter(_chartKey);
-          final path = await exporter.exportToPDF("Diagramm_Export");
-          if (!mounted) return;
-          if (path == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Fehler beim Exportieren des Diagramms'),
-                duration: Duration(seconds: 4),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            return;
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: GestureDetector(
-                  onTap: () async {
-                    final uri = Uri.file(path, windows: Platform.isWindows);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Konnte Pfad nicht öffnen.'),
-                        ),
-                      );
-                    }
-                  },
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.save_alt),
+        tooltip: 'Diagramm exportieren',
+        onSelected: (value) async {
+          if (value == 'pdf') {
+            final exporter = ChartExporter(_chartKey);
+            final path = await exporter.exportToPDF("Diagramm_Export");
 
-                  child: Text('PDF gespeichert: $path'),
+            if (!context.mounted) return;
+
+            if (path == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fehler beim Exportieren des Diagramms'),
+                  duration: Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
                 ),
-                duration: Duration(seconds: 4),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.file(path, windows: Platform.isWindows);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Konnte Pfad nicht öffnen.'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text('PDF gespeichert: $path'),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          } else if (value == 'csv') {
+            final path = await _databaseOperations.exportSensorDataCSV(context);
+
+            if (!context.mounted) return;
+
+            if (path == "Fehler") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fehler beim Exportieren der CSV-Datei'),
+                  duration: Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: GestureDetector(
+                    onTap: () async {
+                      final uri = Uri.file(path, windows: Platform.isWindows);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Konnte Pfad nicht öffnen.'),
+                          ),
+                        );
+                      }
+                    },
+                    child: Text('CSV gespeichert: $path'),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
           }
-          ;
         },
-        tooltip: 'Diagramm als PDF exportieren',
+        itemBuilder:
+            (context) => [
+              const PopupMenuItem(
+                value: 'pdf',
+                child: Text('Als PDF exportieren'),
+              ),
+              const PopupMenuItem(
+                value: 'csv',
+                child: Text('Sensor-Daten als CSV exportieren'),
+              ),
+            ],
       ),
+
       IconButton(
         icon: const Icon(Icons.add_comment),
         onPressed: () {
-          addNote();
+          addNote(initialTime: _dangerNavigationController.current);
         },
         tooltip: 'Notiz hinzufügen',
       ),
@@ -488,6 +626,7 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   double get maxX => widget.chartConfig.dataPoints.values
+      .expand((map) => map.values)
       .expand((list) => list)
       .fold(
         0.0,
@@ -495,6 +634,7 @@ class _ChartPageState extends State<ChartPage> {
       ); // calculated in milliseconds * 1000 since epoch
 
   double get maxY => widget.chartConfig.dataPoints.values
+      .expand((map) => map.values)
       .expand((list) => list)
       .fold(0.0, (prev, spot) => spot.y > prev ? spot.y : prev);
 
@@ -534,18 +674,6 @@ class _ChartPageState extends State<ChartPage> {
     );
 
     return GestureDetector(
-      onTapUp: (details) {
-        final touchX = details.localPosition.dx;
-        final chartWidth = MediaQuery.of(context).size.width - 32;
-        final pointSpacing =
-            chartWidth / (widget.chartConfig.dataPoints.length - 1);
-
-        final index = (touchX / pointSpacing).round();
-
-        if (index >= 0 && index < widget.chartConfig.dataPoints.length) {
-          addNote();
-        }
-      },
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.chartConfig.title),
@@ -597,6 +725,11 @@ class _ChartPageState extends State<ChartPage> {
                                       warningRanges: warningRanges,
                                       settingsProvider:
                                           Provider.of<SettingsProvider>(
+                                            context,
+                                            listen: false,
+                                          ),
+                                      connectionProvider:
+                                          Provider.of<ConnectionProvider>(
                                             context,
                                             listen: false,
                                           ),

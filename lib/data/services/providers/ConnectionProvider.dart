@@ -18,6 +18,10 @@ class ConnectionProvider extends ChangeNotifier {
     _connectionToSender.startServer();
   }
 
+  String getIpAddressByDeviceName(String deviceName) {
+    return _connectionToSender.getIpAddressByDeviceName(deviceName);
+  }
+
   final _dataStreamController =
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get dataStream => _dataStreamController.stream;

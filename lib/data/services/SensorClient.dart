@@ -17,14 +17,21 @@ class SensorClient {
 
   final String hostIPAddress;
   final String deviceName;
+  late final String ownIPAddress;
+  bool _ownIPAddressInitialized = false;
 
   SensorClient({required this.hostIPAddress, required this.deviceName}) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
   }
 
-  Future<String?> _retrieveLocalIP() async {
+  Future<String?> retrieveLocalIP() async {
     final info = NetworkInfo();
     final wifiIP = await info.getWifiIP();
+
+    if (!_ownIPAddressInitialized) {
+      ownIPAddress = wifiIP ?? '';
+      _ownIPAddressInitialized = true;
+    }
 
     return wifiIP;
   }
@@ -37,7 +44,7 @@ class SensorClient {
     // send connection request including ip and custom device name to server
     final initializationMessage = jsonEncode({
       "type": "ConnectionRequest",
-      "ip": await _retrieveLocalIP(),
+      "ip": await retrieveLocalIP(),
       "deviceName": deviceName,
     });
     channel.sink.add(initializationMessage);
@@ -63,7 +70,7 @@ class SensorClient {
   }
 
   Future<void> startSensorStream() async {
-    final localIP = await _retrieveLocalIP();
+    final localIP = await retrieveLocalIP();
     accelerometerSub = accelerometerEventStream(
       samplingPeriod: sensorInterval,
     ).listen((AccelerometerEvent event) {
@@ -130,10 +137,7 @@ class SensorClient {
     await barometerSub.cancel();
 
     channel.sink.add(
-      jsonEncode({
-        "command": "StopMeasurement",
-        "ip": await _retrieveLocalIP(),
-      }),
+      jsonEncode({"command": "StopMeasurement", "ip": await retrieveLocalIP()}),
     );
 
     await channel.sink.close();

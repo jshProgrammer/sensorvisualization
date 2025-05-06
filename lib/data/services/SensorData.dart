@@ -1,14 +1,18 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
 import 'package:sensorvisualization/data/services/SensorServer.dart';
+import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
+import 'package:tuple/tuple.dart';
 
 class Sensordata {
   late Map<String, Set<MultiSelectDialogItem>> selectedLines;
@@ -17,6 +21,7 @@ class Sensordata {
   double baselineX;
   bool autoFollowLatestData;
   final SettingsProvider settingsProvider;
+  final ConnectionProvider connectionProvider;
 
   Map<String, List<WarningRange>> ranges = {
     'green': [],
@@ -31,6 +36,7 @@ class Sensordata {
     required this.autoFollowLatestData,
     Map<String, List<WarningRange>>? warningRanges,
     required this.settingsProvider,
+    required this.connectionProvider,
   }) {
     if (warningRanges != null) {
       ranges = warningRanges;
@@ -38,6 +44,7 @@ class Sensordata {
   }
 
   List<FlSpot> getFilteredDataPoints(
+    String ipAddress,
     SensorType sensorName,
     SensorOrientation attribute, {
     //TODO: to be implemented
@@ -56,13 +63,14 @@ class Sensordata {
     }
 
     List<FlSpot> filteredData = [];
-    final key = sensorName.displayName + attribute.displayName;
 
-    if (chartConfig.dataPoints.containsKey(key)) {
-      final allPoints = chartConfig.dataPoints[key]!;
+    if (chartConfig.dataPoints.containsKey(ipAddress)) {
+      final key = Tuple2(sensorName, attribute);
+      final allPoints = chartConfig.dataPoints[ipAddress]![key]!;
 
       filteredData =
-          allPoints
+          allPoints //.values
+              //.expand((points) => points)
               .where((point) => point.x >= xMin && point.x <= xMax)
               .toList();
     }
@@ -76,14 +84,21 @@ class Sensordata {
     double fallbackValue, {
     bool Function(FlSpot spot)? filter,
   }) {
-    final Iterable<double> values = selectedLines.values
+    final Iterable<double> values = selectedLines.entries
+        .where((entry) => entry.key.isNotEmpty)
         .expand(
-          (set) => set.expand(
-            (item) =>
-                chartConfig.dataPoints[item.sensorName.displayName +
-                    item.attribute!.displayName] ??
-                [],
-          ),
+          (entry) => entry.value.expand((item) {
+            final deviceIp =
+                entry.key == SensorType.simulatedData.displayName
+                    ? SensorDataSimulator.simualtedIpAddress
+                    : entry.key;
+
+            return chartConfig.dataPoints[deviceIp]?[Tuple2(
+                  item.sensorName,
+                  item.attribute!,
+                )] ??
+                [];
+          }),
         )
         .cast<FlSpot>()
         .where((spot) => filter == null || filter(spot))
@@ -263,7 +278,15 @@ class Sensordata {
         continue;
       }
       for (MultiSelectDialogItem sensor in selectedLines[device]!) {
-        toReturn.add(_getCorrespondingLineChartBarData(sensor, index));
+        toReturn.add(
+          _getCorrespondingLineChartBarData(
+            device == SensorType.simulatedData.displayName
+                ? SensorDataSimulator.simualtedIpAddress
+                : device,
+            sensor,
+            index,
+          ),
+        );
         index++;
       }
     }
@@ -307,6 +330,7 @@ class Sensordata {
   }
 
   LineChartBarData _getCorrespondingLineChartBarData(
+    String deviceIp,
     MultiSelectDialogItem sensor,
     int sensorIndex,
   ) {
@@ -322,16 +346,16 @@ class Sensordata {
     final dashPattern = dashPatterns[sensorIndex % dashPatterns.length];
 
     return LineChartBarData(
-      spots: getFilteredDataPoints(sensor.sensorName, sensor.attribute!),
+      spots: getFilteredDataPoints(
+        deviceIp,
+        sensor.sensorName,
+        sensor.attribute!,
+      ),
       isCurved: true,
       color: _getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
       isStrokeCapRound: true,
       dashArray: dashPattern,
-      belowBarData: BarAreaData(
-        show: true,
-        color: chartConfig.color.withAlpha(75),
-      ),
       dotData: FlDotData(show: false),
     );
   }

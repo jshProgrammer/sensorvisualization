@@ -18,7 +18,6 @@ class SensorDataTransformation {
     return dateTime.millisecondsSinceEpoch.toDouble() / 1000.0;
   }
 
-  //TODO: funktioniert das hier wirklich schon für mehrere Geräte?
   static Map<SensorOrientation, double> transformAbsoluteToRelativeValues(
     Map<SensorOrientation, double> nullMeasurementValues,
     Map<String, dynamic> absoluteSensorValues,
@@ -68,7 +67,6 @@ class SensorDataTransformation {
 
   static Map<String, dynamic> returnAbsoluteSensorDataAsJson(
     Map<String, dynamic> receivedJsonData,
-    SensorType? sensorType,
   ) {
     double? _parseToDouble(dynamic value) {
       if (value == null) return null;
@@ -80,7 +78,11 @@ class SensorDataTransformation {
 
     if (receivedJsonData['sensor'] == SensorType.barometer.displayName) {
       return {
-        'sensor': receivedJsonData['sensor'],
+        'ip': receivedJsonData['ip'],
+        'sensor':
+            receivedJsonData['sensor'] is String
+                ? SensorTypeExtension.fromString(receivedJsonData['sensor'])
+                : receivedJsonData['sensor'],
         'timestamp':
             receivedJsonData['timestamp'] is String
                 ? DateTime.parse(receivedJsonData['timestamp'])
@@ -89,7 +91,11 @@ class SensorDataTransformation {
       };
     } else {
       return {
-        'sensor': receivedJsonData['sensor'],
+        'ip': receivedJsonData['ip'],
+        'sensor':
+            receivedJsonData['sensor'] is String
+                ? SensorTypeExtension.fromString(receivedJsonData['sensor'])
+                : receivedJsonData['sensor'],
         'timestamp':
             receivedJsonData['timestamp'] is String
                 ? DateTime.parse(receivedJsonData['timestamp'])
