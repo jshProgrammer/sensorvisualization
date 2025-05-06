@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "453606565058",
+    "project_id": "sensorvisualization-a7126",
+    "storage_bucket": "sensorvisualization-a7126.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:453606565058:android:07f4693c1d6c2e3428075b",
+        "android_client_info": {
+          "package_name": "com.example.sensorvisualization"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXy4zFt2di2-9ezjHdmKTDGNFSWbhvu7Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,29 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
+import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'presentation/screens/ChartsHomeScreen.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
-
+import 'package:sensorvisualization/fireDB/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  // Sicherstellen, dass Flutter-Binding initialisiert ist
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // FlutterLocalNotifications initialisieren
+void main() async {
   _initializeNotifications();
+
+  final appDatabase = AppDatabase.instance;
+  final dbOps = Databaseoperations(appDatabase);
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ConnectionProvider()),
+        Provider<Databaseoperations>.value(value: dbOps),
+        ChangeNotifierProvider(create: (_) => ConnectionProvider(dbOps)),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MyApp(),
@@ -62,7 +67,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  final _databaseOperations = Databaseoperations();
+  final appDatabase = AppDatabase.instance;
+  late Databaseoperations _databaseOperations;
   bool _isExporting = false;
   String? noteCSVPath;
   String? sensorCSVPath;
@@ -72,6 +78,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _databaseOperations = Provider.of<Databaseoperations>(
+        context,
+        listen: false,
+      );
+      _checkAndShowPreviousExportDialog();
+    });
 
     // Prüfen auf vorherige Exporte beim App-Start
     _checkAndShowPreviousExportDialog();

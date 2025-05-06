@@ -65,7 +65,7 @@ class _ChartPageState extends State<ChartPage> {
     'red': [],
   };
 
-  final _databaseOperations = Databaseoperations();
+  late Databaseoperations _databaseOperations;
 
   //Only for Simulation
   @override
@@ -73,7 +73,12 @@ class _ChartPageState extends State<ChartPage> {
     super.initState();
 
     _startTime = DateTime.now();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _databaseOperations = Provider.of<Databaseoperations>(
+        context,
+        listen: false,
+      );
+    });
     _dataSubscription = Provider.of<ConnectionProvider>(
       context,
       listen: false,
