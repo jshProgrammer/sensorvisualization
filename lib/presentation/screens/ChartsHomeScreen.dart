@@ -7,6 +7,7 @@ import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
+import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
@@ -23,6 +24,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
   int selectedChartIndex = 0;
   bool useMultipleCharts = false;
+
+  final firebaseSync = Firebasesync();
 
   @override
   void initState() {
@@ -196,6 +199,52 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                                     _selectedAbsRelData = newSelection.first;
                                   });
                                 },
+                              ),
+                              Divider(
+                                color: Colors.grey,
+                                thickness: 1,
+                                height: 20,
+                              ),
+                              Text("Datenbank Synchronisation:"),
+                              SizedBox(height: 8),
+                              SegmentedButton<bool>(
+                                segments: [
+                                  ButtonSegment<bool>(
+                                    value: true,
+                                    label: Text('Synchronisieren'),
+                                  ),
+                                  ButtonSegment<bool>(
+                                    value: false,
+                                    label: Text('Nicht synchronisieren'),
+                                  ),
+                                ],
+                                selected: {firebaseSync.isSyncing},
+                                onSelectionChanged: (Set<bool> newSelection) {
+                                  setStateDialog(() {
+                                    firebaseSync.isSyncing = newSelection.first;
+                                  });
+                                },
+                              ),
+                              if (firebaseSync.isSyncing) ...[
+                                SizedBox(height: 8),
+                                Text("Synchronisationfrequenz (in Minuten):"),
+                                Slider(
+                                  value: firebaseSync.syncInterval.toDouble(),
+                                  min: 1,
+                                  max: 60,
+                                  divisions: 59,
+                                  label: '${firebaseSync.syncInterval} Minuten',
+                                  onChanged: (double value) {
+                                    setStateDialog(() {
+                                      firebaseSync.syncInterval = value.round();
+                                    });
+                                  },
+                                ),
+                              ],
+                              Divider(
+                                color: Colors.grey,
+                                thickness: 1,
+                                height: 20,
                               ),
                             ],
                           ),

@@ -89,7 +89,7 @@ class Databaseoperations {
 
       // Speicherort ermitteln
       final outputDir = await getApplicationDocumentsDirectory();
-      final outputFile = File("${outputDir.path}/$fileName.csv");
+      final outputFile = File("${outputDir.path}/$fileName");
 
       // CSV-Datei speichern
       await outputFile.writeAsString(csvContent);

@@ -7,9 +7,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-//Checken das ich db einheitlich aufrufe und DB Operations
-//TODO: Alles noch aufurufen, aktuell nur Codebase, noch kein Aufruf in anderen Klassen
+//TODO: Noch einstellungen in ChartHomeScreen ab Zeile 90 ca.
 
 class Firebasesync {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,10 +18,14 @@ class Firebasesync {
   final List<String> _tablesToSync = ['Note', 'Sensor', 'Identification'];
 
   Timer? _syncTimer;
+  int syncInterval = 10;
+  bool isSyncing = true;
 
   Future<void> initializeApp(AppDatabase localDB) async {
     _databaseOperations = Databaseoperations(localDB);
     try {
+      await loadSyncSettings();
+
       await deleteOldTablesInFirestore();
 
       await syncDatabaseWithCloud(localDB);
@@ -32,20 +36,45 @@ class Firebasesync {
     }
   }
 
-  //Hier noch ändern für des das man frequenz selbst einstellen kann
   void _startSyncTimer(AppDatabase localDB) {
     _syncTimer?.cancel();
 
-    _syncTimer = Timer.periodic(Duration(minutes: 10), (timer) async {
+    _syncTimer = Timer.periodic(Duration(minutes: syncInterval), (timer) async {
       print("Periodische Synchronisierung wird ausgeführt...");
       await syncDatabaseWithCloud(localDB);
     });
   }
 
-  //noch aufrufen beim beenden der App TODO
   void stopSyncTimer() {
     _syncTimer?.cancel();
     _syncTimer = null;
+  }
+
+  Future<void> updateSyncSettings(
+    int newInterval,
+    bool enableSync,
+    AppDatabase localDB,
+  ) async {
+    syncInterval = newInterval;
+    isSyncing = enableSync;
+
+    if (isSyncing) {
+      _startSyncTimer(localDB);
+    } else {
+      stopSyncTimer();
+    }
+  }
+
+  Future<void> saveSyncSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('sync_interval', syncInterval);
+    await prefs.setBool('is_syncing', isSyncing);
+  }
+
+  Future<void> loadSyncSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    syncInterval = prefs.getInt('sync_interval') ?? 10; // Standard: 10 Minuten
+    isSyncing = prefs.getBool('is_syncing') ?? true; // Standard: aktiviert
   }
 
   Future<void> syncDatabaseWithCloud(AppDatabase localDB) async {
