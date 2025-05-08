@@ -16,6 +16,7 @@ import 'package:tuple/tuple.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
 import '../widgets/MultipleChartsPage.dart';
+import '../widgets/ChartSelectorTabMulti.dart';
 
 class ChartsHomeScreen extends StatefulWidget {
   const ChartsHomeScreen({super.key});
@@ -26,6 +27,9 @@ class ChartsHomeScreen extends StatefulWidget {
 
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
+  final List<List<ChartConfig>> mCharts = [];
+  int selectedTabIndex = 0;
+
   int selectedChartIndex = 0;
   bool useMultipleCharts = false;
 
@@ -52,6 +56,34 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       selectedChartIndex = charts.length - 1;
     });
   }
+  void _addNewChartToCurrentTab() {
+    if (selectedTabIndex >= mCharts.length) return;
+
+    setState(() {
+      final tabCharts = mCharts[selectedTabIndex];
+      final newIndex = tabCharts.length;
+      final newChart = ChartConfig(
+        id: 'mchart_${selectedTabIndex}_$newIndex',
+        title: 'Diagramm ${newIndex + 1}',
+        dataPoints: {},
+        color: Colors.primaries[newIndex % Colors.primaries.length],
+      );
+      tabCharts.add(newChart);
+    });
+  }
+
+  void _addNewChartTab() {
+    setState(() {
+      final newChart = ChartConfig(
+      id: 'mchart_${mCharts.length}_0',
+      title: 'Diagramm 1',
+      dataPoints: {},
+      color: Colors.primaries[0],
+    );
+      mCharts.add([newChart]);
+      selectedTabIndex = mCharts.length - 1;
+    });
+  }
 
   void _deleteChart(int index) {
     if (charts.length <= 1) {
@@ -70,6 +102,33 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       }
     });
   }
+    void _deleteChartFromCurrentTab() {
+  final tabCharts = mCharts[selectedTabIndex];
+  if (tabCharts.length <= 1) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Mindestens ein Diagramm muss bestehen bleiben')),
+    );
+    return;
+  }
+
+  setState(() {
+    tabCharts.removeLast();
+  });
+}
+
+  void _deleteCurrentTab() {
+  if (mCharts.length <= 1) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Mindestens ein Tab muss bestehen bleiben')),
+    );
+    return;
+  }
+
+  setState(() {
+    mCharts.removeAt(selectedTabIndex);
+    selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+  });
+}
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
@@ -79,6 +138,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<ChartConfig> activeCharts = useMultipleCharts
+      ? (mCharts.isNotEmpty ? mCharts[selectedTabIndex] : [])
+      : charts;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sensor visualization (THW)'),
@@ -113,6 +176,9 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                 onChanged: (value) {
                   setState(() {
                     useMultipleCharts = value;
+                    if (useMultipleCharts && mCharts.isEmpty) {
+                      _addNewChartTab();
+                    }
                   });
                 },
                 activeColor: Colors.blue,
@@ -125,30 +191,82 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       ),
       body: Column(
         children: [
-          ChartSelectorTab(
-            charts: charts,
-            selectedChartIndex: selectedChartIndex,
-          ),
+          if (useMultipleCharts)
+            ChartSelectorTabMulti(
+              selectedIndex: selectedTabIndex,
+              tabCount: mCharts.length,
+              onTabSelected: (index) {
+                setState(() {
+                  selectedTabIndex = index;
+                });
+              },
+            )
+          else
+            ChartSelectorTab(
+              charts: charts,
+              selectedChartIndex: selectedChartIndex,
+              onTabSelected: (index) {
+                setState(() {
+                  selectedChartIndex = index;
+                });
+              },
+            ),
+
+          if (useMultipleCharts)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: 'Neues Diagramm im aktuellen Tab hinzufügen',
+                    onPressed: _addNewChartToCurrentTab,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.remove),
+                    tooltip: 'Diagramm im aktuellen Tab löschen',
+                    onPressed: _deleteChartFromCurrentTab,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.tab),
+                    tooltip: 'Neuen Tab hinzufügen',
+                    onPressed: _addNewChartTab,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    tooltip: 'Aktuellen Tab löschen',
+                    onPressed: _deleteCurrentTab,
+                  ),
+                ],
+              ),
+            ),
+
           Expanded(
-            child:
-                charts.isEmpty
+            child: (useMultipleCharts
+                ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : useMultipleCharts
-                    ? MultipleChartsPage(chartPages: charts)
-                    : ChartPage(chartConfig: charts[selectedChartIndex]),
+                    : MultipleChartsPage(chartPages: mCharts[selectedTabIndex])
+                : charts.isEmpty
+                    ? const Center(child: Text('Keine Diagramme vorhanden'))
+                    : ChartPage(chartConfig: charts[selectedChartIndex])),
           ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            tooltip: 'Diagramm löschen',
-            onPressed: () => _deleteChart(selectedChartIndex),
-          ),
+
+          if (!useMultipleCharts)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: 'Diagramm löschen',
+              onPressed: () => _deleteChart(selectedChartIndex),
+            ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addNewChart,
-        tooltip: 'Neues Diagramm hinzufügen',
-        child: const Icon(Icons.add_chart),
-      ),
+      floatingActionButton: useMultipleCharts
+          ? null
+          : FloatingActionButton(
+              onPressed: _addNewChart,
+              tooltip: 'Neues Diagramm hinzufügen',
+              child: const Icon(Icons.add_chart),
+            ),
     );
   }
 
