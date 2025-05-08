@@ -1,29 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
+import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
+import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'presentation/screens/ChartsHomeScreen.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
-
+import 'package:sensorvisualization/fireDB/firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  // Sicherstellen, dass Flutter-Binding initialisiert ist
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // FlutterLocalNotifications initialisieren
+void main() async {
   _initializeNotifications();
+
+  final appDatabase = AppDatabase.instance;
+  final dbOps = Databaseoperations(appDatabase);
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  final firebaseSync = Firebasesync();
+  await firebaseSync.initializeApp(appDatabase);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ConnectionProvider()),
+        Provider<Databaseoperations>.value(value: dbOps),
+        ChangeNotifierProvider(create: (_) => ConnectionProvider(dbOps)),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MyApp(),
@@ -37,9 +46,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> _initializeNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings(
-        'app_icon',
-      ); // Stelle sicher, dass dieses Icon existiert
+      AndroidInitializationSettings('app_icon');
 
   const DarwinInitializationSettings initializationSettingsIOS =
       DarwinInitializationSettings(
@@ -58,22 +65,31 @@ Future<void> _initializeNotifications() async {
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState(); // Korrektur: Unterstrich vor MyAppState
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  final _databaseOperations = Databaseoperations();
+  final appDatabase = AppDatabase.instance;
+  late Databaseoperations _databaseOperations;
   bool _isExporting = false;
   String? noteCSVPath;
   String? sensorCSVPath;
   String? identificationCSVPath;
 
+  final firebaseSync = Firebasesync();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _databaseOperations = Provider.of<Databaseoperations>(
+        context,
+        listen: false,
+      );
+      _checkAndShowPreviousExportDialog();
+    });
 
-    // Prüfen auf vorherige Exporte beim App-Start
     _checkAndShowPreviousExportDialog();
   }
 
@@ -83,33 +99,30 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  //Tabellen löschen und beenden der Synchronistation zur Cloud DB
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.detached ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // Die App wird in den Hintergrund verschoben oder deaktiviert
+      firebaseSync.stopSyncTimer();
       _exportAndDeleteDatabase();
     }
   }
 
   Future<void> _exportAndDeleteDatabase() async {
-    // Verhindern mehrfacher gleichzeitiger Exporte
     if (_isExporting) return;
     _isExporting = true;
 
     try {
-      // Daten exportieren
       noteCSVPath = await _databaseOperations.exportNoteDataCSV(context);
       sensorCSVPath = await _databaseOperations.exportSensorDataCSV(context);
       identificationCSVPath = await _databaseOperations
           .exportIdentificationDataCSV(context);
 
-      // Daten löschen (nach erfolgreichem Export)
       await _databaseOperations.deleteIdentificationData();
       await _databaseOperations.deleteSensorData();
-      await _databaseOperations
-          .deleteNoteData(); // Korrigiert von deleteSensorData
+      await _databaseOperations.deleteNoteData();
 
       // Speicherpfade für spätere Anzeige merken oder Benachrichtigung erzeugen
       _showExportNotification();

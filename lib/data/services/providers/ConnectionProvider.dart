@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
 import 'package:tuple/tuple.dart';
+import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'dart:async';
 import '../SensorServer.dart';
 
 class ConnectionProvider extends ChangeNotifier {
   late SensorServer _connectionToSender;
   final Map<String, dynamic> _latestData = {};
+  final Databaseoperations _databaseOperations;
 
-  ConnectionProvider() {
+  ConnectionProvider(this._databaseOperations) {
     _connectionToSender = SensorServer(
       onDataReceived: _handleDataReceived,
       onMeasurementStopped: _handleMeasurementStopped,
       onConnectionChanged: _handleConnectionChanged,
+      databaseOperations: _databaseOperations,
     );
     _connectionToSender.startServer();
   }

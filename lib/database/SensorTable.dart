@@ -5,14 +5,14 @@ class Sensor extends Table {
   DateTimeColumn get date => dateTime()();
   TextColumn get ip => text()();
   //TextColumn get sensorName => text()();
-  RealColumn get accelerationX => real()();
-  RealColumn get accelerationY => real()();
-  RealColumn get accelerationZ => real()();
-  RealColumn get gyroskopX => real()();
-  RealColumn get gyroskopY => real()();
-  RealColumn get gyroskopZ => real()();
-  RealColumn get magnetometerX => real()();
-  RealColumn get magnetometerY => real()();
-  RealColumn get magnetometerZ => real()();
-  RealColumn get barometer => real()();
+  RealColumn get accelerationX => real().nullable()();
+  RealColumn get accelerationY => real().nullable()();
+  RealColumn get accelerationZ => real().nullable()();
+  RealColumn get gyroskopX => real().nullable()();
+  RealColumn get gyroskopY => real().nullable()();
+  RealColumn get gyroskopZ => real().nullable()();
+  RealColumn get magnetometerX => real().nullable()();
+  RealColumn get magnetometerY => real().nullable()();
+  RealColumn get magnetometerZ => real().nullable()();
+  RealColumn get barometer => real().nullable()();
 }

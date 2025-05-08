@@ -18,7 +18,7 @@ class SensorServer {
   final void Function(Map<String, dynamic>) onDataReceived;
   final void Function()? onMeasurementStopped;
   final void Function()? onConnectionChanged;
-  final _databaseOperations = Databaseoperations();
+  late Databaseoperations _databaseOperations;
 
   static final Map<String, Map<SensorType, Map<SensorOrientation, double>>>
   nullMeasurementValues = {};
@@ -27,7 +27,8 @@ class SensorServer {
     required this.onDataReceived,
     this.onMeasurementStopped,
     this.onConnectionChanged,
-  });
+    required Databaseoperations databaseOperations,
+  }) : _databaseOperations = databaseOperations;
 
   String getIpAddressByDeviceName(String deviceName) {
     for (var entry in connectedDevices.entries) {
