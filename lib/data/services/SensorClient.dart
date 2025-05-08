@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -43,7 +44,7 @@ class SensorClient {
 
     // send connection request including ip and custom device name to server
     final initializationMessage = jsonEncode({
-      "type": "ConnectionRequest",
+      "command": NetworkCommands.ConnectionRequest.command,
       "ip": await retrieveLocalIP(),
       "deviceName": deviceName,
     });
@@ -54,7 +55,8 @@ class SensorClient {
       (data) {
         try {
           final decoded = jsonDecode(data);
-          if (decoded['response'] == 'Connection accepted') {
+          if (decoded['command'] ==
+              NetworkCommands.ConnectionAccepted.command) {
             completer.complete(true);
           }
         } catch (e) {
@@ -67,6 +69,27 @@ class SensorClient {
     );
 
     return completer.future;
+  }
+
+  void sendStartingNullMeasurement(int durationInSeconds) {
+    channel.sink.add(
+      jsonEncode({
+        "command": NetworkCommands.StartNullMeasurement.command,
+        "duration": durationInSeconds,
+        "timestamp": DateTime.now().toString(),
+        "ip": ownIPAddress,
+      }),
+    );
+  }
+
+  void sendDelayedMeasurement(int duration) {
+    final message = {
+      'command': NetworkCommands.DelayedMeasurement.command,
+      'ip': ownIPAddress,
+      'timestamp': DateTime.now().toString(),
+      'duration': duration,
+    };
+    channel.sink.add(jsonEncode(message));
   }
 
   Future<void> startSensorStream() async {
@@ -137,7 +160,10 @@ class SensorClient {
     await barometerSub.cancel();
 
     channel.sink.add(
-      jsonEncode({"command": "StopMeasurement", "ip": await retrieveLocalIP()}),
+      jsonEncode({
+        "command": NetworkCommands.StopMeasurement.command,
+        "ip": await retrieveLocalIP(),
+      }),
     );
 
     await channel.sink.close();

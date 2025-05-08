@@ -3,17 +3,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/models/NetworkCommands.dart';
+import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
 import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/database/SensorTable.dart';
+import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
+import 'package:tuple/tuple.dart';
 
 class SensorServer {
   final void Function(Map<String, dynamic>) onDataReceived;
   final void Function()? onMeasurementStopped;
   final void Function()? onConnectionChanged;
-  final _databaseOperations = Databaseoperations();
+  late Databaseoperations _databaseOperations;
 
   static final Map<String, Map<SensorType, Map<SensorOrientation, double>>>
   nullMeasurementValues = {};
@@ -22,7 +27,8 @@ class SensorServer {
     required this.onDataReceived,
     this.onMeasurementStopped,
     this.onConnectionChanged,
-  });
+    required Databaseoperations databaseOperations,
+  }) : _databaseOperations = databaseOperations;
 
   String getIpAddressByDeviceName(String deviceName) {
     for (var entry in connectedDevices.entries) {
@@ -35,6 +41,8 @@ class SensorServer {
   }
 
   Map<String, String> connectedDevices = {}; // ip-address => device-name
+  Map<String, Tuple2<ConnectionDisplayState, DateTime?>> connectionStates =
+      {}; // ip address => (connection state, optional: DateTime + durationInSeconds)
 
   void startServer() async {
     final server = await HttpServer.bind(InternetAddress.anyIPv4, 3001);
@@ -49,49 +57,95 @@ class SensorServer {
             try {
               var decoded = jsonDecode(data);
               // Check if the data is a connection request sent by a client
-              if (decoded is Map<String, dynamic> &&
-                  decoded['type'] == 'ConnectionRequest') {
-                final senderIp = decoded['ip'];
-                final deviceName = decoded['deviceName'];
+              if (decoded['command'] != null) {
+                if (decoded['command'] ==
+                    NetworkCommands.ConnectionRequest.command) {
+                  final senderIp = decoded['ip'];
+                  final deviceName = decoded['deviceName'];
 
-                print('Neue Verbindung von $deviceName mit IP $senderIp');
+                  print('Neue Verbindung von $deviceName mit IP $senderIp');
 
-                _databaseOperations.insertIdentificationData(
-                  IdentificationCompanion(
-                    ip: Value(senderIp),
-                    name: Value(deviceName),
-                  ),
-                );
+                  _databaseOperations.insertIdentificationData(
+                    IdentificationCompanion(
+                      ip: Value(senderIp),
+                      name: Value(deviceName),
+                    ),
+                  );
 
-                connectedDevices.putIfAbsent(senderIp, () => deviceName);
-                onConnectionChanged?.call();
+                  connectedDevices.putIfAbsent(senderIp, () => deviceName);
+                  onConnectionChanged?.call();
 
-                // Send acknowledgement to the client
-                ws.add(
-                  jsonEncode({
-                    "response": "Connection accepted",
-                    "message": "Willkommen $deviceName!",
-                  }),
-                );
-              } else if (decoded['command'] == "StopMeasurement") {
-                connectedDevices.remove(decoded['ip']);
-                onConnectionChanged?.call();
-                onMeasurementStopped?.call();
+                  // Send acknowledgement to the client
+                  ws.add(
+                    jsonEncode({
+                      "command": NetworkCommands.ConnectionAccepted.command,
+                      "message": "Willkommen $deviceName!",
+                    }),
+                  );
+
+                  connectionStates[decoded['ip']!] = Tuple2(
+                    ConnectionDisplayState.connected,
+                    null,
+                  );
+                } else if (decoded['command'] ==
+                    NetworkCommands.StartNullMeasurement.command) {
+                  connectionStates[decoded['ip']!] = Tuple2(
+                    ConnectionDisplayState.nullMeasurement,
+                    DateTime.parse(
+                      decoded['timestamp'],
+                    ).add(Duration(seconds: decoded['duration'] as int)),
+                  );
+                  onConnectionChanged?.call();
+
+                  //TODO: bei Messung abbrechen wird er danach nicht mehr angezeigt
+                } else if (decoded['command'] ==
+                    NetworkCommands.DelayedMeasurement.command) {
+                  connectionStates[decoded['ip']!] = Tuple2(
+                    ConnectionDisplayState.delayedMeasurement,
+                    DateTime.parse(
+                      decoded['timestamp'],
+                    ).add(Duration(seconds: decoded['duration'] as int)),
+                  );
+                  onConnectionChanged?.call();
+                } else if (decoded['command'] ==
+                    NetworkCommands.StopMeasurement.command) {
+                  connectionStates[decoded['ip']!] = Tuple2(
+                    ConnectionDisplayState.disconnected,
+                    null,
+                  );
+                  connectedDevices.remove(decoded['ip']);
+
+                  onConnectionChanged?.call();
+                  onMeasurementStopped?.call();
+                } else if (decoded['command'] ==
+                    NetworkCommands.AverageValues.command) {
+                  final Map<String, dynamic> parsed = Map<String, dynamic>.from(
+                    data is String ? decoded : {},
+                  );
+                  _storeNullMeasurementValues(parsed);
+                  connectionStates[decoded['ip']!] = Tuple2(
+                    ConnectionDisplayState.connected,
+                    null,
+                  );
+                  onConnectionChanged?.call();
+                }
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(
                   data is String ? decoded : {},
                 );
 
-                //TODO: improve json handling here
-                if (parsed['sensor'].contains("Durchschnittswert")) {
-                  _storeNullMeasurementValues(parsed);
-                } else {
-                  /*final sensorType = SensorTypeExtension.fromString(
+                connectionStates[decoded['ip']!] = Tuple2(
+                  ConnectionDisplayState.connected,
+                  null,
+                );
+
+                onConnectionChanged?.call();
+                /*final sensorType = SensorTypeExtension.fromString(
                     parsed['sensor'],
                   );*/
-                  //Writing to database
-                  //TODO: macht noch Probleme da noch nicht alle Daten komplett als Paket gesendet werden
-                  /*_databaseOperations.insertSensorData(
+                //Writing to database
+                //TODO: macht noch Probleme da noch nicht alle Daten komplett als Paket gesendet werden
+                /*_databaseOperations.insertSensorData(
                     SensorCompanion(
                       date: Value(DateTime.parse(parsed['timestamp'])),
                       ip: Value(parsed['ip']),
@@ -108,12 +162,11 @@ class SensorServer {
                     ),
                   );*/
 
-                  onDataReceived(
-                    SensorDataTransformation.returnAbsoluteSensorDataAsJson(
-                      parsed,
-                    ),
-                  );
-                }
+                onDataReceived(
+                  SensorDataTransformation.returnAbsoluteSensorDataAsJson(
+                    parsed,
+                  ),
+                );
               }
             } catch (e) {
               print('Error parsing data: $e');
@@ -186,5 +239,20 @@ class SensorServer {
             nullMeasurement[SensorType.barometer.displayName],
       },
     );
+  }
+
+  ConnectionDisplayState getCurrentConnectionState(String ipAddress) {
+    return connectionStates[ipAddress] == null
+        ? ConnectionDisplayState.disconnected
+        : connectionStates[ipAddress]!.item1;
+  }
+
+  /*int? getCurrentConnectionDuration(String ipAddress) {
+    return connectionStates[ipAddress]?.item2;
+  }*/
+
+  int? getRemainingConnectionDurationInSec(String ipAddress) {
+    final diff = connectionStates[ipAddress]?.item2?.difference(DateTime.now());
+    return diff != null ? (diff.inMilliseconds / 1000).ceil() : null;
   }
 }

@@ -46,9 +46,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> accelerationX = GeneratedColumn<double>(
     'acceleration_x',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _accelerationYMeta = const VerificationMeta(
     'accelerationY',
@@ -57,9 +57,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> accelerationY = GeneratedColumn<double>(
     'acceleration_y',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _accelerationZMeta = const VerificationMeta(
     'accelerationZ',
@@ -68,9 +68,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> accelerationZ = GeneratedColumn<double>(
     'acceleration_z',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _gyroskopXMeta = const VerificationMeta(
     'gyroskopX',
@@ -79,9 +79,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> gyroskopX = GeneratedColumn<double>(
     'gyroskop_x',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _gyroskopYMeta = const VerificationMeta(
     'gyroskopY',
@@ -90,9 +90,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> gyroskopY = GeneratedColumn<double>(
     'gyroskop_y',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _gyroskopZMeta = const VerificationMeta(
     'gyroskopZ',
@@ -101,9 +101,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> gyroskopZ = GeneratedColumn<double>(
     'gyroskop_z',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _magnetometerXMeta = const VerificationMeta(
     'magnetometerX',
@@ -112,9 +112,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> magnetometerX = GeneratedColumn<double>(
     'magnetometer_x',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _magnetometerYMeta = const VerificationMeta(
     'magnetometerY',
@@ -123,9 +123,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> magnetometerY = GeneratedColumn<double>(
     'magnetometer_y',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _magnetometerZMeta = const VerificationMeta(
     'magnetometerZ',
@@ -134,9 +134,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> magnetometerZ = GeneratedColumn<double>(
     'magnetometer_z',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _barometerMeta = const VerificationMeta(
     'barometer',
@@ -145,9 +145,9 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
   late final GeneratedColumn<double> barometer = GeneratedColumn<double>(
     'barometer',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   @override
   List<GeneratedColumn> get $columns => [
@@ -201,8 +201,6 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
           _accelerationXMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_accelerationXMeta);
     }
     if (data.containsKey('acceleration_y')) {
       context.handle(
@@ -212,8 +210,6 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
           _accelerationYMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_accelerationYMeta);
     }
     if (data.containsKey('acceleration_z')) {
       context.handle(
@@ -223,32 +219,24 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
           _accelerationZMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_accelerationZMeta);
     }
     if (data.containsKey('gyroskop_x')) {
       context.handle(
         _gyroskopXMeta,
         gyroskopX.isAcceptableOrUnknown(data['gyroskop_x']!, _gyroskopXMeta),
       );
-    } else if (isInserting) {
-      context.missing(_gyroskopXMeta);
     }
     if (data.containsKey('gyroskop_y')) {
       context.handle(
         _gyroskopYMeta,
         gyroskopY.isAcceptableOrUnknown(data['gyroskop_y']!, _gyroskopYMeta),
       );
-    } else if (isInserting) {
-      context.missing(_gyroskopYMeta);
     }
     if (data.containsKey('gyroskop_z')) {
       context.handle(
         _gyroskopZMeta,
         gyroskopZ.isAcceptableOrUnknown(data['gyroskop_z']!, _gyroskopZMeta),
       );
-    } else if (isInserting) {
-      context.missing(_gyroskopZMeta);
     }
     if (data.containsKey('magnetometer_x')) {
       context.handle(
@@ -258,8 +246,6 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
           _magnetometerXMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_magnetometerXMeta);
     }
     if (data.containsKey('magnetometer_y')) {
       context.handle(
@@ -269,8 +255,6 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
           _magnetometerYMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_magnetometerYMeta);
     }
     if (data.containsKey('magnetometer_z')) {
       context.handle(
@@ -280,16 +264,12 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
           _magnetometerZMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_magnetometerZMeta);
     }
     if (data.containsKey('barometer')) {
       context.handle(
         _barometerMeta,
         barometer.isAcceptableOrUnknown(data['barometer']!, _barometerMeta),
       );
-    } else if (isInserting) {
-      context.missing(_barometerMeta);
     }
     return context;
   }
@@ -315,56 +295,46 @@ class $SensorTable extends Sensor with TableInfo<$SensorTable, SensorData> {
             DriftSqlType.string,
             data['${effectivePrefix}ip'],
           )!,
-      accelerationX:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}acceleration_x'],
-          )!,
-      accelerationY:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}acceleration_y'],
-          )!,
-      accelerationZ:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}acceleration_z'],
-          )!,
-      gyroskopX:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}gyroskop_x'],
-          )!,
-      gyroskopY:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}gyroskop_y'],
-          )!,
-      gyroskopZ:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}gyroskop_z'],
-          )!,
-      magnetometerX:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}magnetometer_x'],
-          )!,
-      magnetometerY:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}magnetometer_y'],
-          )!,
-      magnetometerZ:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}magnetometer_z'],
-          )!,
-      barometer:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}barometer'],
-          )!,
+      accelerationX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}acceleration_x'],
+      ),
+      accelerationY: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}acceleration_y'],
+      ),
+      accelerationZ: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}acceleration_z'],
+      ),
+      gyroskopX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}gyroskop_x'],
+      ),
+      gyroskopY: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}gyroskop_y'],
+      ),
+      gyroskopZ: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}gyroskop_z'],
+      ),
+      magnetometerX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}magnetometer_x'],
+      ),
+      magnetometerY: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}magnetometer_y'],
+      ),
+      magnetometerZ: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}magnetometer_z'],
+      ),
+      barometer: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}barometer'],
+      ),
     );
   }
 
@@ -378,30 +348,30 @@ class SensorData extends DataClass implements Insertable<SensorData> {
   final int id;
   final DateTime date;
   final String ip;
-  final double accelerationX;
-  final double accelerationY;
-  final double accelerationZ;
-  final double gyroskopX;
-  final double gyroskopY;
-  final double gyroskopZ;
-  final double magnetometerX;
-  final double magnetometerY;
-  final double magnetometerZ;
-  final double barometer;
+  final double? accelerationX;
+  final double? accelerationY;
+  final double? accelerationZ;
+  final double? gyroskopX;
+  final double? gyroskopY;
+  final double? gyroskopZ;
+  final double? magnetometerX;
+  final double? magnetometerY;
+  final double? magnetometerZ;
+  final double? barometer;
   const SensorData({
     required this.id,
     required this.date,
     required this.ip,
-    required this.accelerationX,
-    required this.accelerationY,
-    required this.accelerationZ,
-    required this.gyroskopX,
-    required this.gyroskopY,
-    required this.gyroskopZ,
-    required this.magnetometerX,
-    required this.magnetometerY,
-    required this.magnetometerZ,
-    required this.barometer,
+    this.accelerationX,
+    this.accelerationY,
+    this.accelerationZ,
+    this.gyroskopX,
+    this.gyroskopY,
+    this.gyroskopZ,
+    this.magnetometerX,
+    this.magnetometerY,
+    this.magnetometerZ,
+    this.barometer,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -409,16 +379,36 @@ class SensorData extends DataClass implements Insertable<SensorData> {
     map['id'] = Variable<int>(id);
     map['date'] = Variable<DateTime>(date);
     map['ip'] = Variable<String>(ip);
-    map['acceleration_x'] = Variable<double>(accelerationX);
-    map['acceleration_y'] = Variable<double>(accelerationY);
-    map['acceleration_z'] = Variable<double>(accelerationZ);
-    map['gyroskop_x'] = Variable<double>(gyroskopX);
-    map['gyroskop_y'] = Variable<double>(gyroskopY);
-    map['gyroskop_z'] = Variable<double>(gyroskopZ);
-    map['magnetometer_x'] = Variable<double>(magnetometerX);
-    map['magnetometer_y'] = Variable<double>(magnetometerY);
-    map['magnetometer_z'] = Variable<double>(magnetometerZ);
-    map['barometer'] = Variable<double>(barometer);
+    if (!nullToAbsent || accelerationX != null) {
+      map['acceleration_x'] = Variable<double>(accelerationX);
+    }
+    if (!nullToAbsent || accelerationY != null) {
+      map['acceleration_y'] = Variable<double>(accelerationY);
+    }
+    if (!nullToAbsent || accelerationZ != null) {
+      map['acceleration_z'] = Variable<double>(accelerationZ);
+    }
+    if (!nullToAbsent || gyroskopX != null) {
+      map['gyroskop_x'] = Variable<double>(gyroskopX);
+    }
+    if (!nullToAbsent || gyroskopY != null) {
+      map['gyroskop_y'] = Variable<double>(gyroskopY);
+    }
+    if (!nullToAbsent || gyroskopZ != null) {
+      map['gyroskop_z'] = Variable<double>(gyroskopZ);
+    }
+    if (!nullToAbsent || magnetometerX != null) {
+      map['magnetometer_x'] = Variable<double>(magnetometerX);
+    }
+    if (!nullToAbsent || magnetometerY != null) {
+      map['magnetometer_y'] = Variable<double>(magnetometerY);
+    }
+    if (!nullToAbsent || magnetometerZ != null) {
+      map['magnetometer_z'] = Variable<double>(magnetometerZ);
+    }
+    if (!nullToAbsent || barometer != null) {
+      map['barometer'] = Variable<double>(barometer);
+    }
     return map;
   }
 
@@ -427,16 +417,46 @@ class SensorData extends DataClass implements Insertable<SensorData> {
       id: Value(id),
       date: Value(date),
       ip: Value(ip),
-      accelerationX: Value(accelerationX),
-      accelerationY: Value(accelerationY),
-      accelerationZ: Value(accelerationZ),
-      gyroskopX: Value(gyroskopX),
-      gyroskopY: Value(gyroskopY),
-      gyroskopZ: Value(gyroskopZ),
-      magnetometerX: Value(magnetometerX),
-      magnetometerY: Value(magnetometerY),
-      magnetometerZ: Value(magnetometerZ),
-      barometer: Value(barometer),
+      accelerationX:
+          accelerationX == null && nullToAbsent
+              ? const Value.absent()
+              : Value(accelerationX),
+      accelerationY:
+          accelerationY == null && nullToAbsent
+              ? const Value.absent()
+              : Value(accelerationY),
+      accelerationZ:
+          accelerationZ == null && nullToAbsent
+              ? const Value.absent()
+              : Value(accelerationZ),
+      gyroskopX:
+          gyroskopX == null && nullToAbsent
+              ? const Value.absent()
+              : Value(gyroskopX),
+      gyroskopY:
+          gyroskopY == null && nullToAbsent
+              ? const Value.absent()
+              : Value(gyroskopY),
+      gyroskopZ:
+          gyroskopZ == null && nullToAbsent
+              ? const Value.absent()
+              : Value(gyroskopZ),
+      magnetometerX:
+          magnetometerX == null && nullToAbsent
+              ? const Value.absent()
+              : Value(magnetometerX),
+      magnetometerY:
+          magnetometerY == null && nullToAbsent
+              ? const Value.absent()
+              : Value(magnetometerY),
+      magnetometerZ:
+          magnetometerZ == null && nullToAbsent
+              ? const Value.absent()
+              : Value(magnetometerZ),
+      barometer:
+          barometer == null && nullToAbsent
+              ? const Value.absent()
+              : Value(barometer),
     );
   }
 
@@ -449,16 +469,16 @@ class SensorData extends DataClass implements Insertable<SensorData> {
       id: serializer.fromJson<int>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
       ip: serializer.fromJson<String>(json['ip']),
-      accelerationX: serializer.fromJson<double>(json['accelerationX']),
-      accelerationY: serializer.fromJson<double>(json['accelerationY']),
-      accelerationZ: serializer.fromJson<double>(json['accelerationZ']),
-      gyroskopX: serializer.fromJson<double>(json['gyroskopX']),
-      gyroskopY: serializer.fromJson<double>(json['gyroskopY']),
-      gyroskopZ: serializer.fromJson<double>(json['gyroskopZ']),
-      magnetometerX: serializer.fromJson<double>(json['magnetometerX']),
-      magnetometerY: serializer.fromJson<double>(json['magnetometerY']),
-      magnetometerZ: serializer.fromJson<double>(json['magnetometerZ']),
-      barometer: serializer.fromJson<double>(json['barometer']),
+      accelerationX: serializer.fromJson<double?>(json['accelerationX']),
+      accelerationY: serializer.fromJson<double?>(json['accelerationY']),
+      accelerationZ: serializer.fromJson<double?>(json['accelerationZ']),
+      gyroskopX: serializer.fromJson<double?>(json['gyroskopX']),
+      gyroskopY: serializer.fromJson<double?>(json['gyroskopY']),
+      gyroskopZ: serializer.fromJson<double?>(json['gyroskopZ']),
+      magnetometerX: serializer.fromJson<double?>(json['magnetometerX']),
+      magnetometerY: serializer.fromJson<double?>(json['magnetometerY']),
+      magnetometerZ: serializer.fromJson<double?>(json['magnetometerZ']),
+      barometer: serializer.fromJson<double?>(json['barometer']),
     );
   }
   @override
@@ -468,16 +488,16 @@ class SensorData extends DataClass implements Insertable<SensorData> {
       'id': serializer.toJson<int>(id),
       'date': serializer.toJson<DateTime>(date),
       'ip': serializer.toJson<String>(ip),
-      'accelerationX': serializer.toJson<double>(accelerationX),
-      'accelerationY': serializer.toJson<double>(accelerationY),
-      'accelerationZ': serializer.toJson<double>(accelerationZ),
-      'gyroskopX': serializer.toJson<double>(gyroskopX),
-      'gyroskopY': serializer.toJson<double>(gyroskopY),
-      'gyroskopZ': serializer.toJson<double>(gyroskopZ),
-      'magnetometerX': serializer.toJson<double>(magnetometerX),
-      'magnetometerY': serializer.toJson<double>(magnetometerY),
-      'magnetometerZ': serializer.toJson<double>(magnetometerZ),
-      'barometer': serializer.toJson<double>(barometer),
+      'accelerationX': serializer.toJson<double?>(accelerationX),
+      'accelerationY': serializer.toJson<double?>(accelerationY),
+      'accelerationZ': serializer.toJson<double?>(accelerationZ),
+      'gyroskopX': serializer.toJson<double?>(gyroskopX),
+      'gyroskopY': serializer.toJson<double?>(gyroskopY),
+      'gyroskopZ': serializer.toJson<double?>(gyroskopZ),
+      'magnetometerX': serializer.toJson<double?>(magnetometerX),
+      'magnetometerY': serializer.toJson<double?>(magnetometerY),
+      'magnetometerZ': serializer.toJson<double?>(magnetometerZ),
+      'barometer': serializer.toJson<double?>(barometer),
     };
   }
 
@@ -485,30 +505,36 @@ class SensorData extends DataClass implements Insertable<SensorData> {
     int? id,
     DateTime? date,
     String? ip,
-    double? accelerationX,
-    double? accelerationY,
-    double? accelerationZ,
-    double? gyroskopX,
-    double? gyroskopY,
-    double? gyroskopZ,
-    double? magnetometerX,
-    double? magnetometerY,
-    double? magnetometerZ,
-    double? barometer,
+    Value<double?> accelerationX = const Value.absent(),
+    Value<double?> accelerationY = const Value.absent(),
+    Value<double?> accelerationZ = const Value.absent(),
+    Value<double?> gyroskopX = const Value.absent(),
+    Value<double?> gyroskopY = const Value.absent(),
+    Value<double?> gyroskopZ = const Value.absent(),
+    Value<double?> magnetometerX = const Value.absent(),
+    Value<double?> magnetometerY = const Value.absent(),
+    Value<double?> magnetometerZ = const Value.absent(),
+    Value<double?> barometer = const Value.absent(),
   }) => SensorData(
     id: id ?? this.id,
     date: date ?? this.date,
     ip: ip ?? this.ip,
-    accelerationX: accelerationX ?? this.accelerationX,
-    accelerationY: accelerationY ?? this.accelerationY,
-    accelerationZ: accelerationZ ?? this.accelerationZ,
-    gyroskopX: gyroskopX ?? this.gyroskopX,
-    gyroskopY: gyroskopY ?? this.gyroskopY,
-    gyroskopZ: gyroskopZ ?? this.gyroskopZ,
-    magnetometerX: magnetometerX ?? this.magnetometerX,
-    magnetometerY: magnetometerY ?? this.magnetometerY,
-    magnetometerZ: magnetometerZ ?? this.magnetometerZ,
-    barometer: barometer ?? this.barometer,
+    accelerationX:
+        accelerationX.present ? accelerationX.value : this.accelerationX,
+    accelerationY:
+        accelerationY.present ? accelerationY.value : this.accelerationY,
+    accelerationZ:
+        accelerationZ.present ? accelerationZ.value : this.accelerationZ,
+    gyroskopX: gyroskopX.present ? gyroskopX.value : this.gyroskopX,
+    gyroskopY: gyroskopY.present ? gyroskopY.value : this.gyroskopY,
+    gyroskopZ: gyroskopZ.present ? gyroskopZ.value : this.gyroskopZ,
+    magnetometerX:
+        magnetometerX.present ? magnetometerX.value : this.magnetometerX,
+    magnetometerY:
+        magnetometerY.present ? magnetometerY.value : this.magnetometerY,
+    magnetometerZ:
+        magnetometerZ.present ? magnetometerZ.value : this.magnetometerZ,
+    barometer: barometer.present ? barometer.value : this.barometer,
   );
   SensorData copyWithCompanion(SensorCompanion data) {
     return SensorData(
@@ -605,16 +631,16 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
   final Value<int> id;
   final Value<DateTime> date;
   final Value<String> ip;
-  final Value<double> accelerationX;
-  final Value<double> accelerationY;
-  final Value<double> accelerationZ;
-  final Value<double> gyroskopX;
-  final Value<double> gyroskopY;
-  final Value<double> gyroskopZ;
-  final Value<double> magnetometerX;
-  final Value<double> magnetometerY;
-  final Value<double> magnetometerZ;
-  final Value<double> barometer;
+  final Value<double?> accelerationX;
+  final Value<double?> accelerationY;
+  final Value<double?> accelerationZ;
+  final Value<double?> gyroskopX;
+  final Value<double?> gyroskopY;
+  final Value<double?> gyroskopZ;
+  final Value<double?> magnetometerX;
+  final Value<double?> magnetometerY;
+  final Value<double?> magnetometerZ;
+  final Value<double?> barometer;
   const SensorCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
@@ -634,28 +660,18 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     this.id = const Value.absent(),
     required DateTime date,
     required String ip,
-    required double accelerationX,
-    required double accelerationY,
-    required double accelerationZ,
-    required double gyroskopX,
-    required double gyroskopY,
-    required double gyroskopZ,
-    required double magnetometerX,
-    required double magnetometerY,
-    required double magnetometerZ,
-    required double barometer,
+    this.accelerationX = const Value.absent(),
+    this.accelerationY = const Value.absent(),
+    this.accelerationZ = const Value.absent(),
+    this.gyroskopX = const Value.absent(),
+    this.gyroskopY = const Value.absent(),
+    this.gyroskopZ = const Value.absent(),
+    this.magnetometerX = const Value.absent(),
+    this.magnetometerY = const Value.absent(),
+    this.magnetometerZ = const Value.absent(),
+    this.barometer = const Value.absent(),
   }) : date = Value(date),
-       ip = Value(ip),
-       accelerationX = Value(accelerationX),
-       accelerationY = Value(accelerationY),
-       accelerationZ = Value(accelerationZ),
-       gyroskopX = Value(gyroskopX),
-       gyroskopY = Value(gyroskopY),
-       gyroskopZ = Value(gyroskopZ),
-       magnetometerX = Value(magnetometerX),
-       magnetometerY = Value(magnetometerY),
-       magnetometerZ = Value(magnetometerZ),
-       barometer = Value(barometer);
+       ip = Value(ip);
   static Insertable<SensorData> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
@@ -692,16 +708,16 @@ class SensorCompanion extends UpdateCompanion<SensorData> {
     Value<int>? id,
     Value<DateTime>? date,
     Value<String>? ip,
-    Value<double>? accelerationX,
-    Value<double>? accelerationY,
-    Value<double>? accelerationZ,
-    Value<double>? gyroskopX,
-    Value<double>? gyroskopY,
-    Value<double>? gyroskopZ,
-    Value<double>? magnetometerX,
-    Value<double>? magnetometerY,
-    Value<double>? magnetometerZ,
-    Value<double>? barometer,
+    Value<double?>? accelerationX,
+    Value<double?>? accelerationY,
+    Value<double?>? accelerationZ,
+    Value<double?>? gyroskopX,
+    Value<double?>? gyroskopY,
+    Value<double?>? gyroskopZ,
+    Value<double?>? magnetometerX,
+    Value<double?>? magnetometerY,
+    Value<double?>? magnetometerZ,
+    Value<double?>? barometer,
   }) {
     return SensorCompanion(
       id: id ?? this.id,
@@ -1234,12 +1250,283 @@ class IdentificationCompanion extends UpdateCompanion<IdentificationData> {
   }
 }
 
+class $MetadataTable extends Metadata
+    with TableInfo<$MetadataTable, MetadataData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MetadataTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [name, createdAt, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'metadata';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MetadataData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  MetadataData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MetadataData(
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+    );
+  }
+
+  @override
+  $MetadataTable createAlias(String alias) {
+    return $MetadataTable(attachedDatabase, alias);
+  }
+}
+
+class MetadataData extends DataClass implements Insertable<MetadataData> {
+  final String name;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const MetadataData({
+    required this.name,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MetadataCompanion toCompanion(bool nullToAbsent) {
+    return MetadataCompanion(
+      name: Value(name),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MetadataData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MetadataData(
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MetadataData copyWith({
+    String? name,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => MetadataData(
+    name: name ?? this.name,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MetadataData copyWithCompanion(MetadataCompanion data) {
+    return MetadataData(
+      name: data.name.present ? data.name.value : this.name,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MetadataData(')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(name, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MetadataData &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MetadataCompanion extends UpdateCompanion<MetadataData> {
+  final Value<String> name;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MetadataCompanion({
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MetadataCompanion.insert({
+    required String name,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<MetadataData> custom({
+    Expression<String>? name,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MetadataCompanion copyWith({
+    Value<String>? name,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MetadataCompanion(
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MetadataCompanion(')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SensorTable sensor = $SensorTable(this);
   late final $NoteTable note = $NoteTable(this);
   late final $IdentificationTable identification = $IdentificationTable(this);
+  late final $MetadataTable metadata = $MetadataTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1248,6 +1535,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     sensor,
     note,
     identification,
+    metadata,
   ];
 }
 
@@ -1256,32 +1544,32 @@ typedef $$SensorTableCreateCompanionBuilder =
       Value<int> id,
       required DateTime date,
       required String ip,
-      required double accelerationX,
-      required double accelerationY,
-      required double accelerationZ,
-      required double gyroskopX,
-      required double gyroskopY,
-      required double gyroskopZ,
-      required double magnetometerX,
-      required double magnetometerY,
-      required double magnetometerZ,
-      required double barometer,
+      Value<double?> accelerationX,
+      Value<double?> accelerationY,
+      Value<double?> accelerationZ,
+      Value<double?> gyroskopX,
+      Value<double?> gyroskopY,
+      Value<double?> gyroskopZ,
+      Value<double?> magnetometerX,
+      Value<double?> magnetometerY,
+      Value<double?> magnetometerZ,
+      Value<double?> barometer,
     });
 typedef $$SensorTableUpdateCompanionBuilder =
     SensorCompanion Function({
       Value<int> id,
       Value<DateTime> date,
       Value<String> ip,
-      Value<double> accelerationX,
-      Value<double> accelerationY,
-      Value<double> accelerationZ,
-      Value<double> gyroskopX,
-      Value<double> gyroskopY,
-      Value<double> gyroskopZ,
-      Value<double> magnetometerX,
-      Value<double> magnetometerY,
-      Value<double> magnetometerZ,
-      Value<double> barometer,
+      Value<double?> accelerationX,
+      Value<double?> accelerationY,
+      Value<double?> accelerationZ,
+      Value<double?> gyroskopX,
+      Value<double?> gyroskopY,
+      Value<double?> gyroskopZ,
+      Value<double?> magnetometerX,
+      Value<double?> magnetometerY,
+      Value<double?> magnetometerZ,
+      Value<double?> barometer,
     });
 
 class $$SensorTableFilterComposer
@@ -1526,16 +1814,16 @@ class $$SensorTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<String> ip = const Value.absent(),
-                Value<double> accelerationX = const Value.absent(),
-                Value<double> accelerationY = const Value.absent(),
-                Value<double> accelerationZ = const Value.absent(),
-                Value<double> gyroskopX = const Value.absent(),
-                Value<double> gyroskopY = const Value.absent(),
-                Value<double> gyroskopZ = const Value.absent(),
-                Value<double> magnetometerX = const Value.absent(),
-                Value<double> magnetometerY = const Value.absent(),
-                Value<double> magnetometerZ = const Value.absent(),
-                Value<double> barometer = const Value.absent(),
+                Value<double?> accelerationX = const Value.absent(),
+                Value<double?> accelerationY = const Value.absent(),
+                Value<double?> accelerationZ = const Value.absent(),
+                Value<double?> gyroskopX = const Value.absent(),
+                Value<double?> gyroskopY = const Value.absent(),
+                Value<double?> gyroskopZ = const Value.absent(),
+                Value<double?> magnetometerX = const Value.absent(),
+                Value<double?> magnetometerY = const Value.absent(),
+                Value<double?> magnetometerZ = const Value.absent(),
+                Value<double?> barometer = const Value.absent(),
               }) => SensorCompanion(
                 id: id,
                 date: date,
@@ -1556,16 +1844,16 @@ class $$SensorTableTableManager
                 Value<int> id = const Value.absent(),
                 required DateTime date,
                 required String ip,
-                required double accelerationX,
-                required double accelerationY,
-                required double accelerationZ,
-                required double gyroskopX,
-                required double gyroskopY,
-                required double gyroskopZ,
-                required double magnetometerX,
-                required double magnetometerY,
-                required double magnetometerZ,
-                required double barometer,
+                Value<double?> accelerationX = const Value.absent(),
+                Value<double?> accelerationY = const Value.absent(),
+                Value<double?> accelerationZ = const Value.absent(),
+                Value<double?> gyroskopX = const Value.absent(),
+                Value<double?> gyroskopY = const Value.absent(),
+                Value<double?> gyroskopZ = const Value.absent(),
+                Value<double?> magnetometerX = const Value.absent(),
+                Value<double?> magnetometerY = const Value.absent(),
+                Value<double?> magnetometerZ = const Value.absent(),
+                Value<double?> barometer = const Value.absent(),
               }) => SensorCompanion.insert(
                 id: id,
                 date: date,
@@ -1913,6 +2201,175 @@ typedef $$IdentificationTableProcessedTableManager =
       IdentificationData,
       PrefetchHooks Function()
     >;
+typedef $$MetadataTableCreateCompanionBuilder =
+    MetadataCompanion Function({
+      required String name,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MetadataTableUpdateCompanionBuilder =
+    MetadataCompanion Function({
+      Value<String> name,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$MetadataTableFilterComposer
+    extends Composer<_$AppDatabase, $MetadataTable> {
+  $$MetadataTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MetadataTableOrderingComposer
+    extends Composer<_$AppDatabase, $MetadataTable> {
+  $$MetadataTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MetadataTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MetadataTable> {
+  $$MetadataTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MetadataTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MetadataTable,
+          MetadataData,
+          $$MetadataTableFilterComposer,
+          $$MetadataTableOrderingComposer,
+          $$MetadataTableAnnotationComposer,
+          $$MetadataTableCreateCompanionBuilder,
+          $$MetadataTableUpdateCompanionBuilder,
+          (
+            MetadataData,
+            BaseReferences<_$AppDatabase, $MetadataTable, MetadataData>,
+          ),
+          MetadataData,
+          PrefetchHooks Function()
+        > {
+  $$MetadataTableTableManager(_$AppDatabase db, $MetadataTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$MetadataTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$MetadataTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$MetadataTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> name = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MetadataCompanion(
+                name: name,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String name,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MetadataCompanion.insert(
+                name: name,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MetadataTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MetadataTable,
+      MetadataData,
+      $$MetadataTableFilterComposer,
+      $$MetadataTableOrderingComposer,
+      $$MetadataTableAnnotationComposer,
+      $$MetadataTableCreateCompanionBuilder,
+      $$MetadataTableUpdateCompanionBuilder,
+      (
+        MetadataData,
+        BaseReferences<_$AppDatabase, $MetadataTable, MetadataData>,
+      ),
+      MetadataData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1922,4 +2379,6 @@ class $AppDatabaseManager {
   $$NoteTableTableManager get note => $$NoteTableTableManager(_db, _db.note);
   $$IdentificationTableTableManager get identification =>
       $$IdentificationTableTableManager(_db, _db.identification);
+  $$MetadataTableTableManager get metadata =>
+      $$MetadataTableTableManager(_db, _db.metadata);
 }
