@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
+import 'package:tuple/tuple.dart';
 import 'dart:async';
 import '../SensorServer.dart';
 
@@ -19,6 +21,14 @@ class ConnectionProvider extends ChangeNotifier {
     return _connectionToSender.getIpAddressByDeviceName(deviceName);
   }
 
+  ConnectionDisplayState getCurrentConnectionState(String ipAddress) {
+    return _connectionToSender.getCurrentConnectionState(ipAddress);
+  }
+
+  int? getRemainingConnectionDurationInSec(String ipAddress) {
+    return _connectionToSender.getRemainingConnectionDurationInSec(ipAddress);
+  }
+
   final _dataStreamController =
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get dataStream => _dataStreamController.stream;
@@ -28,6 +38,9 @@ class ConnectionProvider extends ChangeNotifier {
 
   Map<String, String> get connectedDevices =>
       _connectionToSender.connectedDevices;
+
+  Map<String, Tuple2<ConnectionDisplayState, DateTime?>> get connectionStates =>
+      _connectionToSender.connectionStates;
 
   final _measurementStoppedController = StreamController<void>.broadcast();
   Stream<void> get measurementStopped => _measurementStoppedController.stream;
