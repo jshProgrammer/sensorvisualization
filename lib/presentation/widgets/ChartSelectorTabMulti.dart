@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../data/models/ChartConfig.dart';
 
-class ChartSelectorTab extends StatelessWidget {
-  final List<ChartConfig> charts;
-  final int selectedChartIndex;
+class ChartSelectorTabMulti extends StatelessWidget {
+  final int selectedIndex;
+  final int tabCount;
   final ValueChanged<int> onTabSelected;
 
-  const ChartSelectorTab({
+  const ChartSelectorTabMulti({
     super.key,
-    required this.charts,
-    required this.selectedChartIndex,
+    required this.selectedIndex,
+    required this.tabCount,
     required this.onTabSelected,
   });
 
@@ -19,18 +19,14 @@ class ChartSelectorTab extends StatelessWidget {
       height: 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: charts.length,
+        itemCount: tabCount,
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: FilterChip(
-              label: Text(charts[index].title),
-              selected: selectedChartIndex == index,
-              onSelected: (selected) {
-                if (selected) {
-                  onTabSelected(index);
-                }
-              },
+              label: Text('Tab ${index + 1}'),
+              selected: selectedIndex == index,
+              onSelected: (_) => onTabSelected(index),
             ),
           );
         },
