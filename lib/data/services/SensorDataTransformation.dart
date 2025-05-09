@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
@@ -17,6 +18,18 @@ class SensorDataTransformation {
   // transformation necessary due to restriction of fl_chart (only num values for x-axis)
   static double transformDateTimeToSecondsAsDouble(DateTime dateTime) {
     return dateTime.millisecondsSinceEpoch.toDouble() / 1000.0;
+  }
+
+  static String transformDateTimeToNatoFormat(DateTime dateTime) {
+    DateTime utc = dateTime.toUtc();
+
+    String day = DateFormat('dd').format(utc);
+    String time = DateFormat('HHmm').format(utc);
+    String zone = 'J';
+    String month = DateFormat('MMM', 'en_US').format(utc).toLowerCase();
+    String year = DateFormat('yy').format(utc);
+
+    return '$day $time $zone $month $year';
   }
 
   static Map<SensorOrientation, double> transformAbsoluteToRelativeValues(

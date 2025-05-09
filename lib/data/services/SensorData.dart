@@ -193,6 +193,18 @@ class Sensordata {
                       fontSize: 10,
                     ),
                   );
+                } else if (settingsProvider.selectedTimeChoice ==
+                    TimeChoice.natoFormat.value) {
+                  return Text(
+                    SensorDataTransformation.transformDateTimeToNatoFormat(
+                      DateTime.fromMillisecondsSinceEpoch(value.toInt() * 1000),
+                    ),
+                    style: const TextStyle(
+                      color: Color(0xff68737d),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  );
                 }
 
                 return Text(

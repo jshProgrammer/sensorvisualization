@@ -368,6 +368,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                           value: TimeChoice.relativeToStart.value,
                           label: Text('Zeit ab Start'),
                         ),
+                        ButtonSegment<int>(
+                          value: TimeChoice.natoFormat.value,
+                          label: Text('NATO Format'),
+                        ),
                       ],
                       selected: {_selectedTimeChoice},
                       onSelectionChanged: (Set<int> newSelection) {
