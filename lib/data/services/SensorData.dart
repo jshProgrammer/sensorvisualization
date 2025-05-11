@@ -319,7 +319,7 @@ class Sensordata {
     return toReturn;
   }
 
-  Color _getSensorColor(String attribute) {
+  static Color getSensorColor(String attribute) {
     final colorMap = {
       SensorOrientation.x.displayName: ColorSettings.sensorXAxisColor,
       SensorOrientation.y.displayName: ColorSettings.sensorYAxisColor,
@@ -352,7 +352,7 @@ class Sensordata {
         sensor.attribute!,
       ),
       isCurved: true,
-      color: _getSensorColor(sensor.attribute!.displayName),
+      color: getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
       isStrokeCapRound: true,
       dashArray: dashPattern,

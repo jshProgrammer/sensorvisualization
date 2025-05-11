@@ -82,7 +82,6 @@ void main() {
 
       final result = SensorDataTransformation.returnAbsoluteSensorDataAsJson(
         input,
-        SensorType.barometer,
       );
 
       expect(result['sensor'], 'Barometer');
@@ -102,7 +101,6 @@ void main() {
 
       final result = SensorDataTransformation.returnAbsoluteSensorDataAsJson(
         input,
-        SensorType.magnetometer,
       );
 
       expect(result['sensor'], 'Magnetometer');

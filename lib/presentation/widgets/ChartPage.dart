@@ -63,7 +63,13 @@ class _ChartPageState extends State<ChartPage> {
   late SensorDataSimulator simulator;
   bool isSimulationRunning = false;
 
-  late DangerNavigationController _dangerNavigationController;
+  DangerNavigationController dangerNavigationController =
+      DangerNavigationController();
+  late DateTime defaultTime;
+  final textController = TextEditingController();
+  late final TextEditingController timeController;
+  List<DateTime> allDangerTimes = [];
+  int localIndex = 0;
 
   late DangerDetector _dangerDetector;
 
@@ -82,7 +88,18 @@ class _ChartPageState extends State<ChartPage> {
 
     _startTime = DateTime.now();
 
-    _dangerNavigationController = DangerNavigationController();
+    defaultTime = dangerNavigationController.current ?? DateTime.now();
+    timeController = TextEditingController(text: defaultTime.toString());
+
+    // Safely initialize allDangerTimes and localIndex
+    allDangerTimes = dangerNavigationController.all;
+    if (allDangerTimes.isEmpty) {
+      allDangerTimes = [defaultTime]; // Provide a default if list is empty
+    }
+    localIndex = dangerNavigationController.all.indexOf(
+      dangerNavigationController.current ?? defaultTime,
+    );
+    if (localIndex < 0) localIndex = 0; // Safety check
 
     _dataSubscription = Provider.of<ConnectionProvider>(
       context,
@@ -172,7 +189,7 @@ class _ChartPageState extends State<ChartPage> {
             _dangerDetector = DangerDetector(_allDangerTimestamps);
 
             if (newDangers.isNotEmpty) {
-              _dangerNavigationController.setCurrent(newDangers.first);
+              dangerNavigationController.setCurrent(newDangers.first);
             }
 
             if (autoFollowLatestData) {
@@ -320,14 +337,16 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
-  void addNote({String? initialText, DateTime? initialTime}) {
-    DateTime defaultTime = initialTime ?? DateTime.now();
-    final textController = TextEditingController(text: initialText);
-    final timeController = TextEditingController(text: defaultTime.toString());
+  void updateTimeField() {
+    timeController.text = allDangerTimes[localIndex].toString();
+  }
 
-    final List<DateTime> allDangerTimes = _dangerNavigationController.all;
-    int localIndex = _dangerNavigationController.all.indexOf(
-      _dangerNavigationController.current ?? defaultTime,
+  void addNote() {
+    //initialTime: _dangerNavigationController.current)
+
+    final List<DateTime> allDangerTimes = dangerNavigationController.all;
+    int localIndex = dangerNavigationController.all.indexOf(
+      dangerNavigationController.current ?? defaultTime,
     );
 
     showDialog(
@@ -595,13 +614,13 @@ class _ChartPageState extends State<ChartPage> {
             ],
       ),
 
-      IconButton(
+      /*IconButton(
         icon: const Icon(Icons.add_comment),
         onPressed: () {
           addNote(initialTime: _dangerNavigationController.current);
         },
         tooltip: 'Notiz hinzufügen',
-      ),
+      ),*/
       ElevatedButton(
         child: Text(
           isSimulationRunning ? "Simulaton stoppen" : "Simulation start",
@@ -668,6 +687,17 @@ class _ChartPageState extends State<ChartPage> {
       listen: false,
     );
 
+    List<DateTime> currentDangerTimes = List<DateTime>.from(
+      dangerNavigationController.all,
+    );
+    if (currentDangerTimes.isEmpty) {
+      currentDangerTimes.add(DateTime.now());
+    }
+
+    if (localIndex < 0 || localIndex >= currentDangerTimes.length) {
+      localIndex = 0;
+    }
+
     return GestureDetector(
       child: Scaffold(
         appBar: AppBar(
@@ -686,111 +716,240 @@ class _ChartPageState extends State<ChartPage> {
                 key: _chartKey,
                 child: Stack(
                   children: [
-                    // _buildBackgroundPainter(),
-                    AspectRatio(
-                      aspectRatio: 1.5,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 18.0, right: 18.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Row(
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: AspectRatio(
+                            aspectRatio: 1.5,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 18.0,
+                                right: 18.0,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  RotatedBox(
-                                    quarterTurns: 1,
-                                    child: Slider(
-                                      value: baselineY,
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          baselineY = newValue;
-                                        });
-                                      },
-                                      min: 0,
-                                      max: maxY,
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        RotatedBox(
+                                          quarterTurns: 1,
+                                          child: Slider(
+                                            value: baselineY,
+                                            onChanged: (newValue) {
+                                              setState(() {
+                                                baselineY = newValue;
+                                              });
+                                            },
+                                            min: 0,
+                                            max: maxY,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Sensordata(
+                                            selectedLines: selectedValues,
+                                            chartConfig: widget.chartConfig,
+                                            autoFollowLatestData:
+                                                autoFollowLatestData,
+                                            baselineX: baselineX,
+                                            warningRanges: warningRanges,
+                                            settingsProvider:
+                                                Provider.of<SettingsProvider>(
+                                                  context,
+                                                  listen: false,
+                                                ),
+                                            connectionProvider:
+                                                Provider.of<ConnectionProvider>(
+                                                  context,
+                                                  listen: false,
+                                                ),
+                                          ).getLineChart(
+                                            baselineX,
+                                            (20 - (baselineY + 10)) - 10,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  Expanded(
-                                    child: Sensordata(
-                                      selectedLines: selectedValues,
-                                      chartConfig: widget.chartConfig,
-                                      autoFollowLatestData:
-                                          autoFollowLatestData,
-                                      baselineX: baselineX,
-                                      warningRanges: warningRanges,
-                                      settingsProvider:
-                                          Provider.of<SettingsProvider>(
-                                            context,
-                                            listen: false,
+
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Slider(
+                                          //TODO: bei zeit ab start geht er bis -unlimited
+                                          //TODO: Slider startet immer links?!
+                                          value: baselineX.clamp(
+                                            getSliderMinMax(
+                                              settingsProvider,
+                                            ).item1,
+                                            getSliderMinMax(
+                                              settingsProvider,
+                                            ).item2,
                                           ),
-                                      connectionProvider:
-                                          Provider.of<ConnectionProvider>(
-                                            context,
-                                            listen: false,
-                                          ),
-                                    ).getLineChart(
-                                      baselineX,
-                                      (20 - (baselineY + 10)) - 10,
-                                    ),
+                                          onChanged: (newValue) {
+                                            setState(() {
+                                              autoFollowLatestData = false;
+                                              baselineX = newValue.clamp(
+                                                getSliderMinMax(
+                                                  settingsProvider,
+                                                ).item1,
+                                                getSliderMinMax(
+                                                  settingsProvider,
+                                                ).item2,
+                                              );
+                                            });
+                                          },
+                                          min:
+                                              getSliderMinMax(
+                                                settingsProvider,
+                                              ).item1,
+                                          max:
+                                              getSliderMinMax(
+                                                settingsProvider,
+                                              ).item2,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          autoFollowLatestData
+                                              ? Icons.lock_clock
+                                              : Icons.lock_open,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            autoFollowLatestData =
+                                                !autoFollowLatestData;
+                                            if (autoFollowLatestData) {
+                                              baselineX = maxX;
+                                            }
+                                          });
+                                        },
+                                        tooltip:
+                                            autoFollowLatestData
+                                                ? 'Automatische Verfolgung deaktivieren'
+                                                : 'Automatische Verfolgung aktivieren',
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Slider(
-                                    //TODO: bei zeit ab start geht er bis -unlimited
-                                    //TODO: Slider startet immer links?!
-                                    value: baselineX.clamp(
-                                      getSliderMinMax(settingsProvider).item1,
-                                      getSliderMinMax(settingsProvider).item2,
-                                    ),
-                                    onChanged: (newValue) {
-                                      setState(() {
-                                        autoFollowLatestData = false;
-                                        baselineX = newValue.clamp(
-                                          getSliderMinMax(
-                                            settingsProvider,
-                                          ).item1,
-                                          getSliderMinMax(
-                                            settingsProvider,
-                                          ).item2,
-                                        );
-                                      });
-                                    },
-                                    min:
-                                        getSliderMinMax(settingsProvider).item1,
-                                    max:
-                                        getSliderMinMax(settingsProvider).item2,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    autoFollowLatestData
-                                        ? Icons.lock_clock
-                                        : Icons.lock_open,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      autoFollowLatestData =
-                                          !autoFollowLatestData;
-                                      if (autoFollowLatestData) {
-                                        baselineX = maxX;
-                                      }
-                                    });
-                                  },
-                                  tooltip:
-                                      autoFollowLatestData
-                                          ? 'Automatische Verfolgung deaktivieren'
-                                          : 'Automatische Verfolgung aktivieren',
-                                ),
-                              ],
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: _buildLegendItems(),
+                                ),
+                              ),
+
+                              SizedBox(height: 10),
+
+                              Divider(),
+
+                              SizedBox(height: 10),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_back),
+                                    onPressed:
+                                        currentDangerTimes.length > 1 &&
+                                                localIndex > 0
+                                            ? () {
+                                              setState(() {
+                                                localIndex--;
+                                                timeController.text =
+                                                    currentDangerTimes[localIndex]
+                                                        .toString();
+                                              });
+                                            }
+                                            : null,
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: timeController,
+                                      decoration: const InputDecoration(
+                                        labelText:
+                                            "Zeit (z.B. 2025-04-29 13:45:00)",
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.arrow_forward),
+                                    onPressed:
+                                        currentDangerTimes.length > 1 &&
+                                                localIndex <
+                                                    currentDangerTimes.length -
+                                                        1
+                                            ? () {
+                                              setState(() {
+                                                localIndex++;
+                                                timeController.text =
+                                                    currentDangerTimes[localIndex]
+                                                        .toString();
+                                              });
+                                            }
+                                            : null,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: textController,
+                                decoration: const InputDecoration(
+                                  hintText: "Notiz eingeben...",
+                                ),
+                              ),
+
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    DateTime parsedTime = DateTime.parse(
+                                      timeController.text,
+                                    );
+                                    setState(() {
+                                      widget.chartConfig.notes[parsedTime] =
+                                          textController.text;
+                                    });
+                                    await _databaseOperations.insertNoteData(
+                                      NoteCompanion(
+                                        date: Value(parsedTime),
+                                        note: Value(textController.text),
+                                      ),
+                                    );
+
+                                    textController.clear();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Notiz erfolgreich gespeichert.",
+                                        ),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Ungültiges Zeitformat."),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: const Text("Speichern"),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -801,4 +960,86 @@ class _ChartPageState extends State<ChartPage> {
       ),
     );
   }
+
+  List<Widget> _buildLegendItems() {
+    List<Widget> rows = [];
+    int sensorIndex = 0;
+
+    for (String device in selectedValues.keys) {
+      for (MultiSelectDialogItem sensor in selectedValues[device]!) {
+        final List<List<int>?> dashPatterns = [
+          null, // solid
+          [10, 5], // dashed
+          [2, 4], // dotted
+          [15, 5, 5, 5], // dash-dot
+          [8, 3, 2, 3], // short-dash-dot
+          [20, 5, 5, 5, 5, 5], // complex pattern
+        ];
+        final dashArray = dashPatterns[sensorIndex % dashPatterns.length];
+        final isDashed = dashArray != null;
+
+        rows.add(
+          Row(
+            children: [
+              CustomPaint(
+                size: const Size(24, 12),
+                painter: LineStylePainter(
+                  color: Sensordata.getSensorColor(
+                    sensor.attribute!.displayName,
+                  ),
+                  isDashed: isDashed,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text("${device} – ${sensor.attribute!.displayName}"),
+              ),
+            ],
+          ),
+        );
+
+        sensorIndex++;
+      }
+    }
+
+    return rows;
+  }
+}
+
+class LineStylePainter extends CustomPainter {
+  final Color color;
+  final bool isDashed;
+
+  LineStylePainter({required this.color, required this.isDashed});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = 3;
+
+    if (isDashed) {
+      const dashWidth = 6.0;
+      const dashSpace = 4.0;
+      double startX = 0;
+      while (startX < size.width) {
+        canvas.drawLine(
+          Offset(startX, size.height / 2),
+          Offset(startX + dashWidth, size.height / 2),
+          paint,
+        );
+        startX += dashWidth + dashSpace;
+      }
+    } else {
+      canvas.drawLine(
+        Offset(0, size.height / 2),
+        Offset(size.width, size.height / 2),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
