@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorClient.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
@@ -103,6 +104,8 @@ class _StartNullMeasurementScreenState
                 TimeUnitChoice.minutes)
             ? amountOfSeconds * 60
             : amountOfSeconds;
+
+    widget.connection.sendDelayedMeasurement(amountOfSeconds);
     _setTimer(
       amountOfSeconds,
       DateTime.now().add(Duration(seconds: amountOfSeconds)),
@@ -130,6 +133,7 @@ class _StartNullMeasurementScreenState
   }
 
   void startNullMeasurement() {
+    widget.connection.sendStartingNullMeasurement(measurementSeconds);
     final DateTime endTime = DateTime.now().add(
       Duration(seconds: measurementSeconds),
     );
@@ -182,8 +186,9 @@ class _StartNullMeasurementScreenState
   Future<void> _finishMeasurement() async {
     await widget.connection.retrieveLocalIP();
     final result = {
+      "command": NetworkCommands.AverageValues.command,
+      'duration': measurementSeconds,
       'ip': widget.connection.ownIPAddress,
-      'sensor': 'Durchschnittswerte nach ${measurementSeconds}s',
       SensorType.accelerometer.displayName: _averageTriplet(_accelData),
       SensorType.gyroscope.displayName: _averageTriplet(_gyroData),
       SensorType.magnetometer.displayName: _averageTriplet(_magnetData),

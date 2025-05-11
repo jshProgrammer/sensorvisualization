@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
@@ -79,7 +80,7 @@ class _ChartPageState extends State<ChartPage> {
     'red': [],
   };
 
-  final _databaseOperations = Databaseoperations();
+  late Databaseoperations _databaseOperations;
 
   //Only for Simulation
   @override
@@ -87,7 +88,12 @@ class _ChartPageState extends State<ChartPage> {
     super.initState();
 
     _startTime = DateTime.now();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _databaseOperations = Provider.of<Databaseoperations>(
+        context,
+        listen: false,
+      );
+    });
     defaultTime = dangerNavigationController.current ?? DateTime.now();
     timeController = TextEditingController(text: defaultTime.toString());
 

@@ -1,3 +1,4 @@
+import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 
 enum ItemType { seperator, data }

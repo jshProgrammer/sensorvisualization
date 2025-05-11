@@ -28,7 +28,8 @@ class SettingsProvider with ChangeNotifier {
 
 enum TimeChoice {
   timestamp(0),
-  relativeToStart(1);
+  relativeToStart(1),
+  natoFormat(2);
 
   final int value;
   const TimeChoice(this.value);

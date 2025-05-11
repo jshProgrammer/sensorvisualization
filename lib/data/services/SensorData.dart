@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/ChartConfig.dart';
 import 'package:sensorvisualization/data/models/ColorSettings.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
+import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
@@ -186,6 +187,18 @@ class Sensordata {
 
                   return Text(
                     formattedTime,
+                    style: const TextStyle(
+                      color: Color(0xff68737d),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
+                  );
+                } else if (settingsProvider.selectedTimeChoice ==
+                    TimeChoice.natoFormat.value) {
+                  return Text(
+                    SensorDataTransformation.transformDateTimeToNatoFormat(
+                      DateTime.fromMillisecondsSinceEpoch(value.toInt() * 1000),
+                    ),
                     style: const TextStyle(
                       color: Color(0xff68737d),
                       fontWeight: FontWeight.bold,
