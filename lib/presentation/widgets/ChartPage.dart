@@ -44,6 +44,7 @@ class _ChartPageState extends State<ChartPage> {
   double baselineX = 0.0;
   double baselineY = 0.0;
   bool autoFollowLatestData = true;
+  bool _isPanEnabled = false;
 
   final TextEditingController _noteController = TextEditingController();
 
@@ -127,6 +128,7 @@ class _ChartPageState extends State<ChartPage> {
       }
     });
     _transformationController = TransformationController();
+    _transformationController.addListener(_handleTransformationChange);
 
     simulator = SensorDataSimulator(
       onDataGenerated: (data) {
@@ -345,110 +347,6 @@ class _ChartPageState extends State<ChartPage> {
 
   void updateTimeField() {
     timeController.text = allDangerTimes[localIndex].toString();
-  }
-
-  void addNote() {
-    //initialTime: _dangerNavigationController.current)
-
-    final List<DateTime> allDangerTimes = dangerNavigationController.all;
-    int localIndex = dangerNavigationController.all.indexOf(
-      dangerNavigationController.current ?? defaultTime,
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            void updateTimeField() {
-              timeController.text = allDangerTimes[localIndex].toString();
-            }
-
-            return AlertDialog(
-              title: const Text("Notiz hinzufügen"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed:
-                            localIndex > 0
-                                ? () {
-                                  setState(() {
-                                    localIndex--;
-                                    updateTimeField();
-                                  });
-                                }
-                                : null,
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: timeController,
-                          decoration: const InputDecoration(
-                            labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        onPressed:
-                            localIndex < allDangerTimes.length - 1
-                                ? () {
-                                  setState(() {
-                                    localIndex++;
-                                    updateTimeField();
-                                  });
-                                }
-                                : null,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: textController,
-                    decoration: const InputDecoration(
-                      hintText: "Notiz eingeben...",
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Abbrechen"),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    try {
-                      DateTime parsedTime = DateTime.parse(timeController.text);
-                      setState(() {
-                        widget.chartConfig.notes[parsedTime] =
-                            textController.text;
-                      });
-                      await _databaseOperations.insertNoteData(
-                        NoteCompanion(
-                          date: Value(parsedTime),
-                          note: Value(textController.text),
-                        ),
-                      );
-                      Navigator.pop(context);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Ungültiges Zeitformat.")),
-                      );
-                    }
-                  },
-                  child: const Text("Speichern"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   List<Widget> buildAppBarActions() {
@@ -686,6 +584,20 @@ class _ChartPageState extends State<ChartPage> {
     return Tuple2(sliderMin, sliderMax);
   }
 
+  void _handleTransformationChange() {
+    final scale = _transformationController.value.getMaxScaleOnAxis();
+
+    if (scale > 1.0 && !_isPanEnabled) {
+      setState(() {
+        _isPanEnabled = true;
+      });
+    } else if (scale <= 1.0 && _isPanEnabled) {
+      setState(() {
+        _isPanEnabled = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsProvider = Provider.of<SettingsProvider>(
@@ -710,258 +622,244 @@ class _ChartPageState extends State<ChartPage> {
           title: Text(widget.chartConfig.title),
           actions: buildAppBarActions(),
         ),
-        body: GestureDetector(
-          child: InteractiveViewer(
-            transformationController: _transformationController,
-            minScale: 0.1,
-            maxScale: 10.0,
-            boundaryMargin: const EdgeInsets.all(double.infinity),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: RepaintBoundary(
-                key: _chartKey,
-                child: Stack(
-                  children: [
-                    Row(
+        body: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Stack(
                       children: [
-                        Expanded(
-                          flex: 3,
-                          child: AspectRatio(
-                            aspectRatio: 1.5,
+                        Positioned.fill(
+                          child: InteractiveViewer(
+                            transformationController: _transformationController,
+                            panEnabled: _isPanEnabled,
+                            minScale: 0.1,
+                            maxScale: 10.0,
+                            boundaryMargin: const EdgeInsets.all(20.0),
                             child: Padding(
-                              padding: const EdgeInsets.only(
-                                top: 18.0,
-                                right: 18.0,
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        RotatedBox(
-                                          quarterTurns: 1,
-                                          child: Slider(
-                                            value: baselineY,
-                                            onChanged: (newValue) {
-                                              setState(() {
-                                                baselineY = newValue;
-                                              });
-                                            },
-                                            min: 0,
-                                            max: maxY,
+                              padding: const EdgeInsets.all(16.0),
+                              child: RepaintBoundary(
+                                key: _chartKey,
+                                child:
+                                // _buildBackgroundPainter(),
+                                AspectRatio(
+                                  aspectRatio: 1.5,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 18.0,
+                                      right: 18.0,
+                                    ),
+                                    child: Sensordata(
+                                      selectedLines: selectedValues,
+                                      chartConfig: widget.chartConfig,
+                                      autoFollowLatestData:
+                                          autoFollowLatestData,
+                                      baselineX: baselineX,
+                                      warningRanges: warningRanges,
+                                      settingsProvider:
+                                          Provider.of<SettingsProvider>(
+                                            context,
+                                            listen: false,
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: Sensordata(
-                                            selectedLines: selectedValues,
-                                            chartConfig: widget.chartConfig,
-                                            autoFollowLatestData:
-                                                autoFollowLatestData,
-                                            baselineX: baselineX,
-                                            warningRanges: warningRanges,
-                                            settingsProvider:
-                                                Provider.of<SettingsProvider>(
-                                                  context,
-                                                  listen: false,
-                                                ),
-                                            connectionProvider:
-                                                Provider.of<ConnectionProvider>(
-                                                  context,
-                                                  listen: false,
-                                                ),
-                                          ).getLineChart(
-                                            baselineX,
-                                            (20 - (baselineY + 10)) - 10,
+                                      connectionProvider:
+                                          Provider.of<ConnectionProvider>(
+                                            context,
+                                            listen: false,
                                           ),
-                                        ),
-                                      ],
+                                    ).getLineChart(
+                                      baselineX,
+                                      (20 - (baselineY + 10)) - 10,
                                     ),
                                   ),
-
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Slider(
-                                          //TODO: bei zeit ab start geht er bis -unlimited
-                                          //TODO: Slider startet immer links?!
-                                          value: baselineX.clamp(
-                                            getSliderMinMax(
-                                              settingsProvider,
-                                            ).item1,
-                                            getSliderMinMax(
-                                              settingsProvider,
-                                            ).item2,
-                                          ),
-                                          onChanged: (newValue) {
-                                            setState(() {
-                                              autoFollowLatestData = false;
-                                              baselineX = newValue.clamp(
-                                                getSliderMinMax(
-                                                  settingsProvider,
-                                                ).item1,
-                                                getSliderMinMax(
-                                                  settingsProvider,
-                                                ).item2,
-                                              );
-                                            });
-                                          },
-                                          min:
-                                              getSliderMinMax(
-                                                settingsProvider,
-                                              ).item1,
-                                          max:
-                                              getSliderMinMax(
-                                                settingsProvider,
-                                              ).item2,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          autoFollowLatestData
-                                              ? Icons.lock_clock
-                                              : Icons.lock_open,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            autoFollowLatestData =
-                                                !autoFollowLatestData;
-                                            if (autoFollowLatestData) {
-                                              baselineX = maxX;
-                                            }
-                                          });
-                                        },
-                                        tooltip:
-                                            autoFollowLatestData
-                                                ? 'Automatische Verfolgung deaktivieren'
-                                                : 'Automatische Verfolgung aktivieren',
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: _buildLegendItems(),
-                                ),
-                              ),
 
-                              SizedBox(height: 10),
-
-                              Divider(),
-
-                              SizedBox(height: 10),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.arrow_back),
-                                    onPressed:
-                                        currentDangerTimes.length > 1 &&
-                                                localIndex > 0
-                                            ? () {
-                                              setState(() {
-                                                localIndex--;
-                                                timeController.text =
-                                                    currentDangerTimes[localIndex]
-                                                        .toString();
-                                              });
-                                            }
-                                            : null,
-                                  ),
-                                  Expanded(
-                                    child: TextField(
-                                      controller: timeController,
-                                      decoration: const InputDecoration(
-                                        labelText:
-                                            "Zeit (z.B. 2025-04-29 13:45:00)",
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.arrow_forward),
-                                    onPressed:
-                                        currentDangerTimes.length > 1 &&
-                                                localIndex <
-                                                    currentDangerTimes.length -
-                                                        1
-                                            ? () {
-                                              setState(() {
-                                                localIndex++;
-                                                timeController.text =
-                                                    currentDangerTimes[localIndex]
-                                                        .toString();
-                                              });
-                                            }
-                                            : null,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              TextField(
-                                controller: textController,
-                                decoration: const InputDecoration(
-                                  hintText: "Notiz eingeben...",
-                                ),
-                              ),
-
-                              TextButton(
-                                onPressed: () async {
-                                  try {
-                                    DateTime parsedTime = DateTime.parse(
-                                      timeController.text,
-                                    );
-                                    setState(() {
-                                      widget.chartConfig.notes[parsedTime] =
-                                          textController.text;
-                                    });
-                                    await _databaseOperations.insertNoteData(
-                                      NoteCompanion(
-                                        date: Value(parsedTime),
-                                        note: Value(textController.text),
-                                      ),
-                                    );
-
-                                    textController.clear();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Notiz erfolgreich gespeichert.",
-                                        ),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Ungültiges Zeitformat."),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: const Text("Speichern"),
-                              ),
-                            ],
+                        Positioned(
+                          left: 16,
+                          top: 50,
+                          bottom: 50,
+                          width: 40,
+                          child: RotatedBox(
+                            quarterTurns: 1,
+                            child: Slider(
+                              value: baselineY,
+                              onChanged: (newValue) {
+                                setState(() {
+                                  baselineY = newValue;
+                                });
+                              },
+                              min: 0,
+                              max: maxY,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            //TODO: bei zeit ab start geht er bis -unlimited
+                            //TODO: Slider startet immer links?!
+                            value: baselineX.clamp(
+                              getSliderMinMax(settingsProvider).item1,
+                              getSliderMinMax(settingsProvider).item2,
+                            ),
+                            onChanged: (newValue) {
+                              setState(() {
+                                autoFollowLatestData = false;
+                                baselineX = newValue.clamp(
+                                  getSliderMinMax(settingsProvider).item1,
+                                  getSliderMinMax(settingsProvider).item2,
+                                );
+                              });
+                            },
+                            min: getSliderMinMax(settingsProvider).item1,
+                            max: getSliderMinMax(settingsProvider).item2,
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            autoFollowLatestData
+                                ? Icons.lock_clock
+                                : Icons.lock_open,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              autoFollowLatestData = !autoFollowLatestData;
+                              if (autoFollowLatestData) {
+                                baselineX = maxX;
+                              }
+                            });
+                          },
+                          tooltip:
+                              autoFollowLatestData
+                                  ? 'Automatische Verfolgung deaktivieren'
+                                  : 'Automatische Verfolgung aktivieren',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+
+            Expanded(
+              flex: 1,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: _buildLegendItems(),
+                    ),
+                  ),
+
+                  SizedBox(height: 10),
+
+                  Divider(),
+
+                  SizedBox(height: 10),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed:
+                            currentDangerTimes.length > 1 && localIndex > 0
+                                ? () {
+                                  setState(() {
+                                    localIndex--;
+                                    timeController.text =
+                                        currentDangerTimes[localIndex]
+                                            .toString();
+                                  });
+                                }
+                                : null,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: timeController,
+                          decoration: const InputDecoration(
+                            labelText: "Zeit (z.B. 2025-04-29 13:45:00)",
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        onPressed:
+                            currentDangerTimes.length > 1 &&
+                                    localIndex < currentDangerTimes.length - 1
+                                ? () {
+                                  setState(() {
+                                    localIndex++;
+                                    timeController.text =
+                                        currentDangerTimes[localIndex]
+                                            .toString();
+                                  });
+                                }
+                                : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: textController,
+                    decoration: const InputDecoration(
+                      hintText: "Notiz eingeben...",
+                    ),
+                  ),
+
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        DateTime parsedTime = DateTime.parse(
+                          timeController.text,
+                        );
+                        setState(() {
+                          widget.chartConfig.notes[parsedTime] =
+                              textController.text;
+                        });
+                        await _databaseOperations.insertNoteData(
+                          NoteCompanion(
+                            date: Value(parsedTime),
+                            note: Value(textController.text),
+                          ),
+                        );
+
+                        textController.clear();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Notiz erfolgreich gespeichert."),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Ungültiges Zeitformat."),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text("Speichern"),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
