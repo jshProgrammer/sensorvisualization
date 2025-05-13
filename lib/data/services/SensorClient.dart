@@ -21,7 +21,13 @@ class SensorClient {
   late final String ownIPAddress;
   bool _ownIPAddressInitialized = false;
 
-  SensorClient({required this.hostIPAddress, required this.deviceName}) {
+  Function(String)? onAlarmReceived;
+
+  SensorClient({
+    required this.hostIPAddress,
+    required this.deviceName,
+    this.onAlarmReceived,
+  }) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
   }
 
@@ -58,6 +64,11 @@ class SensorClient {
           if (decoded['command'] ==
               NetworkCommands.ConnectionAccepted.command) {
             completer.complete(true);
+          } else if (decoded['command'] == NetworkCommands.Alarm.command) {
+            if (onAlarmReceived != null) {
+              onAlarmReceived!(decoded['message']);
+            }
+            print('Alarm empfangen: ${decoded['message']}');
           }
         } catch (e) {
           completer.complete(false);

@@ -64,6 +64,11 @@ class ConnectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void sendAlarmToAllClients(String alarmMessage) {
+    _connectionToSender.sendAlarmToAllClients(alarmMessage);
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _dataStreamController.close();

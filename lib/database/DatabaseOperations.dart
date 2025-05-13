@@ -21,17 +21,29 @@ class Databaseoperations {
   //Insert Methods
 
   Future<void> insertSensorData(SensorCompanion sensor) async {
-    await _db.into(_db.sensor).insert(sensor);
+    try {
+      await _db.into(_db.sensor).insert(sensor);
+    } catch (e) {
+      print("Fehler beim Einfügen der Sensordaten: $e");
+    }
   }
 
   Future<void> insertNoteData(NoteCompanion note) async {
-    await _db.into(_db.note).insert(note);
+    try {
+      await _db.into(_db.note).insert(note);
+    } catch (e) {
+      print("Fehler beim Einfügen der Notizdaten: $e");
+    }
   }
 
   Future<void> insertIdentificationData(
     IdentificationCompanion identification,
   ) async {
-    await _db.into(_db.identification).insert(identification);
+    try {
+      await _db.into(_db.identification).insert(identification);
+    } catch (e) {
+      print("Fehler beim Einfügen der Identifikationsdaten: $e");
+    }
   }
 
   Future<void> insertMetadata(MetadataCompanion metadata) async {

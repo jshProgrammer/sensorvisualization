@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
 class SensorMessScreen extends StatefulWidget {
@@ -231,12 +232,26 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
     }
   }
 
+  void _showAlarmPage(String alarmMessage) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Alarmpage(); //TODO: hier noch Message anpassen
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     //TODO: only when running on phone
 
     widget.connection.startSensorStream();
+
+    widget.connection.onAlarmReceived = (String alarmMessage) {
+      _showAlarmPage(alarmMessage);
+    };
 
     _streamSubscriptions.add(
       userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(

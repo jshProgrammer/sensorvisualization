@@ -23,6 +23,8 @@ class SensorServer {
   static final Map<String, Map<SensorType, Map<SensorOrientation, double>>>
   nullMeasurementValues = {};
 
+  final Map<String, WebSocket> activeConnections = {};
+
   SensorServer({
     required this.onDataReceived,
     this.onMeasurementStopped,
@@ -63,8 +65,10 @@ class SensorServer {
                   final senderIp = decoded['ip'];
                   final deviceName = decoded['deviceName'];
 
-                  print('Neue Verbindung von $deviceName mit IP $senderIp');
+                  activeConnections[senderIp] = ws;
 
+                  print('Neue Verbindung von $deviceName mit IP $senderIp');
+                  //Writing to Database
                   _databaseOperations.insertIdentificationData(
                     IdentificationCompanion(
                       ip: Value(senderIp),
@@ -140,27 +144,27 @@ class SensorServer {
                 );
 
                 onConnectionChanged?.call();
-                /*final sensorType = SensorTypeExtension.fromString(
-                    parsed['sensor'],
-                  );*/
+                final sensorType = SensorTypeExtension.fromString(
+                  parsed['sensor'],
+                );
                 //Writing to database
                 //TODO: macht noch Probleme da noch nicht alle Daten komplett als Paket gesendet werden
-                /*_databaseOperations.insertSensorData(
-                    SensorCompanion(
-                      date: Value(DateTime.parse(parsed['timestamp'])),
-                      ip: Value(parsed['ip']),
-                      accelerationX: Value(parsed['x']),
-                      accelerationY: Value(parsed['y']),
-                      accelerationZ: Value(parsed['z']),
-                      gyroskopX: Value(parsed['gyroscopeX']),
-                      gyroskopY: Value(parsed['gyroscopeY']),
-                      gyroskopZ: Value(parsed['gyroscopeZ']),
-                      magnetometerX: Value(parsed['magnetometerX']),
-                      magnetometerY: Value(parsed['magnetometerY']),
-                      magnetometerZ: Value(parsed['magnetometerZ']),
-                      barometer: Value(parsed['barometer']),
-                    ),
-                  );*/
+                _databaseOperations.insertSensorData(
+                  SensorCompanion(
+                    date: Value(DateTime.parse(parsed['timestamp'])),
+                    ip: Value(parsed['ip']),
+                    accelerationX: Value(parsed['x']),
+                    accelerationY: Value(parsed['y']),
+                    accelerationZ: Value(parsed['z']),
+                    gyroskopX: Value(parsed['gyroscopeX']),
+                    gyroskopY: Value(parsed['gyroscopeY']),
+                    gyroskopZ: Value(parsed['gyroscopeZ']),
+                    magnetometerX: Value(parsed['magnetometerX']),
+                    magnetometerY: Value(parsed['magnetometerY']),
+                    magnetometerZ: Value(parsed['magnetometerZ']),
+                    barometer: Value(parsed['barometer']),
+                  ),
+                );
 
                 onDataReceived(
                   SensorDataTransformation.returnAbsoluteSensorDataAsJson(
@@ -172,8 +176,24 @@ class SensorServer {
               print('Error parsing data: $e');
             }
           });
+          ws.done.then((_) {
+            activeConnections.removeWhere((key, value) => value == ws);
+            print('Connection closed');
+          });
         });
       }
+    }
+  }
+
+  void sendAlarmToAllClients(String alarmMessage) {
+    final alarmData = jsonEncode({
+      "command": NetworkCommands.Alarm.command,
+      "message": alarmMessage,
+      "timestamp": DateTime.now().toIso8601String(),
+    });
+
+    for (var ws in activeConnections.values) {
+      ws.add(alarmData);
     }
   }
 

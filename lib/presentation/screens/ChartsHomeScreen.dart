@@ -56,6 +56,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       selectedChartIndex = charts.length - 1;
     });
   }
+
   void _addNewChartToCurrentTab() {
     if (selectedTabIndex >= mCharts.length) return;
 
@@ -75,11 +76,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   void _addNewChartTab() {
     setState(() {
       final newChart = ChartConfig(
-      id: 'mchart_${mCharts.length}_0',
-      title: 'Diagramm 1',
-      dataPoints: {},
-      color: Colors.primaries[0],
-    );
+        id: 'mchart_${mCharts.length}_0',
+        title: 'Diagramm 1',
+        dataPoints: {},
+        color: Colors.primaries[0],
+      );
       mCharts.add([newChart]);
       selectedTabIndex = mCharts.length - 1;
     });
@@ -102,33 +103,38 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       }
     });
   }
-    void _deleteChartFromCurrentTab() {
-  final tabCharts = mCharts[selectedTabIndex];
-  if (tabCharts.length <= 1) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Mindestens ein Diagramm muss bestehen bleiben')),
-    );
-    return;
-  }
 
-  setState(() {
-    tabCharts.removeLast();
-  });
-}
+  void _deleteChartFromCurrentTab() {
+    final tabCharts = mCharts[selectedTabIndex];
+    if (tabCharts.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mindestens ein Diagramm muss bestehen bleiben'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      tabCharts.removeLast();
+    });
+  }
 
   void _deleteCurrentTab() {
-  if (mCharts.length <= 1) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Mindestens ein Tab muss bestehen bleiben')),
-    );
-    return;
-  }
+    if (mCharts.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mindestens ein Tab muss bestehen bleiben'),
+        ),
+      );
+      return;
+    }
 
-  setState(() {
-    mCharts.removeAt(selectedTabIndex);
-    selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
-  });
-}
+    setState(() {
+      mCharts.removeAt(selectedTabIndex);
+      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+    });
+  }
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
@@ -138,9 +144,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<ChartConfig> activeCharts = useMultipleCharts
-      ? (mCharts.isNotEmpty ? mCharts[selectedTabIndex] : [])
-      : charts;
+    final List<ChartConfig> activeCharts =
+        useMultipleCharts
+            ? (mCharts.isNotEmpty ? mCharts[selectedTabIndex] : [])
+            : charts;
 
     return Scaffold(
       appBar: AppBar(
@@ -163,6 +170,16 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             icon: Icon(Icons.qr_code),
             onPressed: () async {
               showQRCodeDialog();
+            },
+          ),
+          //TODO: Textfeld für Alarm Message einfügen
+          IconButton(
+            icon: Icon(Icons.warning),
+            onPressed: () async {
+              Provider.of<ConnectionProvider>(
+                context,
+                listen: false,
+              ).sendAlarmToAllClients("Test");
             },
           ),
           Row(
@@ -243,11 +260,14 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             ),
 
           Expanded(
-            child: (useMultipleCharts
-                ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
-                    ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : MultipleChartsPage(chartPages: mCharts[selectedTabIndex])
-                : charts.isEmpty
+            child:
+                (useMultipleCharts
+                    ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
+                        ? const Center(child: Text('Keine Diagramme vorhanden'))
+                        : MultipleChartsPage(
+                          chartPages: mCharts[selectedTabIndex],
+                        )
+                    : charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : ChartPage(chartConfig: charts[selectedChartIndex])),
           ),
@@ -260,13 +280,14 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             ),
         ],
       ),
-      floatingActionButton: useMultipleCharts
-          ? null
-          : FloatingActionButton(
-              onPressed: _addNewChart,
-              tooltip: 'Neues Diagramm hinzufügen',
-              child: const Icon(Icons.add_chart),
-            ),
+      floatingActionButton:
+          useMultipleCharts
+              ? null
+              : FloatingActionButton(
+                onPressed: _addNewChart,
+                tooltip: 'Neues Diagramm hinzufügen',
+                child: const Icon(Icons.add_chart),
+              ),
     );
   }
 
