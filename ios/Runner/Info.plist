@@ -49,5 +49,19 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>UIBackgroundModes</key>
+<array>
+    <string>fetch</string>
+    <string>remote-notification</string>
+</array>
+<key>NSUserTrackingUsageDescription</key>
+<string>Wir benötigen diese Berechtigung, um Benachrichtigungen zu senden.</string>
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+</dict>
+<key>UNNotificationAlertStyle</key>
+<string>banner</string>
 </dict>
 </plist>
