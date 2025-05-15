@@ -812,6 +812,13 @@ class _ChartPageState extends State<ChartPage> {
                                 }
                                 : null,
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: (){
+                          timeController.text = DateTime.now().toString();
+                        },
+                        tooltip: "Aktuelle Uhrzeit",
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
