@@ -104,22 +104,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     });
   }
 
-  void _deleteChartFromCurrentTab() {
-    final tabCharts = mCharts[selectedTabIndex];
-    if (tabCharts.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mindestens ein Diagramm muss bestehen bleiben'),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      tabCharts.removeLast();
-    });
-  }
-
   void _deleteCurrentTab() {
     if (mCharts.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -241,11 +225,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                     onPressed: _addNewChartToCurrentTab,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.remove),
-                    tooltip: 'Diagramm im aktuellen Tab löschen',
-                    onPressed: _deleteChartFromCurrentTab,
-                  ),
-                  IconButton(
                     icon: const Icon(Icons.tab),
                     tooltip: 'Neuen Tab hinzufügen',
                     onPressed: _addNewChartTab,
@@ -260,16 +239,28 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             ),
 
           Expanded(
-            child:
-                (useMultipleCharts
-                    ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
-                        ? const Center(child: Text('Keine Diagramme vorhanden'))
-                        : MultipleChartsPage(
-                          chartPages: mCharts[selectedTabIndex],
-                        )
-                    : charts.isEmpty
+            child: useMultipleCharts
+                ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : ChartPage(chartConfig: charts[selectedChartIndex])),
+                    : MultipleChartsPage(
+                        chartPages: mCharts[selectedTabIndex],
+                        onDeleteChart: (index) {
+                          setState(() {
+                            if (mCharts[selectedTabIndex].length > 1) {
+                              mCharts[selectedTabIndex].removeAt(index);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Mindestens ein Diagramm muss vorhanden sein.'),
+                                ),
+                              );
+                            }
+                          });
+                        },
+                      )
+                : charts.isEmpty
+                    ? const Center(child: Text('Keine Diagramme vorhanden'))
+                    : ChartPage(chartConfig: charts[selectedChartIndex]),
           ),
 
           if (!useMultipleCharts)
