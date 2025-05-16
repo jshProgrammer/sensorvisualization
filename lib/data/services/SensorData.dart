@@ -144,8 +144,9 @@ class Sensordata {
     );
   }
 
-  LineChart getLineChart(double baselineX, double baselineY) {
+  LineChart getLineChart(double baselineX) {
     return LineChart(
+      duration: Duration.zero,
       LineChartData(
         minX:
             autoFollowLatestData
@@ -154,6 +155,7 @@ class Sensordata {
         maxX: autoFollowLatestData ? _getMaxX() : baselineX,
         minY: _getMinY(),
         maxY: _getMaxY(),
+
         gridData: FlGridData(
           show: true,
           horizontalInterval: 0.5,
@@ -161,10 +163,10 @@ class Sensordata {
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color:
-                  (value - baselineY).abs() < 0.1
+                  value.abs() < 0.1
                       ? ColorSettings.lineColor
                       : ColorSettings.lineColor,
-              strokeWidth: (value - baselineY).abs() < 0.1 ? 2 : 1,
+              strokeWidth: value.abs() < 0.1 ? 2 : 1,
             );
           },
         ),
@@ -364,10 +366,10 @@ class Sensordata {
         sensor.sensorName,
         sensor.attribute!,
       ),
-      isCurved: true,
+      isCurved: false,
       color: getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
-      isStrokeCapRound: true,
+      isStrokeCapRound: false,
       dashArray: dashPattern,
       dotData: FlDotData(show: false),
     );

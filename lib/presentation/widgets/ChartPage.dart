@@ -42,7 +42,7 @@ class ChartPage extends StatefulWidget {
 
 class _ChartPageState extends State<ChartPage> {
   double baselineX = 0.0;
-  double baselineY = 0.0;
+
   bool autoFollowLatestData = true;
   bool _isPanEnabled = false;
 
@@ -629,76 +629,42 @@ class _ChartPageState extends State<ChartPage> {
               child: Column(
                 children: [
                   Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: InteractiveViewer(
-                            transformationController: _transformationController,
-                            panEnabled: _isPanEnabled,
-                            minScale: 0.1,
-                            maxScale: 10.0,
-                            boundaryMargin: const EdgeInsets.all(20.0),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: RepaintBoundary(
-                                key: _chartKey,
-                                child:
-                                // _buildBackgroundPainter(),
-                                AspectRatio(
-                                  aspectRatio: 1.5,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 18.0,
-                                      right: 18.0,
-                                    ),
-                                    child: Sensordata(
-                                      selectedLines: selectedValues,
-                                      chartConfig: widget.chartConfig,
-                                      autoFollowLatestData:
-                                          autoFollowLatestData,
-                                      baselineX: baselineX,
-                                      warningRanges: warningRanges,
-                                      settingsProvider:
-                                          Provider.of<SettingsProvider>(
-                                            context,
-                                            listen: false,
-                                          ),
-                                      connectionProvider:
-                                          Provider.of<ConnectionProvider>(
-                                            context,
-                                            listen: false,
-                                          ),
-                                    ).getLineChart(
-                                      baselineX,
-                                      (20 - (baselineY + 10)) - 10,
-                                    ),
-                                  ),
-                                ),
+                    child: InteractiveViewer(
+                      transformationController: _transformationController,
+                      panEnabled: _isPanEnabled,
+                      minScale: 0.1,
+                      maxScale: 10.0,
+                      boundaryMargin: const EdgeInsets.all(20.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: RepaintBoundary(
+                          key: _chartKey,
+                          child:
+                          // _buildBackgroundPainter(),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 18.0,
+                              right: 18.0,
+                            ),
+                            child: Sensordata(
+                              selectedLines: selectedValues,
+                              chartConfig: widget.chartConfig,
+                              autoFollowLatestData: autoFollowLatestData,
+                              baselineX: baselineX,
+                              warningRanges: warningRanges,
+                              settingsProvider: Provider.of<SettingsProvider>(
+                                context,
+                                listen: false,
                               ),
-                            ),
+                              connectionProvider:
+                                  Provider.of<ConnectionProvider>(
+                                    context,
+                                    listen: false,
+                                  ),
+                            ).getLineChart(baselineX),
                           ),
                         ),
-
-                        Positioned(
-                          left: 16,
-                          top: 50,
-                          bottom: 50,
-                          width: 40,
-                          child: RotatedBox(
-                            quarterTurns: 1,
-                            child: Slider(
-                              value: baselineY,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  baselineY = newValue;
-                                });
-                              },
-                              min: 0,
-                              max: maxY,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
 
@@ -814,7 +780,7 @@ class _ChartPageState extends State<ChartPage> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh),
-                        onPressed: (){
+                        onPressed: () {
                           timeController.text = DateTime.now().toString();
                         },
                         tooltip: "Aktuelle Uhrzeit",
@@ -876,6 +842,11 @@ class _ChartPageState extends State<ChartPage> {
     List<Widget> rows = [];
     int sensorIndex = 0;
 
+    var connectionProvider = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    );
+
     for (String device in selectedValues.keys) {
       for (MultiSelectDialogItem sensor in selectedValues[device]!) {
         final List<List<int>?> dashPatterns = [
@@ -903,7 +874,9 @@ class _ChartPageState extends State<ChartPage> {
               ),
               const SizedBox(width: 4),
               Expanded(
-                child: Text("${device} – ${sensor.attribute!.displayName}"),
+                child: Text(
+                  "${connectionProvider.connectedDevices[device] ?? "Simulator"} – ${sensor.sensorName.displayName} -  ${sensor.attribute!.displayName}",
+                ),
               ),
             ],
           ),

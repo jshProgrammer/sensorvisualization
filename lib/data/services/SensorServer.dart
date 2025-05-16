@@ -267,10 +267,6 @@ class SensorServer {
         : connectionStates[ipAddress]!.item1;
   }
 
-  /*int? getCurrentConnectionDuration(String ipAddress) {
-    return connectionStates[ipAddress]?.item2;
-  }*/
-
   int? getRemainingConnectionDurationInSec(String ipAddress) {
     final diff = connectionStates[ipAddress]?.item2?.difference(DateTime.now());
     return diff != null ? (diff.inMilliseconds / 1000).ceil() : null;
