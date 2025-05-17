@@ -6,6 +6,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
+import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/SampleData.dart';
@@ -28,6 +29,9 @@ class ChartsHomeScreen extends StatefulWidget {
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
   final List<List<ChartConfig>> mCharts = [];
+  
+  Map<String, Map<String, Set<MultiSelectDialogItem>>> chartSelections = {};
+
   int selectedTabIndex = 0;
 
   int selectedChartIndex = 0;
@@ -53,6 +57,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
         color: Colors.primaries[newIndex % Colors.primaries.length],
       );
       charts.add(newChart);
+      chartSelections[newChart.id] = {};
       selectedChartIndex = charts.length - 1;
     });
   }
@@ -70,6 +75,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
         color: Colors.primaries[newIndex % Colors.primaries.length],
       );
       tabCharts.add(newChart);
+      chartSelections[newChart.id] = {};
     });
   }
 
@@ -97,7 +103,9 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     }
 
     setState(() {
-      charts.removeAt(index);
+      final removedChart = charts.removeAt(index);
+      chartSelections.remove(removedChart.id);
+
       if (selectedChartIndex >= charts.length) {
         selectedChartIndex = charts.length - 1;
       }
@@ -115,9 +123,12 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     }
 
     setState(() {
-      mCharts.removeAt(selectedTabIndex);
-      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
-    });
+    final removedTab = mCharts.removeAt(selectedTabIndex);
+    for (final chart in removedTab) {
+      chartSelections.remove(chart.id);
+    }
+    selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+  });
   }
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
@@ -244,10 +255,17 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : MultipleChartsPage(
                         chartPages: mCharts[selectedTabIndex],
+                        chartSelections: chartSelections,
+                        onSelectedValuesChanged: (String chartId, Map<String, Set<MultiSelectDialogItem>> newSel) {
+                          setState(() {
+                            chartSelections[chartId] = newSel;
+                          });
+                        },
                         onDeleteChart: (index) {
                           setState(() {
                             if (mCharts[selectedTabIndex].length > 1) {
-                              mCharts[selectedTabIndex].removeAt(index);
+                              final removedChart = mCharts[selectedTabIndex].removeAt(index);
+                              chartSelections.remove(removedChart.id);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -260,7 +278,15 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       )
                 : charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : ChartPage(chartConfig: charts[selectedChartIndex]),
+                    : ChartPage.withSelectedValues(
+                      chartConfig: charts[selectedChartIndex],
+                      selectedValues: chartSelections[charts[selectedChartIndex].id] ?? {},
+                      onSelectedValuesChanged: (newSelections) {
+                        setState(() {
+                          chartSelections[charts[selectedChartIndex].id] = newSelections;
+                        });
+                      },
+                    ),
           ),
 
           if (!useMultipleCharts)

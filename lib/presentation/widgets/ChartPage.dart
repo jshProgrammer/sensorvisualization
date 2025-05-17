@@ -34,7 +34,20 @@ import 'DangerNavigationController.dart';
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
 
-  const ChartPage({super.key, required this.chartConfig});
+  final Map<String, Set<MultiSelectDialogItem>>? selectedValues;
+
+  final void Function(Map<String, Set<MultiSelectDialogItem>>)? onSelectedValuesChanged;
+
+  const ChartPage({super.key, required this.chartConfig})
+      : selectedValues = null,
+        onSelectedValuesChanged = null;
+
+  const ChartPage.withSelectedValues({
+    super.key,
+    required this.chartConfig,
+    required this.selectedValues,
+    required this.onSelectedValuesChanged,
+  });
 
   @override
   State<ChartPage> createState() => _ChartPageState();
@@ -87,6 +100,11 @@ class _ChartPageState extends State<ChartPage> {
   @override
   void initState() {
     super.initState();
+
+    selectedValues = widget.selectedValues != null
+        ? Map<String, Set<MultiSelectDialogItem>>.from(widget.selectedValues!)
+        : {};
+    _transformationController = TransformationController();
 
     _startTime = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -268,6 +286,26 @@ class _ChartPageState extends State<ChartPage> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant ChartPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedValues != oldWidget.selectedValues && widget.selectedValues != null) {
+      setState(() {
+        selectedValues = Map<String, Set<MultiSelectDialogItem>>.from(widget.selectedValues!);
+      });
+    }
+  }
+
+  void _updateSelectedValues(Map<String, Set<MultiSelectDialogItem>> newValues) {
+    setState(() {
+      selectedValues = newValues;
+    });
+
+    if (widget.onSelectedValuesChanged != null) {
+      widget.onSelectedValuesChanged!(newValues);
+    }
+  }
+
   void _showAllNotes() {
     showDialog(
       context: context,
@@ -325,7 +363,7 @@ class _ChartPageState extends State<ChartPage> {
 
     if (result != null) {
       setState(() {
-        selectedValues = result;
+        _updateSelectedValues(result);
       });
     }
   }
