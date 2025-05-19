@@ -169,12 +169,55 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
           ),
           //TODO: Textfeld für Alarm Message einfügen
           IconButton(
-            icon: Icon(Icons.warning),
-            onPressed: () async {
-              Provider.of<ConnectionProvider>(
+            icon: Consumer<ConnectionProvider>(
+              builder: (context, provider, child) {
+                return Icon(
+                  Icons.warning,
+                  color: provider.isAlarmActive ? Colors.red : null,
+                );
+              },
+            ),
+            onPressed: () {
+              final provider = Provider.of<ConnectionProvider>(
                 context,
                 listen: false,
-              ).sendAlarmToAllClients("Test");
+              );
+
+              if (provider.isAlarmActive) {
+                showStopAlarmDialog();
+              } else {
+                // Zeige Dialog zum Starten des Alarms
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: Text("Alarm auslösen"),
+                        content: TextField(
+                          decoration: InputDecoration(
+                            labelText: "Alarmmeldung",
+                            hintText: "Geben Sie eine Nachricht ein",
+                          ),
+                          onSubmitted: (value) {
+                            provider.sendAlarmToAllClients(value);
+                            Navigator.pop(context);
+                          },
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text("Abbrechen"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              provider.sendAlarmToAllClients("Alarm!");
+                              Navigator.pop(context);
+                            },
+                            child: Text("Alarm auslösen"),
+                          ),
+                        ],
+                      ),
+                );
+              }
             },
           ),
           Row(
@@ -331,6 +374,48 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
               ),
             ],
           ),
+    );
+  }
+
+  void showStopAlarmDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Aktiver Alarm"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.warning_amber, color: Colors.red, size: 50),
+              SizedBox(height: 16),
+              Text(
+                "Es ist ein Alarm aktiv. Möchten Sie den Alarm für alle Geräte beenden?",
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Abbrechen"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Alarm an alle Geräte stoppen
+                Provider.of<ConnectionProvider>(
+                  context,
+                  listen: false,
+                ).stopAlarm();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Alarm beenden"),
+            ),
+          ],
+        );
+      },
     );
   }
 

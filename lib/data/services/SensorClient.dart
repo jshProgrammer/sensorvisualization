@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -22,11 +23,13 @@ class SensorClient {
   bool _ownIPAddressInitialized = false;
 
   Function(String)? onAlarmReceived;
+  Function()? onAlarmStopReceived;
 
   SensorClient({
     required this.hostIPAddress,
     required this.deviceName,
     this.onAlarmReceived,
+    this.onAlarmStopReceived,
   }) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
   }
@@ -69,6 +72,11 @@ class SensorClient {
               onAlarmReceived!(decoded['message']);
             }
             print('Alarm empfangen: ${decoded['message']}');
+          } else if (decoded['command'] == NetworkCommands.AlarmStop.command) {
+            if (onAlarmStopReceived != null) {
+              onAlarmStopReceived!();
+            }
+            print('Alarm gestoppt');
           }
         } catch (e) {
           completer.complete(false);

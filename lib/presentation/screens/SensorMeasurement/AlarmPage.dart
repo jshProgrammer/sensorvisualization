@@ -3,15 +3,25 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:sensorvisualization/data/services/SensorClient.dart';
 
 class Alarmpage extends StatefulWidget {
+  final Function? onAlarmStopReceived;
+  final SensorClient connection;
+  const Alarmpage({
+    Key? key,
+    this.onAlarmStopReceived,
+    required this.connection,
+  }) : super(key: key);
   @override
-  _AlarmPageState createState() => _AlarmPageState();
+  AlarmPageState createState() => AlarmPageState();
 }
 
-class _AlarmPageState extends State<Alarmpage> {
+class AlarmPageState extends State<Alarmpage> {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   bool isPlaying = false;
   Timer? _timer;
@@ -20,8 +30,13 @@ class _AlarmPageState extends State<Alarmpage> {
   void initState() {
     super.initState();
     initNotifications();
-    checkAlarmState();
-    _timer = Timer.periodic(Duration(seconds: 5), (_) => checkAlarmState());
+    _loadAudio();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      triggerAlarmNotification();
+    });
+    widget.connection.onAlarmStopReceived = () {
+      stopAlarmNotification();
+    };
   }
 
   Future<void> initNotifications() async {
@@ -33,6 +48,7 @@ class _AlarmPageState extends State<Alarmpage> {
           requestAlertPermission: true,
           requestBadgePermission: true,
           requestSoundPermission: true,
+          defaultPresentSound: true,
         );
 
     final InitializationSettings initSettings = InitializationSettings(
@@ -40,7 +56,12 @@ class _AlarmPageState extends State<Alarmpage> {
       iOS: iosSettings,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(initSettings);
+    await flutterLocalNotificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (details) {
+        print('Notification tapped with payload: ${details.payload}');
+      },
+    );
   }
 
   Future<void> triggerAlarmNotification() async {
@@ -56,6 +77,9 @@ class _AlarmPageState extends State<Alarmpage> {
           enableVibration: true,
         );
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentSound: true,
+      presentAlert: true,
+      presentBadge: true,
       sound: 'alarm.mp3',
     );
 
@@ -70,17 +94,44 @@ class _AlarmPageState extends State<Alarmpage> {
       'Ein Alarm wurde ausgelöst!',
       details,
     );
+    try {
+      await _audioPlayer.play();
+    } catch (e) {
+      print("Fehler beim Abspielen: $e");
+    }
+    setState(() {
+      isPlaying = true;
+      print("Alarm gestartet");
+    });
   }
 
   Future<void> stopAlarmNotification() async {
     await flutterLocalNotificationsPlugin.cancel(0);
+    await _audioPlayer.stop();
+    setState(() {
+      isPlaying = false;
+      print("Alarm gestoppt");
+    });
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    widget.onAlarmStopReceived?.call();
   }
 
-  Future<void> checkAlarmState() async {
+  Future<void> _loadAudio() async {
     try {
-      final response =
+      await _audioPlayer.setAsset('audio/alarm.mp3');
+      await _audioPlayer.setLoopMode(LoopMode.all);
+      await _audioPlayer.setVolume(1.0);
+    } catch (e) {
+      print("Fehler beim Laden der Audiodatei: $e");
+    }
+  }
+  /*Future<void> checkAlarmState() async {
+    try {
+      //final response =
       //Hier noch URL Anpassen
-      await http.get(Uri.parse('https://dein-server.de/status.json'));
+      //await http.get(Uri.parse('https://dein-server.de/status.json'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -99,24 +150,29 @@ class _AlarmPageState extends State<Alarmpage> {
     } catch (e) {
       print("Fehler beim Abrufen: $e");
     }
-  }
+  }*/
 
   @override
   void dispose() {
     _timer?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
-  @override
+  /*@override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Scaffold(
-          appBar: AppBar(title: Text("Alarm Control")),
+          appBar: AppBar(
+            title: Text("Alarm"),
+            automaticallyImplyLeading: false,
+          ),
           body: Center(
-            child: ElevatedButton(
-              onPressed: checkAlarmState,
-              child: Text(isPlaying ? "Alarm läuft" : "Kein Alarm"),
+            child: Text(
+              isPlaying ? "Alarm läuft" : "Kein Alarm",
+              style: TextStyle(fontSize: 24),
+              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -140,15 +196,19 @@ class _AlarmPageState extends State<Alarmpage> {
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () async {
-                        await stopAlarmNotification();
-                        setState(() => isPlaying = false);
-                      },
+                      onPressed: stopAlarmNotification,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                       ),
-                      child: Text('Alarm stoppen'),
+                      child: Text(
+                        'Alarm Stoppen',
+                        style: TextStyle(fontSize: 20),
+                      ),
                     ),
                   ],
                 ),
@@ -156,6 +216,46 @@ class _AlarmPageState extends State<Alarmpage> {
             ),
           ),
       ],
+    );
+  }*/
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // Hier direkt den roten Hintergrund setzen
+      backgroundColor: Colors.red,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.warning, size: 100, color: Colors.white),
+            SizedBox(height: 20),
+            Text(
+              'ALARM!',
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                await stopAlarmNotification();
+                setState(() {
+                  isPlaying = false;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.red,
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+              ),
+              child: Text('Alarm abbrechen', style: TextStyle(fontSize: 20)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
