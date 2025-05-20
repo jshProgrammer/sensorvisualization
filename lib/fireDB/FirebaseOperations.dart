@@ -19,7 +19,7 @@ class Firebasesync {
 
   Timer? _syncTimer;
   int syncInterval = 10;
-  bool isSyncing = true;
+  bool isSyncing = false;
 
   Future<void> initializeApp(AppDatabase localDB) async {
     _databaseOperations = Databaseoperations(localDB);
