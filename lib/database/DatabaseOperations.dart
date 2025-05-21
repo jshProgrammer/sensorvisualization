@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:drift/drift.dart';
 import 'package:sensorvisualization/database/AppDatabase.dart';
+import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
@@ -15,6 +16,7 @@ import 'package:flutter/widgets.dart';
 
 class Databaseoperations {
   final AppDatabase _db;
+  final firebassync = Firebasesync();
 
   Databaseoperations(this._db);
 
@@ -47,21 +49,47 @@ class Databaseoperations {
   }
 
   Future<void> insertMetadata(MetadataCompanion metadata) async {
-    await _db.into(_db.metadata).insert(metadata);
+    try {
+      print('Versuche Metadata einzufügen...');
+      await _db.into(_db.metadata).insert(metadata);
+      print('Metadata erfolgreich eingefügt: ${metadata.toString()}');
+
+      await firebassync.syncToFirestore(metadata);
+    } catch (e) {
+      print('Fehler beim Einfügen von Metadata: $e');
+      rethrow;
+    }
   }
 
   //Update Methods
   Future<void> updateMetadata(String tableName, DateTime createdAt) async {
-    final updatedAt = DateTime.now();
-    await _db
-        .update(_db.metadata)
-        .replace(
-          MetadataCompanion(
-            updatedAt: Value(updatedAt),
-            createdAt: Value(createdAt),
-            name: Value(tableName),
-          ),
-        );
+    try {
+      print('Versuche Metadata zu aktualisieren...');
+      final updatedAt = DateTime.now();
+
+      await _db
+          .update(_db.metadata)
+          .replace(
+            MetadataCompanion(
+              updatedAt: Value(updatedAt),
+              createdAt: Value(createdAt),
+              name: Value(tableName),
+            ),
+          );
+
+      print('Metadata erfolgreich aktualisiert');
+
+      await firebassync.syncToFirestore(
+        MetadataCompanion(
+          updatedAt: Value(updatedAt),
+          createdAt: Value(createdAt),
+          name: Value(tableName),
+        ),
+      );
+    } catch (e) {
+      print('Fehler beim Aktualisieren von Metadata: $e');
+      rethrow;
+    }
   }
 
   //Read Method
@@ -69,6 +97,67 @@ class Databaseoperations {
     final result = await _db.customSelect('SELECT * FROM $tableName').get();
 
     return result.map((row) => row.data).toList();
+  }
+
+  Future<List<String>> getCreateDates() async {
+    try {
+      await ensureMetadataTable();
+
+      final result =
+          await _db.customSelect('''
+      SELECT DISTINCT createdAt 
+      FROM metadata 
+      ORDER BY createdAt DESC
+    ''').get();
+
+      return result.map((row) => row.data['createdAt'] as String).toList();
+    } catch (e) {
+      print('Fehler bei getCreateDates: $e');
+      return [];
+    }
+  }
+
+  Future<void> ensureMetadataTable() async {
+    try {
+      await debugCheckTables();
+
+      await _db.customStatement('''
+      CREATE TABLE IF NOT EXISTS metadata (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        createdAt DATETIME NOT NULL,
+        updatedAt DATETIME NOT NULL
+      )
+    ''');
+
+      final check =
+          await _db
+              .customSelect(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='metadata'",
+              )
+              .get();
+
+      if (check.isEmpty) {
+        print('Fehler: Metadata-Tabelle konnte nicht erstellt werden');
+      } else {
+        print('Metadata-Tabelle erfolgreich erstellt/gefunden');
+      }
+    } catch (e) {
+      print('Fehler bei ensureMetadataTable: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> debugCheckTables() async {
+    final result =
+        await _db
+            .customSelect("SELECT name FROM sqlite_master WHERE type='table'")
+            .get();
+
+    print('Vorhandene Tabellen:');
+    for (var row in result) {
+      print('- ${row.data['name']}');
+    }
   }
 
   //Delete Methods

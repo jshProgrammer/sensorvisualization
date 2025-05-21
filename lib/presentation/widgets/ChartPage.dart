@@ -18,6 +18,7 @@ import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/database/AppDatabase.dart';
+import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/widgets/MultiSelectDialogWidget.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 import 'package:tuple/tuple.dart';
@@ -36,11 +37,12 @@ class ChartPage extends StatefulWidget {
 
   final Map<String, Set<MultiSelectDialogItem>>? selectedValues;
 
-  final void Function(Map<String, Set<MultiSelectDialogItem>>)? onSelectedValuesChanged;
+  final void Function(Map<String, Set<MultiSelectDialogItem>>)?
+  onSelectedValuesChanged;
 
   const ChartPage({super.key, required this.chartConfig})
-      : selectedValues = null,
-        onSelectedValuesChanged = null;
+    : selectedValues = null,
+      onSelectedValuesChanged = null;
 
   const ChartPage.withSelectedValues({
     super.key,
@@ -101,9 +103,12 @@ class _ChartPageState extends State<ChartPage> {
   void initState() {
     super.initState();
 
-    selectedValues = widget.selectedValues != null
-        ? Map<String, Set<MultiSelectDialogItem>>.from(widget.selectedValues!)
-        : {};
+    selectedValues =
+        widget.selectedValues != null
+            ? Map<String, Set<MultiSelectDialogItem>>.from(
+              widget.selectedValues!,
+            )
+            : {};
     _transformationController = TransformationController();
 
     _startTime = DateTime.now();
@@ -289,14 +294,19 @@ class _ChartPageState extends State<ChartPage> {
   @override
   void didUpdateWidget(covariant ChartPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedValues != oldWidget.selectedValues && widget.selectedValues != null) {
+    if (widget.selectedValues != oldWidget.selectedValues &&
+        widget.selectedValues != null) {
       setState(() {
-        selectedValues = Map<String, Set<MultiSelectDialogItem>>.from(widget.selectedValues!);
+        selectedValues = Map<String, Set<MultiSelectDialogItem>>.from(
+          widget.selectedValues!,
+        );
       });
     }
   }
 
-  void _updateSelectedValues(Map<String, Set<MultiSelectDialogItem>> newValues) {
+  void _updateSelectedValues(
+    Map<String, Set<MultiSelectDialogItem>> newValues,
+  ) {
     setState(() {
       selectedValues = newValues;
     });
@@ -463,6 +473,11 @@ class _ChartPageState extends State<ChartPage> {
         icon: const Icon(Icons.list),
         onPressed: _showAllNotes,
         tooltip: 'Alle Notizen anzeigen',
+      ),
+      IconButton(
+        icon: const Icon(Icons.archive),
+        onPressed: _showMetadataHistory,
+        tooltip: 'Archivierte Daten exportieren',
       ),
       PopupMenuButton<String>(
         icon: const Icon(Icons.save_alt),
@@ -634,6 +649,104 @@ class _ChartPageState extends State<ChartPage> {
         _isPanEnabled = false;
       });
     }
+  }
+
+  void _showMetadataHistory() async {
+    final dates = await _databaseOperations.getCreateDates();
+    int currentIndex = 0;
+    final firebasesync = Firebasesync();
+    final tables = await firebasesync.getAvailableTables();
+
+    if (tables.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Keine archivierten Daten gefunden')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final currentTable = tables[currentIndex];
+            return AlertDialog(
+              title: const Text('Archivierte Daten'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed:
+                            currentIndex > 0
+                                ? () {
+                                  setState(() {
+                                    currentIndex--;
+                                  });
+                                }
+                                : null,
+                      ),
+                      Expanded(
+                        child: Text(
+                          '${currentTable['name']}\n${currentTable['last_updated']}',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward),
+                        onPressed:
+                            currentIndex < dates.length - 1
+                                ? () {
+                                  setState(() {
+                                    currentIndex++;
+                                  });
+                                }
+                                : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await firebasesync.exportTableByNameAndDate(
+                          currentTable['name'],
+                          DateTime.parse(currentTable['last_updated']),
+                        );
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Export erfolgreich'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Fehler beim Export: $e'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Als CSV exportieren'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Schließen'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
