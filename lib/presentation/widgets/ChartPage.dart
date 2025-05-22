@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide Column;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorOrientation.dart';
@@ -56,6 +57,8 @@ class ChartPage extends StatefulWidget {
 }
 
 class _ChartPageState extends State<ChartPage> {
+  final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+
   double baselineX = 0.0;
 
   bool autoFollowLatestData = true;
@@ -118,8 +121,8 @@ class _ChartPageState extends State<ChartPage> {
         listen: false,
       );
     });
-    defaultTime = dangerNavigationController.current ?? DateTime.now();
-    timeController = TextEditingController(text: defaultTime.toString());
+    defaultTime = dangerNavigationController.current ?? truncateToSeconds(DateTime.now());
+    timeController = TextEditingController(text: formatter.format(defaultTime));
 
     // Safely initialize allDangerTimes and localIndex
     allDangerTimes = dangerNavigationController.all;
@@ -199,17 +202,54 @@ class _ChartPageState extends State<ChartPage> {
               Duration(milliseconds: (timestamp * 1000).toInt()),
             );
 
+            // final newDangers = DangerDetector.findDangerTimestamps(
+            //   points: [
+            //     FlSpot(timestamp, x),
+            //     FlSpot(timestamp, y),
+            //     FlSpot(timestamp, z),
+            //   ],
+            //   timestamps: [dateTime, dateTime, dateTime],
+            //   warningLevels: warningRanges,
+            // );
+
+            List<FlSpot> selectedPoints = [];
+            List<DateTime> selectedTimestamps = [];
+
+            for (final device in selectedValues.keys) {
+              for (final sensorItem in selectedValues[device]!) {
+                if (sensorItem.attribute != null) {
+                  double val;
+                  switch (sensorItem.attribute!) {
+                    case SensorOrientation.x:
+                      val = x;
+                      break;
+                    case SensorOrientation.y:
+                      val = y;
+                      break;
+                    case SensorOrientation.z:
+                      val = z;
+                      break;
+                    case SensorOrientation.pressure:
+                      continue;
+                  }
+                  selectedPoints.add(FlSpot(timestamp, val));
+                  selectedTimestamps.add(dateTime);
+                }
+              }
+            }
+
+            selectedTimestamps.sort();
+            
             final newDangers = DangerDetector.findDangerTimestamps(
-              points: [
-                FlSpot(timestamp, x),
-                FlSpot(timestamp, y),
-                FlSpot(timestamp, z),
-              ],
-              timestamps: [dateTime, dateTime, dateTime],
+              points: selectedPoints,
+              timestamps: selectedTimestamps,
               warningLevels: warningRanges,
             );
 
-            for (final t in newDangers) {
+
+            final formattedNewDangers = newDangers.map((dt) => truncateToSeconds(dt)).toList();
+
+            for (final t in formattedNewDangers) {
               if (!_allDangerTimestamps.contains(t)) {
                 _allDangerTimestamps.add(t);
               }
@@ -219,8 +259,8 @@ class _ChartPageState extends State<ChartPage> {
 
             _dangerDetector = DangerDetector(_allDangerTimestamps);
 
-            if (newDangers.isNotEmpty) {
-              dangerNavigationController.setCurrent(newDangers.first);
+            if (formattedNewDangers.isNotEmpty) {
+              dangerNavigationController.setCurrent(formattedNewDangers.first);
             }
 
             if (autoFollowLatestData) {
@@ -287,10 +327,61 @@ class _ChartPageState extends State<ChartPage> {
             FlSpot(timestampAsDouble, jsonData['pressure'] as double),
           );
         }
+
+        double timestamp = timestampAsDouble;
+        final dateTime = DateTime.fromMillisecondsSinceEpoch((timestamp * 1000).toInt());
+            
+            double x = (jsonData.containsKey('x') && jsonData['x'] != null)
+                ? jsonData['x'] as double
+                : 0.0;
+            double y = (jsonData.containsKey('y') && jsonData['y'] != null)
+                ? jsonData['y'] as double
+                : 0.0;
+            double z = (jsonData.containsKey('z') && jsonData['z'] != null)
+                ? jsonData['z'] as double
+                : 0.0;
+
+            final newDangers = DangerDetector.findDangerTimestamps(
+              points: [
+                FlSpot(timestamp, x),
+                FlSpot(timestamp, y),
+                FlSpot(timestamp, z),
+              ],
+              timestamps: [dateTime, dateTime, dateTime],
+              warningLevels: warningRanges,
+            );
+
+            for (final t in newDangers) {
+              if (!_allDangerTimestamps.contains(t)) {
+                _allDangerTimestamps.add(t);
+              }
+            }
+
+            _allDangerTimestamps.sort();
+
+            _dangerDetector = DangerDetector(_allDangerTimestamps);
+
+            if (newDangers.isNotEmpty) {
+              dangerNavigationController.setCurrent(newDangers.first);
+            }
+
+            if (autoFollowLatestData) {
+              baselineX = timestamp;
+            }
       });
     }
   }
 
+    DateTime truncateToSeconds(DateTime dateTime) {
+    return DateTime(
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      dateTime.hour,
+      dateTime.minute,
+      dateTime.second,
+    );
+  }
   @override
   void didUpdateWidget(covariant ChartPage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -760,7 +851,7 @@ class _ChartPageState extends State<ChartPage> {
       dangerNavigationController.all,
     );
     if (currentDangerTimes.isEmpty) {
-      currentDangerTimes.add(DateTime.now());
+      currentDangerTimes.add(truncateToSeconds(DateTime.now()));
     }
 
     if (localIndex < 0 || localIndex >= currentDangerTimes.length) {
@@ -899,9 +990,7 @@ class _ChartPageState extends State<ChartPage> {
                                 ? () {
                                   setState(() {
                                     localIndex--;
-                                    timeController.text =
-                                        currentDangerTimes[localIndex]
-                                            .toString();
+                                    timeController.text = formatter.format(currentDangerTimes[localIndex]);
                                   });
                                 }
                                 : null,
@@ -922,9 +1011,9 @@ class _ChartPageState extends State<ChartPage> {
                                 ? () {
                                   setState(() {
                                     localIndex++;
-                                    timeController.text =
-                                        currentDangerTimes[localIndex]
-                                            .toString();
+                                    timeController.text = formatter.format(currentDangerTimes[localIndex]);
+                                        // currentDangerTimes[localIndex]
+                                        //     .toString();
                                   });
                                 }
                                 : null,
@@ -932,7 +1021,10 @@ class _ChartPageState extends State<ChartPage> {
                       IconButton(
                         icon: const Icon(Icons.refresh),
                         onPressed: () {
-                          timeController.text = DateTime.now().toString();
+                          setState(() {
+                            localIndex = currentDangerTimes.length - 1;
+                          });
+                          timeController.text = formatter.format(truncateToSeconds(DateTime.now()));
                         },
                         tooltip: "Aktuelle Uhrzeit",
                       ),
