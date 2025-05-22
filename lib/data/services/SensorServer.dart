@@ -197,6 +197,17 @@ class SensorServer {
     }
   }
 
+  void sendAlarmStopToAllClients() {
+    final alarmData = jsonEncode({
+      "command": NetworkCommands.AlarmStop.command,
+      "timestamp": DateTime.now().toIso8601String(),
+    });
+
+    for (var ws in activeConnections.values) {
+      ws.add(alarmData);
+    }
+  }
+
   void _storeNullMeasurementValues(Map<String, dynamic> nullMeasurement) {
     nullMeasurementValues.putIfAbsent(nullMeasurement['ip'], () => {});
     nullMeasurementValues['ip']!.putIfAbsent(

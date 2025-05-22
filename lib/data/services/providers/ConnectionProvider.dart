@@ -9,6 +9,9 @@ class ConnectionProvider extends ChangeNotifier {
   late SensorServer _connectionToSender;
   final Map<String, dynamic> _latestData = {};
   final Databaseoperations _databaseOperations;
+  bool _isAlarmActive = false;
+
+  bool get isAlarmActive => _isAlarmActive;
 
   ConnectionProvider(this._databaseOperations) {
     _connectionToSender = SensorServer(
@@ -65,7 +68,14 @@ class ConnectionProvider extends ChangeNotifier {
   }
 
   void sendAlarmToAllClients(String alarmMessage) {
+    _isAlarmActive = true;
     _connectionToSender.sendAlarmToAllClients(alarmMessage);
+    notifyListeners();
+  }
+
+  Future<void> stopAlarm() async {
+    _isAlarmActive = false;
+    _connectionToSender.sendAlarmStopToAllClients();
     notifyListeners();
   }
 

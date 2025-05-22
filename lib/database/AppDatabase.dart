@@ -19,6 +19,16 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        print('Erstelle Datenbank-Tabellen...');
+        await m.createAll();
+      },
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

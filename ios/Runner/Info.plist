@@ -36,6 +36,7 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -63,5 +64,10 @@
 </dict>
 <key>UNNotificationAlertStyle</key>
 <string>banner</string>
+<key>UIBackgroundModes</key>
+<array>
+    <string>audio</string>
+    <string>remote-notification</string>
+</array>
 </dict>
 </plist>

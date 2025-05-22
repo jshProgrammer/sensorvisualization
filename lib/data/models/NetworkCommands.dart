@@ -5,7 +5,8 @@ enum NetworkCommands {
   StopMeasurement("StopMeasurement"),
   DelayedMeasurement('DelayedMeasurement'),
   Alarm('Alarm'),
-  AverageValues('AverageValues');
+  AverageValues('AverageValues'),
+  AlarmStop('AlarmStop');
 
   final String command;
 

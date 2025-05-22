@@ -237,7 +237,9 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Alarmpage(); //TODO: hier noch Message anpassen
+        return Alarmpage(
+          connection: widget.connection,
+        ); //TODO: hier noch Message anpassen
       },
     );
   }
@@ -250,6 +252,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
     widget.connection.startSensorStream();
 
     widget.connection.onAlarmReceived = (String alarmMessage) {
+      print("Debug: kjhdkfghdklfghj");
       _showAlarmPage(alarmMessage);
     };
 

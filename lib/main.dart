@@ -17,13 +17,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   _initializeNotifications();
 
   final appDatabase = AppDatabase.instance;
   final dbOps = Databaseoperations(appDatabase);
-
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final firebaseSync = Firebasesync();
   await firebaseSync.initializeApp(appDatabase);
@@ -32,6 +32,7 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<Databaseoperations>.value(value: dbOps),
+        Provider<Firebasesync>.value(value: firebaseSync),
         ChangeNotifierProvider(create: (_) => ConnectionProvider(dbOps)),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],

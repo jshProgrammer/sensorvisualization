@@ -19,7 +19,7 @@ class Firebasesync {
 
   Timer? _syncTimer;
   int syncInterval = 10;
-  bool isSyncing = true;
+  bool isSyncing = false;
 
   Future<void> initializeApp(AppDatabase localDB) async {
     _databaseOperations = Databaseoperations(localDB);
@@ -48,6 +48,24 @@ class Firebasesync {
   void stopSyncTimer() {
     _syncTimer?.cancel();
     _syncTimer = null;
+  }
+
+  Future<void> syncToFirestore(MetadataCompanion metadata) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      print('Versuche Sync mit Firestore...');
+
+      await firestore.collection('local_data').add({
+        'name': metadata.name.value,
+        'createdAt': metadata.createdAt.value.toIso8601String(),
+        'updatedAt': metadata.updatedAt.value.toIso8601String(),
+      });
+
+      print('Erfolgreich mit Firestore synchronisiert');
+    } catch (e) {
+      print('Fehler bei Firestore-Sync: $e');
+      rethrow;
+    }
   }
 
   Future<void> updateSyncSettings(
