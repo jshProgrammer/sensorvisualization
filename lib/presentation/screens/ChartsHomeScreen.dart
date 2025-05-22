@@ -29,7 +29,7 @@ class ChartsHomeScreen extends StatefulWidget {
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
   final List<List<ChartConfig>> mCharts = [];
-  
+
   Map<String, Map<String, Set<MultiSelectDialogItem>>> chartSelections = {};
 
   int selectedTabIndex = 0;
@@ -123,12 +123,12 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     }
 
     setState(() {
-    final removedTab = mCharts.removeAt(selectedTabIndex);
-    for (final chart in removedTab) {
-      chartSelections.remove(chart.id);
-    }
-    selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
-  });
+      final removedTab = mCharts.removeAt(selectedTabIndex);
+      for (final chart in removedTab) {
+        chartSelections.remove(chart.id);
+      }
+      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+    });
   }
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
@@ -293,40 +293,49 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             ),
 
           Expanded(
-            child: useMultipleCharts
-                ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
-                    ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : MultipleChartsPage(
-                        chartPages: mCharts[selectedTabIndex],
-                        chartSelections: chartSelections,
-                        onSelectedValuesChanged: (String chartId, Map<String, Set<MultiSelectDialogItem>> newSel) {
-                          setState(() {
-                            chartSelections[chartId] = newSel;
-                          });
-                        },
-                        onDeleteChart: (index) {
-                          setState(() {
-                            if (mCharts[selectedTabIndex].length > 1) {
-                              final removedChart = mCharts[selectedTabIndex].removeAt(index);
-                              chartSelections.remove(removedChart.id);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Mindestens ein Diagramm muss vorhanden sein.'),
-                                ),
-                              );
-                            }
-                          });
-                        },
-                      )
-                : charts.isEmpty
+            child:
+                useMultipleCharts
+                    ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
+                        ? const Center(child: Text('Keine Diagramme vorhanden'))
+                        : MultipleChartsPage(
+                          chartPages: mCharts[selectedTabIndex],
+                          chartSelections: chartSelections,
+                          onSelectedValuesChanged: (
+                            String chartId,
+                            Map<String, Set<MultiSelectDialogItem>> newSel,
+                          ) {
+                            setState(() {
+                              chartSelections[chartId] = newSel;
+                            });
+                          },
+                          onDeleteChart: (index) {
+                            setState(() {
+                              if (mCharts[selectedTabIndex].length > 1) {
+                                final removedChart = mCharts[selectedTabIndex]
+                                    .removeAt(index);
+                                chartSelections.remove(removedChart.id);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Mindestens ein Diagramm muss vorhanden sein.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            });
+                          },
+                        )
+                    : charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : ChartPage.withSelectedValues(
                       chartConfig: charts[selectedChartIndex],
-                      selectedValues: chartSelections[charts[selectedChartIndex].id] ?? {},
+                      selectedValues:
+                          chartSelections[charts[selectedChartIndex].id] ?? {},
                       onSelectedValuesChanged: (newSelections) {
                         setState(() {
-                          chartSelections[charts[selectedChartIndex].id] = newSelections;
+                          chartSelections[charts[selectedChartIndex].id] =
+                              newSelections;
                         });
                       },
                     ),
@@ -616,12 +625,21 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        //TODO: Timer
         return Consumer<ConnectionProvider>(
           builder: (context, provider, _) {
             return StatefulBuilder(
               builder: (context, setState) {
                 final connectedDevices = provider.connectedDevices;
+
+                Timer? dialogTimer;
+
+                dialogTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+                  if (context.mounted) {
+                    setState(() {});
+                  } else {
+                    timer.cancel();
+                  }
+                });
 
                 return AlertDialog(
                   title: Text("Verbundene Geräte"),
@@ -639,20 +657,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                                         entry.key,
                                       );
 
-                                  Timer.periodic(Duration(seconds: 1), (timer) {
-                                    setState(() {
-                                      remainingSeconds = provider
-                                          .getRemainingConnectionDurationInSec(
-                                            entry.key,
-                                          );
-                                      if (remainingSeconds == null ||
-                                          remainingSeconds != null &&
-                                              remainingSeconds! <= 0) {
-                                        timer.cancel();
-                                      }
-                                    });
-                                  });
-
                                   return ListTile(
                                     title: Text(entry.value),
                                     subtitle: Column(
@@ -668,6 +672,18 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                                             ),
                                             SizedBox(width: 10),
                                             Text(state.displayName),
+                                            if (state ==
+                                                ConnectionDisplayState.paused)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                  left: 8,
+                                                ),
+                                                child: Icon(
+                                                  Icons.pause_circle_outline,
+                                                  size: 16,
+                                                  color: Colors.purple,
+                                                ),
+                                              ),
                                             if (state ==
                                                     ConnectionDisplayState
                                                         .nullMeasurement ||
@@ -702,6 +718,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                     TextButton(
                       child: Text('Schließen'),
                       onPressed: () {
+                        dialogTimer?.cancel();
                         Navigator.of(context).pop();
                       },
                     ),

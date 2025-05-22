@@ -41,6 +41,8 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
 
   Duration sensorInterval = SensorInterval.normalInterval;
 
+  bool _isPaused = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,7 +209,25 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
             ),
             SizedBox(height: 10),
             ElevatedButton(
-              child: const Text("Messung abbrechen"),
+              child: Text(
+                _isPaused ? "Messung fortsetzen" : "Messung pausieren",
+              ),
+              onPressed: () async {
+                if (_isPaused) {
+                  await widget.connection.resumeMeasurement();
+                  setState(() {
+                    _isPaused = false;
+                  });
+                } else {
+                  await widget.connection.pauseMeasurement();
+                  setState(() {
+                    _isPaused = true;
+                  });
+                }
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Messung stoppen"),
               onPressed: () async {
                 await widget.connection.stopMeasurement();
 

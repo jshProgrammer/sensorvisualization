@@ -6,6 +6,7 @@ enum ConnectionDisplayState {
   disconnected,
   nullMeasurement,
   delayedMeasurement,
+  paused,
 }
 
 extension ConnectionDisplayStateExtension on ConnectionDisplayState {
@@ -19,6 +20,8 @@ extension ConnectionDisplayStateExtension on ConnectionDisplayState {
         return 'Nullmessung';
       case ConnectionDisplayState.delayedMeasurement:
         return 'Selbstauslöser';
+      case ConnectionDisplayState.paused:
+        return 'Pausiert';
     }
   }
 
@@ -35,6 +38,8 @@ extension ConnectionDisplayStateExtension on ConnectionDisplayState {
 
       case ConnectionDisplayState.delayedMeasurement:
         return Colors.blueGrey;
+      case ConnectionDisplayState.paused:
+        return Colors.purple;
     }
   }
 }

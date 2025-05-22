@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -17,13 +19,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
-  _initializeNotifications();
-
-  final appDatabase = AppDatabase.instance;
-  final dbOps = Databaseoperations(appDatabase);
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (!Platform.isWindows) {
+    _initializeNotifications();
+  }
+  final appDatabase = AppDatabase.instance;
+  final dbOps = Databaseoperations(appDatabase);
 
   final firebaseSync = Firebasesync();
   await firebaseSync.initializeApp(appDatabase);
