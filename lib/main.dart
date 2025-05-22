@@ -24,6 +24,9 @@ void main() async {
   if (!Platform.isWindows) {
     _initializeNotifications();
   }
+
+  _initializeNotifications();
+
   final appDatabase = AppDatabase.instance;
   final dbOps = Databaseoperations(appDatabase);
 
@@ -34,6 +37,7 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<Databaseoperations>.value(value: dbOps),
+        Provider<Firebasesync>.value(value: firebaseSync),
         ChangeNotifierProvider(create: (_) => ConnectionProvider(dbOps)),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
