@@ -16,7 +16,7 @@ import 'package:tuple/tuple.dart';
 
 class SensorServer {
   final void Function(Map<String, dynamic>) onDataReceived;
-  final void Function()? onMeasurementStopped;
+  final void Function(String deviceIp)? onMeasurementStopped;
   final void Function()? onConnectionChanged;
   late Databaseoperations _databaseOperations;
 
@@ -58,6 +58,11 @@ class SensorServer {
 
             try {
               var decoded = jsonDecode(data);
+
+              if (decoded == null) {
+                return;
+              }
+
               // Check if the data is a connection request sent by a client
               if (decoded['command'] != null) {
                 if (decoded['command'] ==
@@ -100,8 +105,6 @@ class SensorServer {
                     ).add(Duration(seconds: decoded['duration'] as int)),
                   );
                   onConnectionChanged?.call();
-
-                  //TODO: bei Messung abbrechen wird er danach nicht mehr angezeigt
                 } else if (decoded['command'] ==
                     NetworkCommands.DelayedMeasurement.command) {
                   connectionStates[decoded['ip']!] = Tuple2(
@@ -113,6 +116,9 @@ class SensorServer {
                   onConnectionChanged?.call();
                 } else if (decoded['command'] ==
                     NetworkCommands.StopMeasurement.command) {
+                  final deviceName =
+                      connectedDevices[decoded['ip']] ?? decoded['ip'];
+
                   connectionStates[decoded['ip']!] = Tuple2(
                     ConnectionDisplayState.disconnected,
                     null,
@@ -120,7 +126,7 @@ class SensorServer {
                   connectedDevices.remove(decoded['ip']);
 
                   onConnectionChanged?.call();
-                  onMeasurementStopped?.call();
+                  onMeasurementStopped?.call(deviceName);
                 } else if (decoded['command'] ==
                     NetworkCommands.AverageValues.command) {
                   final Map<String, dynamic> parsed = Map<String, dynamic>.from(

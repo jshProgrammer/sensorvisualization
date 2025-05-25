@@ -178,6 +178,7 @@ class Sensordata {
               reservedSize: 30,
               interval: settingsProvider.scrollingSeconds / 5,
               getTitlesWidget: (value, meta) {
+                //TODO: hier noch DRY principle mit Text widget
                 if (settingsProvider.selectedTimeChoice ==
                     TimeChoice.timestamp.value) {
                   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
@@ -192,7 +193,7 @@ class Sensordata {
                     style: const TextStyle(
                       color: Color(0xff68737d),
                       fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                      fontSize: 16,
                     ),
                   );
                 } else if (settingsProvider.selectedTimeChoice ==
@@ -204,7 +205,7 @@ class Sensordata {
                     style: const TextStyle(
                       color: Color(0xff68737d),
                       fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                      fontSize: 16,
                     ),
                   );
                 }
@@ -216,7 +217,7 @@ class Sensordata {
                   style: const TextStyle(
                     color: Color(0xff68737d),
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: 16,
                   ),
                 );
               },

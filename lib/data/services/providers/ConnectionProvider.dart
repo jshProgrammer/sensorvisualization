@@ -48,8 +48,9 @@ class ConnectionProvider extends ChangeNotifier {
   Map<String, Tuple2<ConnectionDisplayState, DateTime?>> get connectionStates =>
       _connectionToSender.connectionStates;
 
-  final _measurementStoppedController = StreamController<void>.broadcast();
-  Stream<void> get measurementStopped => _measurementStoppedController.stream;
+  final _measurementStoppedController =
+      StreamController<String>.broadcast(); // String = device-name (NOT ip!)
+  Stream<String> get measurementStopped => _measurementStoppedController.stream;
 
   void _handleDataReceived(Map<String, dynamic> data) {
     _latestData.addAll(data);
@@ -62,8 +63,8 @@ class ConnectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _handleMeasurementStopped() {
-    _measurementStoppedController.add(null);
+  void _handleMeasurementStopped(String deviceName) {
+    _measurementStoppedController.add(deviceName);
     notifyListeners();
   }
 
