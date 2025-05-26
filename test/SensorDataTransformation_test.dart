@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
@@ -84,7 +85,7 @@ void main() {
         input,
       );
 
-      expect(result['sensor'], 'Barometer');
+      expect(result['sensor'], SensorType.barometer);
       expect(result['pressure'], closeTo(977.4253845, 0.0001));
       expect(result['timestamp'], isA<DateTime>());
       expect(result['timestamp'].toString(), '2025-05-03 15:36:31.455146');
@@ -103,7 +104,7 @@ void main() {
         input,
       );
 
-      expect(result['sensor'], 'Magnetometer');
+      expect(result['sensor'], SensorType.magnetometer);
       expect(result['x'], closeTo(-15.9681, 0.0001));
       expect(result['y'], closeTo(-248.14, 0.0001));
       expect(result['z'], closeTo(-821.0382, 0.0001));

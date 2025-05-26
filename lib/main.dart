@@ -25,8 +25,6 @@ void main() async {
     _initializeNotifications();
   }
 
-  _initializeNotifications();
-
   final appDatabase = AppDatabase.instance;
   final dbOps = Databaseoperations(appDatabase);
 
