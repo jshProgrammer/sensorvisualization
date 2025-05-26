@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/services/ClientCommandHandler.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
+import 'package:battery_plus/battery_plus.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -23,17 +25,15 @@ class SensorClient {
   late final String ownIPAddress;
   bool _ownIPAddressInitialized = false;
 
+  var battery = Battery();
+
   bool _isPaused = false;
 
-  Function(String)? onAlarmReceived;
-  Function()? onAlarmStopReceived;
+  ClientCommandHandler commandHandler = ClientCommandHandler();
 
-  SensorClient({
-    required this.hostIPAddress,
-    required this.deviceName,
-    this.onAlarmReceived,
-    this.onAlarmStopReceived,
-  }) {
+  Timer? _batteryTimer;
+
+  SensorClient({required this.hostIPAddress, required this.deviceName}) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
   }
 
@@ -70,17 +70,13 @@ class SensorClient {
           if (decoded['command'] ==
               NetworkCommands.ConnectionAccepted.command) {
             completer.complete(true);
-          } else if (decoded['command'] == NetworkCommands.Alarm.command) {
-            if (onAlarmReceived != null) {
-              onAlarmReceived!(decoded['message']);
-            }
-            print('Alarm empfangen: ${decoded['message']}');
-          } else if (decoded['command'] == NetworkCommands.AlarmStop.command) {
-            if (onAlarmStopReceived != null) {
-              onAlarmStopReceived!();
-            }
-            print('Alarm gestoppt');
+
+            startBatteryMonitoring();
+
+            return;
           }
+
+          _handleIncomingCommand(decoded);
         } catch (e) {
           completer.complete(false);
         }
@@ -93,10 +89,38 @@ class SensorClient {
     return completer.future;
   }
 
+  void _handleIncomingCommand(Map<String, dynamic> decoded) {
+    final commandString = decoded['command'] as String?;
+    if (commandString == null) return;
+
+    commandHandler.handleCommand(
+      NetworkCommands.fromString(commandString),
+      decoded,
+    );
+  }
+
+  void startBatteryMonitoring() {
+    sendBatteryInformation();
+
+    _batteryTimer = Timer.periodic(Duration(minutes: 5), (timer) async {
+      await sendBatteryInformation();
+    });
+  }
+
+  Future<void> sendBatteryInformation() async {
+    channel.sink.add(
+      jsonEncode({
+        "ip": ownIPAddress,
+        "command": NetworkCommands.BatteryLevel.command,
+        "level": await battery.batteryLevel,
+      }),
+    );
+  }
+
   void sendStartingNullMeasurement(int durationInSeconds) {
     channel.sink.add(
       jsonEncode({
-        "command": NetworkCommands.StartNullMeasurement.command,
+        "command": NetworkCommands.StartNullMeasurementOnDevice.command,
         "duration": durationInSeconds,
         "timestamp": DateTime.now().toString(),
         "ip": ownIPAddress,
@@ -106,7 +130,7 @@ class SensorClient {
 
   void sendDelayedMeasurement(int duration) {
     final message = {
-      'command': NetworkCommands.DelayedMeasurement.command,
+      'command': NetworkCommands.DelayedMeasurementOnDevice.command,
       'ip': ownIPAddress,
       'timestamp': DateTime.now().toString(),
       'duration': duration,
@@ -191,7 +215,7 @@ class SensorClient {
 
       channel.sink.add(
         jsonEncode({
-          "command": NetworkCommands.PauseMeasureMent.command,
+          "command": NetworkCommands.PauseMeasurementOnDevice.command,
           "ip": await retrieveLocalIP(),
           "timestamp": DateTime.now().toString(),
         }),
@@ -207,7 +231,7 @@ class SensorClient {
 
       channel.sink.add(
         jsonEncode({
-          "command": NetworkCommands.ResumeMeasureMent.command,
+          "command": NetworkCommands.ResumeMeasurementOnDevice.command,
           "ip": await retrieveLocalIP(),
           "timestamp": DateTime.now().toString(),
         }),
@@ -225,7 +249,7 @@ class SensorClient {
 
     channel.sink.add(
       jsonEncode({
-        "command": NetworkCommands.StopMeasurement.command,
+        "command": NetworkCommands.StopMeasurementOnDevice.command,
         "ip": await retrieveLocalIP(),
       }),
     );

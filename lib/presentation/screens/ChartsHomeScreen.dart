@@ -13,6 +13,7 @@ import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
+import 'package:sensorvisualization/presentation/dialogs/ConnectedDevicesDialog.dart';
 import 'package:tuple/tuple.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
@@ -134,6 +135,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
+  bool _selectedGridChoice = true;
 
   TextEditingController _secondsController = TextEditingController();
 
@@ -158,7 +160,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
           IconButton(
             icon: Icon(Icons.smartphone),
             onPressed: () {
-              showConnectedDevicesDialog();
+              showDialog(
+                context: context,
+                builder: (context) => const ConnectedDevicesDialog(),
+              );
             },
           ),
           IconButton(
@@ -534,8 +539,26 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       },
                     ),
                     Divider(color: Colors.grey, thickness: 1, height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Diagramgitter:"),
+                        SizedBox(width: 10),
+                        Switch(
+                          value: _selectedGridChoice,
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              _selectedGridChoice = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+
+                    Divider(color: Colors.grey, thickness: 1, height: 20),
                     Text("Datenbank Synchronisation:"),
                     SizedBox(height: 8),
+                    //TODO: SegmentedButton evtl auch durch Switch ersetzen?
                     SegmentedButton<bool>(
                       segments: [
                         ButtonSegment<bool>(
@@ -584,6 +607,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             TextButton(
               child: Text('Speichern'),
               onPressed: () {
+                final settingsProvider = Provider.of<SettingsProvider>(
+                  context,
+                  listen: false,
+                );
                 if (_secondsController.text.isNotEmpty) {
                   final value =
                       int.tryParse(_secondsController.text) ??
@@ -597,136 +624,19 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                           : unitChoice == TimeUnitChoice.minutes
                           ? value * 60
                           : value * 3600);
-                  Provider.of<SettingsProvider>(
-                    context,
-                    listen: false,
-                  ).setScrollingSeconds(seconds);
+
+                  settingsProvider.setScrollingSeconds(seconds);
                 }
 
-                Provider.of<SettingsProvider>(
-                  context,
-                  listen: false,
-                ).setTimeChoice(_selectedTimeChoice);
-                Provider.of<SettingsProvider>(
-                  context,
-                  listen: false,
-                ).setDataMode(_selectedAbsRelData);
+                settingsProvider.setTimeChoice(_selectedTimeChoice);
+                settingsProvider.setDataMode(_selectedAbsRelData);
+                settingsProvider.setDataMode(_selectedAbsRelData);
+                settingsProvider.setShowGrid(_selectedGridChoice);
 
                 Navigator.of(context).pop();
               },
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void showConnectedDevicesDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Consumer<ConnectionProvider>(
-          builder: (context, provider, _) {
-            return StatefulBuilder(
-              builder: (context, setState) {
-                final connectedDevices = provider.connectedDevices;
-
-                Timer? dialogTimer;
-
-                dialogTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-                  if (context.mounted) {
-                    setState(() {});
-                  } else {
-                    timer.cancel();
-                  }
-                });
-
-                return AlertDialog(
-                  title: Text("Verbundene Geräte"),
-                  content:
-                      connectedDevices.isEmpty
-                          ? Text("Keine Geräte verbunden")
-                          : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children:
-                                connectedDevices.entries.map((entry) {
-                                  final state = provider
-                                      .getCurrentConnectionState(entry.key);
-                                  int? remainingSeconds = provider
-                                      .getRemainingConnectionDurationInSec(
-                                        entry.key,
-                                      );
-
-                                  return ListTile(
-                                    title: Text(entry.value),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.circle,
-                                              color: state.iconColor,
-                                              size: 12,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text(state.displayName),
-                                            if (state ==
-                                                ConnectionDisplayState.paused)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Icon(
-                                                  Icons.pause_circle_outline,
-                                                  size: 16,
-                                                  color: Colors.purple,
-                                                ),
-                                              ),
-                                            if (state ==
-                                                    ConnectionDisplayState
-                                                        .nullMeasurement ||
-                                                state ==
-                                                    ConnectionDisplayState
-                                                        .delayedMeasurement)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Text(
-                                                  remainingSeconds != null &&
-                                                          remainingSeconds! >= 0
-                                                      ? "Noch $remainingSeconds s"
-                                                      : "",
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 3),
-                                        Text(entry.key),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                  actions: [
-                    TextButton(
-                      child: Text('Schließen'),
-                      onPressed: () {
-                        dialogTimer?.cancel();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          },
         );
       },
     );

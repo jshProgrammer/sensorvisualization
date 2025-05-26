@@ -61,6 +61,7 @@ dependencies:
   connectivity_plus: ^5.0.2
   just_audio: ^0.10.3
   audioplayers: ^6.4.0
+  battery_plus: ^6.2.1
 
   provider: ^6.1.4
 

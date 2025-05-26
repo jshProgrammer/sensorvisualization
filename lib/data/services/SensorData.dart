@@ -47,10 +47,8 @@ class Sensordata {
   List<FlSpot> getFilteredDataPoints(
     String ipAddress,
     SensorType sensorName,
-    SensorOrientation attribute, {
-    //TODO: to be implemented
-    int baselineY = 0,
-  }) {
+    SensorOrientation attribute,
+  ) {
     final double xMin;
     final double xMax;
     final double currentMaxX = _getMaxX();
@@ -156,8 +154,9 @@ class Sensordata {
         minY: _getMinY(),
         maxY: _getMaxY(),
 
+        //TODO: evtl Logik für Grid Interval einfügen
         gridData: FlGridData(
-          show: true,
+          show: settingsProvider.showGrid,
           horizontalInterval: 0.5,
           verticalInterval: 0.5,
           getDrawingHorizontalLine: (value) {
@@ -178,6 +177,7 @@ class Sensordata {
               reservedSize: 30,
               interval: settingsProvider.scrollingSeconds / 5,
               getTitlesWidget: (value, meta) {
+                //TODO: hier noch DRY principle mit Text widget
                 if (settingsProvider.selectedTimeChoice ==
                     TimeChoice.timestamp.value) {
                   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
@@ -192,7 +192,7 @@ class Sensordata {
                     style: const TextStyle(
                       color: Color(0xff68737d),
                       fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                      fontSize: 16,
                     ),
                   );
                 } else if (settingsProvider.selectedTimeChoice ==
@@ -204,7 +204,7 @@ class Sensordata {
                     style: const TextStyle(
                       color: Color(0xff68737d),
                       fontWeight: FontWeight.bold,
-                      fontSize: 10,
+                      fontSize: 16,
                     ),
                   );
                 }
@@ -216,7 +216,7 @@ class Sensordata {
                   style: const TextStyle(
                     color: Color(0xff68737d),
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
+                    fontSize: 16,
                   ),
                 );
               },
