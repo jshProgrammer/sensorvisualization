@@ -154,8 +154,9 @@ class Sensordata {
         minY: _getMinY(),
         maxY: _getMaxY(),
 
+        //TODO: evtl Logik für Grid Interval einfügen
         gridData: FlGridData(
-          show: true,
+          show: settingsProvider.showGrid,
           horizontalInterval: 0.5,
           verticalInterval: 0.5,
           getDrawingHorizontalLine: (value) {

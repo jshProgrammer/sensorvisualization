@@ -135,6 +135,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
+  bool _selectedGridChoice = true;
 
   TextEditingController _secondsController = TextEditingController();
 
@@ -538,8 +539,26 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       },
                     ),
                     Divider(color: Colors.grey, thickness: 1, height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Diagramgitter:"),
+                        SizedBox(width: 10),
+                        Switch(
+                          value: _selectedGridChoice,
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              _selectedGridChoice = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+
+                    Divider(color: Colors.grey, thickness: 1, height: 20),
                     Text("Datenbank Synchronisation:"),
                     SizedBox(height: 8),
+                    //TODO: SegmentedButton evtl auch durch Switch ersetzen?
                     SegmentedButton<bool>(
                       segments: [
                         ButtonSegment<bool>(
@@ -588,6 +607,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             TextButton(
               child: Text('Speichern'),
               onPressed: () {
+                final settingsProvider = Provider.of<SettingsProvider>(
+                  context,
+                  listen: false,
+                );
                 if (_secondsController.text.isNotEmpty) {
                   final value =
                       int.tryParse(_secondsController.text) ??
@@ -601,20 +624,14 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                           : unitChoice == TimeUnitChoice.minutes
                           ? value * 60
                           : value * 3600);
-                  Provider.of<SettingsProvider>(
-                    context,
-                    listen: false,
-                  ).setScrollingSeconds(seconds);
+
+                  settingsProvider.setScrollingSeconds(seconds);
                 }
 
-                Provider.of<SettingsProvider>(
-                  context,
-                  listen: false,
-                ).setTimeChoice(_selectedTimeChoice);
-                Provider.of<SettingsProvider>(
-                  context,
-                  listen: false,
-                ).setDataMode(_selectedAbsRelData);
+                settingsProvider.setTimeChoice(_selectedTimeChoice);
+                settingsProvider.setDataMode(_selectedAbsRelData);
+                settingsProvider.setDataMode(_selectedAbsRelData);
+                settingsProvider.setShowGrid(_selectedGridChoice);
 
                 Navigator.of(context).pop();
               },
