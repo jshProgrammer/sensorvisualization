@@ -48,6 +48,8 @@ class ConnectionProvider extends ChangeNotifier {
   Map<String, Tuple2<ConnectionDisplayState, DateTime?>> get connectionStates =>
       _connectionToSender.connectionStates;
 
+  Map<String, int> get batteryLevels => _connectionToSender.batteryLevels;
+
   final _measurementStoppedController =
       StreamController<String>.broadcast(); // String = device-name (NOT ip!)
   Stream<String> get measurementStopped => _measurementStoppedController.stream;

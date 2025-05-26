@@ -46,6 +46,8 @@ class SensorServer {
   Map<String, Tuple2<ConnectionDisplayState, DateTime?>> connectionStates =
       {}; // ip address => (connection state, optional: DateTime + durationInSeconds)
 
+  Map<String, int> batteryLevels = {}; // ip address => battery level
+
   void startServer() async {
     final server = await HttpServer.bind(InternetAddress.anyIPv4, 3001);
     print('Listening on port 3001');
@@ -65,6 +67,7 @@ class SensorServer {
 
               // Check if the data is a connection request sent by a client
               if (decoded['command'] != null) {
+                //TODO: extract to individual ServerCommandHandler-class
                 if (decoded['command'] ==
                     NetworkCommands.ConnectionRequest.command) {
                   final senderIp = decoded['ip'];
@@ -144,6 +147,10 @@ class SensorServer {
                     ConnectionDisplayState.paused,
                     null,
                   );
+                } else if (decoded['command'] ==
+                    NetworkCommands.BatteryLevel.command) {
+                  batteryLevels.putIfAbsent(decoded['ip'], () => 0);
+                  batteryLevels[decoded['ip']!] = decoded['level'];
                 }
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(

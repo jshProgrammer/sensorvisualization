@@ -83,11 +83,19 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
     );
 
     return ListTile(
-      title: Text(device.value),
+      title: Text(
+        device.value,
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      ),
       subtitle: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildDeviceInfo(state, device.key, remainingSeconds),
+          _buildDeviceInfo(
+            state,
+            device.key,
+            remainingSeconds,
+            provider.batteryLevels[device.key],
+          ),
           _buildPopupMenu(provider, device.key, state),
         ],
       ),
@@ -98,6 +106,7 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
     ConnectionDisplayState state,
     String deviceKey,
     int? remainingSeconds,
+    int? batteryLevel,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,8 +140,64 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
         ),
         SizedBox(height: 3),
         Text(deviceKey),
+        SizedBox(height: 3),
+        Row(
+          children: [
+            _buildBatteryIcon(batteryLevel),
+            SizedBox(width: 10),
+            Text(batteryLevel == null ? "unbekannt" : "$batteryLevel%"),
+          ],
+        ),
       ],
     );
+  }
+
+  Icon _buildBatteryIcon(int? batteryLevel) {
+    if (batteryLevel == null) return Icon(Icons.battery_unknown);
+    final rounded = (batteryLevel! / 10).floor();
+
+    IconData icon;
+    Color color;
+
+    switch (rounded) {
+      case 10:
+      case 9:
+        icon = Icons.battery_full;
+        color = Colors.green;
+        break;
+      case 8:
+      case 7:
+        icon = Icons.battery_6_bar;
+        color = Colors.green;
+        break;
+      case 6:
+        icon = Icons.battery_5_bar;
+        color = Colors.lightGreen;
+        break;
+      case 5:
+      case 4:
+        icon = Icons.battery_4_bar;
+        color = Colors.amber;
+        break;
+      case 3:
+        icon = Icons.battery_3_bar;
+        color = Colors.orange;
+        break;
+      case 2:
+        icon = Icons.battery_2_bar;
+        color = Colors.deepOrange;
+        break;
+      case 1:
+        icon = Icons.battery_1_bar;
+        color = Colors.red;
+        break;
+      default:
+        icon = Icons.battery_0_bar;
+        color = Colors.red;
+        break;
+    }
+
+    return Icon(icon, color: color);
   }
 
   Widget _buildPopupMenu(

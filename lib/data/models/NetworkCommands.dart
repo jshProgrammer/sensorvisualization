@@ -18,6 +18,8 @@ enum NetworkCommands {
   Alarm('Alarm'),
   AlarmStop('AlarmStop'),
 
+  BatteryLevel('BatteryLevel'),
+
   AverageValues('AverageValues');
 
   final String command;

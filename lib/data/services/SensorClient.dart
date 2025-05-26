@@ -7,6 +7,7 @@ import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/ClientCommandHandler.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
+import 'package:battery_plus/battery_plus.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:network_info_plus/network_info_plus.dart';
@@ -24,9 +25,13 @@ class SensorClient {
   late final String ownIPAddress;
   bool _ownIPAddressInitialized = false;
 
+  var battery = Battery();
+
   bool _isPaused = false;
 
   ClientCommandHandler commandHandler = ClientCommandHandler();
+
+  Timer? _batteryTimer;
 
   SensorClient({required this.hostIPAddress, required this.deviceName}) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
@@ -65,6 +70,9 @@ class SensorClient {
           if (decoded['command'] ==
               NetworkCommands.ConnectionAccepted.command) {
             completer.complete(true);
+
+            startBatteryMonitoring();
+
             return;
           }
 
@@ -88,6 +96,24 @@ class SensorClient {
     commandHandler.handleCommand(
       NetworkCommands.fromString(commandString),
       decoded,
+    );
+  }
+
+  void startBatteryMonitoring() {
+    sendBatteryInformation();
+
+    _batteryTimer = Timer.periodic(Duration(minutes: 5), (timer) async {
+      await sendBatteryInformation();
+    });
+  }
+
+  Future<void> sendBatteryInformation() async {
+    channel.sink.add(
+      jsonEncode({
+        "ip": ownIPAddress,
+        "command": NetworkCommands.BatteryLevel.command,
+        "level": await battery.batteryLevel,
+      }),
     );
   }
 
