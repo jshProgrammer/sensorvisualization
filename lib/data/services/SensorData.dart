@@ -47,10 +47,8 @@ class Sensordata {
   List<FlSpot> getFilteredDataPoints(
     String ipAddress,
     SensorType sensorName,
-    SensorOrientation attribute, {
-    //TODO: to be implemented
-    int baselineY = 0,
-  }) {
+    SensorOrientation attribute,
+  ) {
     final double xMin;
     final double xMax;
     final double currentMaxX = _getMaxX();

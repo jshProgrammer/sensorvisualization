@@ -97,7 +97,7 @@ class SensorServer {
                     null,
                   );
                 } else if (decoded['command'] ==
-                    NetworkCommands.StartNullMeasurement.command) {
+                    NetworkCommands.StartNullMeasurementOnDevice.command) {
                   connectionStates[decoded['ip']!] = Tuple2(
                     ConnectionDisplayState.nullMeasurement,
                     DateTime.parse(
@@ -106,7 +106,7 @@ class SensorServer {
                   );
                   onConnectionChanged?.call();
                 } else if (decoded['command'] ==
-                    NetworkCommands.DelayedMeasurement.command) {
+                    NetworkCommands.DelayedMeasurementOnDevice.command) {
                   connectionStates[decoded['ip']!] = Tuple2(
                     ConnectionDisplayState.delayedMeasurement,
                     DateTime.parse(
@@ -115,7 +115,7 @@ class SensorServer {
                   );
                   onConnectionChanged?.call();
                 } else if (decoded['command'] ==
-                    NetworkCommands.StopMeasurement.command) {
+                    NetworkCommands.StopMeasurementOnDevice.command) {
                   final deviceName =
                       connectedDevices[decoded['ip']] ?? decoded['ip'];
 
@@ -138,6 +138,12 @@ class SensorServer {
                     null,
                   );
                   onConnectionChanged?.call();
+                } else if (decoded['command'] ==
+                    NetworkCommands.PauseMeasurementOnDevice.command) {
+                  connectionStates[decoded['ip']!] = Tuple2(
+                    ConnectionDisplayState.paused,
+                    null,
+                  );
                 }
               } else {
                 final Map<String, dynamic> parsed = Map<String, dynamic>.from(
@@ -145,7 +151,7 @@ class SensorServer {
                 );
 
                 connectionStates[decoded['ip']!] = Tuple2(
-                  ConnectionDisplayState.connected,
+                  ConnectionDisplayState.sending,
                   null,
                 );
 
@@ -212,6 +218,42 @@ class SensorServer {
     for (var ws in activeConnections.values) {
       ws.add(alarmData);
     }
+  }
+
+  void sendStartNullMeasurementToClient(String ipAddress, int duration) {
+    activeConnections[ipAddress]!.add(
+      jsonEncode({
+        "command": NetworkCommands.StartNullMeasurementRemote.command,
+        "duration": duration,
+      }),
+    );
+  }
+
+  void sendStartDelayedMeasurementToClient(String ipAddress, int duration) {
+    activeConnections[ipAddress]!.add(
+      jsonEncode({
+        "command": NetworkCommands.DelayedMeasurementRemote.command,
+        "duration": duration,
+      }),
+    );
+  }
+
+  void sendPauseMeasurementToClient(String ipAddress) {
+    activeConnections[ipAddress]!.add(
+      jsonEncode({"command": NetworkCommands.PauseMeasurementRemote.command}),
+    );
+  }
+
+  void sendResumeMeasurementToClient(String ipAddress) {
+    activeConnections[ipAddress]!.add(
+      jsonEncode({"command": NetworkCommands.ResumeMeasurementRemote.command}),
+    );
+  }
+
+  void sendStopMeasurementToClient(String ipAddress) {
+    activeConnections[ipAddress]!.add(
+      jsonEncode({"command": NetworkCommands.StopMeasurementRemote.command}),
+    );
   }
 
   void _storeNullMeasurementValues(Map<String, dynamic> nullMeasurement) {

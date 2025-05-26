@@ -80,6 +80,29 @@ class ConnectionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void sendStartNullMeasurementToClient(String ipAddress, int duration) {
+    _connectionToSender.sendStartNullMeasurementToClient(ipAddress, duration);
+  }
+
+  void sendPauseMeasurementToClient(String ipAddress) {
+    _connectionToSender.sendPauseMeasurementToClient(ipAddress);
+  }
+
+  void sendResumeMeasurementToClient(String ipAddress) {
+    _connectionToSender.sendResumeMeasurementToClient(ipAddress);
+  }
+
+  void sendStopMeasurementToClient(String ipAddress) {
+    _connectionToSender.sendStopMeasurementToClient(ipAddress);
+  }
+
+  void sendStartDelayedMeasurementToClient(String ipAddress, int duration) {
+    _connectionToSender.sendStartDelayedMeasurementToClient(
+      ipAddress,
+      duration,
+    );
+  }
+
   @override
   void dispose() {
     _dataStreamController.close();

@@ -34,7 +34,7 @@ class AlarmPageState extends State<Alarmpage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       triggerAlarmNotification();
     });
-    widget.connection.onAlarmStopReceived = () {
+    widget.connection.commandHandler.onAlarmStopReceived = () {
       stopAlarmNotification();
     };
   }
