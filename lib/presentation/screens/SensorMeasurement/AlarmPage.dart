@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:sensorvisualization/data/services/client/SensorClient.dart';
-import 'package:sensorvisualization/data/services/client/old_SensorClient.dart';
 
 class Alarmpage extends StatefulWidget {
   final Function? onAlarmStopReceived;
@@ -128,30 +127,6 @@ class AlarmPageState extends State<Alarmpage> {
       print("Fehler beim Laden der Audiodatei: $e");
     }
   }
-  /*Future<void> checkAlarmState() async {
-    try {
-      //final response =
-      //Hier noch URL Anpassen
-      //await http.get(Uri.parse('https://dein-server.de/status.json'));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final bool shouldPlayAlarm = data['alarm_state'] ?? false;
-
-        if (shouldPlayAlarm && !isPlaying) {
-          await triggerAlarmNotification();
-          setState(() => isPlaying = true);
-        } else if (!shouldPlayAlarm && isPlaying) {
-          await stopAlarmNotification();
-          setState(() => isPlaying = false);
-        }
-      } else {
-        print("Fehler beim Laden: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Fehler beim Abrufen: $e");
-    }
-  }*/
 
   @override
   void dispose() {
@@ -160,70 +135,9 @@ class AlarmPageState extends State<Alarmpage> {
     super.dispose();
   }
 
-  /*@override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(
-            title: Text("Alarm"),
-            automaticallyImplyLeading: false,
-          ),
-          body: Center(
-            child: Text(
-              isPlaying ? "Alarm läuft" : "Kein Alarm",
-              style: TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-        if (isPlaying)
-          Positioned.fill(
-            child: Container(
-              color: Colors.red.withOpacity(0.85),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.warning, size: 100, color: Colors.white),
-                    SizedBox(height: 20),
-                    Text(
-                      'ALARM!',
-                      style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: stopAlarmNotification,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.red,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                      ),
-                      child: Text(
-                        'Alarm Stoppen',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }*/
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Hier direkt den roten Hintergrund setzen
       backgroundColor: Colors.red,
       body: Center(
         child: Column(

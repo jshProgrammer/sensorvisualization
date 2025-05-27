@@ -40,7 +40,8 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
   int? _barometerLastInterval;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
-  Duration sensorInterval = SensorInterval.normalInterval;
+  Duration accelerometerSensorInterval = SensorInterval.fastestInterval;
+  Duration standardSensorInterval = SensorInterval.normalInterval;
 
   bool _isPaused = false;
 
@@ -168,48 +169,6 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
                 ],
               ),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Aktualisierungs-Intervall:'),
-                SegmentedButton(
-                  segments: [
-                    ButtonSegment(
-                      value: SensorInterval.gameInterval,
-                      label: Text(
-                        '${SensorInterval.gameInterval.inMilliseconds}ms',
-                      ),
-                    ),
-                    ButtonSegment(
-                      value: SensorInterval.normalInterval,
-                      label: Text(
-                        '${SensorInterval.normalInterval.inMilliseconds}ms',
-                      ),
-                    ),
-                    const ButtonSegment(
-                      value: Duration(seconds: 1),
-                      label: Text('1s'),
-                    ),
-                  ],
-                  selected: {sensorInterval},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (value) {
-                    setState(() {
-                      sensorInterval = value.first;
-                      //TODO: setter hier rausschmeißen
-                      //widget.connection.sensorInterval = sensorInterval;
-                      userAccelerometerEventStream(
-                        samplingPeriod: sensorInterval,
-                      );
-                      accelerometerEventStream(samplingPeriod: sensorInterval);
-                      gyroscopeEventStream(samplingPeriod: sensorInterval);
-                      magnetometerEventStream(samplingPeriod: sensorInterval);
-                      barometerEventStream(samplingPeriod: sensorInterval);
-                    });
-                  },
-                ),
-              ],
-            ),
             SizedBox(height: 10),
             ElevatedButton(
               child: Text(
@@ -229,6 +188,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
                 }
               },
             ),
+            SizedBox(height: 10),
             ElevatedButton(
               child: const Text("Messung stoppen"),
               onPressed: _showStopConfirmationDialog,
@@ -297,7 +257,9 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
     };
 
     _streamSubscriptions.add(
-      userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(
+      userAccelerometerEventStream(
+        samplingPeriod: accelerometerSensorInterval,
+      ).listen(
         (UserAccelerometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -328,7 +290,9 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      accelerometerEventStream(samplingPeriod: sensorInterval).listen(
+      accelerometerEventStream(
+        samplingPeriod: accelerometerSensorInterval,
+      ).listen(
         (AccelerometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -359,7 +323,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      gyroscopeEventStream(samplingPeriod: sensorInterval).listen(
+      gyroscopeEventStream(samplingPeriod: standardSensorInterval).listen(
         (GyroscopeEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -390,7 +354,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      magnetometerEventStream(samplingPeriod: sensorInterval).listen(
+      magnetometerEventStream(samplingPeriod: standardSensorInterval).listen(
         (MagnetometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -421,7 +385,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      barometerEventStream(samplingPeriod: sensorInterval).listen(
+      barometerEventStream(samplingPeriod: standardSensorInterval).listen(
         (BarometerEvent event) {
           final now = event.timestamp;
           setState(() {

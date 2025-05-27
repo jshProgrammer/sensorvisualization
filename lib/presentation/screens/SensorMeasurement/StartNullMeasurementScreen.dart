@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/client/SensorClient.dart';
-import 'package:sensorvisualization/data/services/client/old_SensorClient.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
