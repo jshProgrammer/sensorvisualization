@@ -14,8 +14,6 @@ import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 
-import 'package:sensorvisualization/data/services/SensorServer.dart';
-import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/SensorData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/database/AppDatabase.dart';

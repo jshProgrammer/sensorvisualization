@@ -9,7 +9,6 @@ import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
-import 'package:sensorvisualization/data/services/SensorServer.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';

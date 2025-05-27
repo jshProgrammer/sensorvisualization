@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
 
 class Alarmpage extends StatefulWidget {
   final Function? onAlarmStopReceived;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
-import 'package:sensorvisualization/data/services/SensorServer.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/QRScannerScreen.dart';
 
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';

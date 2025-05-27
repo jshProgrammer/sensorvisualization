@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
@@ -284,6 +284,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
     };
 
     widget.connection.commandHandler.onMeasurementStopped = () async {
+      await widget.connection.stopMeasurement();
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,

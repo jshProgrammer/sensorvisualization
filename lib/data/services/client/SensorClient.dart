@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/ClientCommandHandler.dart';
+import 'package:sensorvisualization/data/services/client/ClientCommandHandler.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
 import 'package:battery_plus/battery_plus.dart';

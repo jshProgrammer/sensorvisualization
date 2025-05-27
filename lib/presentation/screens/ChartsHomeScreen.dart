@@ -9,7 +9,6 @@ import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
-import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
