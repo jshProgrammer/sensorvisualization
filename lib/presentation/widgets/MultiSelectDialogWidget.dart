@@ -4,7 +4,6 @@ import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
-import 'package:sensorvisualization/data/services/SampleData.dart';
 
 class Multiselectdialogwidget extends StatefulWidget {
   const Multiselectdialogwidget({Key? key, required this.initialSelectedValues})
@@ -101,7 +100,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
               contentPadding: const EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
               child: ListBody(
                 children:
-                    SampleData.getSensorChoices(
+                    getSensorChoices(
                       _currentSelectedDevice ==
                               SensorType.simulatedData.displayName
                           ? SensorType.simulatedData
@@ -139,5 +138,92 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
             ),
           ),
         );
+  }
+
+  List<MultiSelectDialogItem> getSensorChoices(SensorType sensorName) {
+    if (sensorName == SensorType.simulatedData) {
+      return [
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData,
+          type: ItemType.seperator,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData,
+          attribute: SensorOrientation.x,
+          type: ItemType.data,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData,
+          attribute: SensorOrientation.y,
+          type: ItemType.data,
+        ),
+        MultiSelectDialogItem(
+          sensorName: SensorType.simulatedData,
+          attribute: SensorOrientation.z,
+          type: ItemType.data,
+        ),
+      ];
+    }
+    return <MultiSelectDialogItem>[
+      MultiSelectDialogItem(
+        sensorName: SensorType.accelerometer,
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.accelerometer,
+        attribute: SensorOrientation.x,
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.accelerometer,
+        attribute: SensorOrientation.y,
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.accelerometer,
+        attribute: SensorOrientation.z,
+        type: ItemType.data,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.gyroscope,
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.gyroscope,
+        attribute: SensorOrientation.x,
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.gyroscope,
+        attribute: SensorOrientation.y,
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.gyroscope,
+        attribute: SensorOrientation.z,
+        type: ItemType.data,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer,
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer,
+        attribute: SensorOrientation.x,
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer,
+        attribute: SensorOrientation.y,
+        type: ItemType.data,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.magnetometer,
+        attribute: SensorOrientation.z,
+        type: ItemType.data,
+      ),
+    ];
   }
 }

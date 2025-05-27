@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
+
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
@@ -39,7 +40,10 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
   int? _barometerLastInterval;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
-  Duration sensorInterval = SensorInterval.normalInterval;
+  Duration accelerometerSensorInterval = SensorInterval.fastestInterval;
+  Duration standardSensorInterval = SensorInterval.normalInterval;
+
+  bool _isPaused = false;
 
   @override
   Widget build(BuildContext context) {
@@ -165,58 +169,29 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
                 ],
               ),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Aktualisierungs-Intervall:'),
-                SegmentedButton(
-                  segments: [
-                    ButtonSegment(
-                      value: SensorInterval.gameInterval,
-                      label: Text(
-                        '${SensorInterval.gameInterval.inMilliseconds}ms',
-                      ),
-                    ),
-                    ButtonSegment(
-                      value: SensorInterval.normalInterval,
-                      label: Text(
-                        '${SensorInterval.normalInterval.inMilliseconds}ms',
-                      ),
-                    ),
-                    const ButtonSegment(
-                      value: Duration(seconds: 1),
-                      label: Text('1s'),
-                    ),
-                  ],
-                  selected: {sensorInterval},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (value) {
-                    setState(() {
-                      sensorInterval = value.first;
-                      userAccelerometerEventStream(
-                        samplingPeriod: sensorInterval,
-                      );
-                      accelerometerEventStream(samplingPeriod: sensorInterval);
-                      gyroscopeEventStream(samplingPeriod: sensorInterval);
-                      magnetometerEventStream(samplingPeriod: sensorInterval);
-                      barometerEventStream(samplingPeriod: sensorInterval);
-                    });
-                  },
-                ),
-              ],
+            SizedBox(height: 10),
+            ElevatedButton(
+              child: Text(
+                _isPaused ? "Messung fortsetzen" : "Messung pausieren",
+              ),
+              onPressed: () async {
+                if (_isPaused) {
+                  await widget.connection.resumeMeasurement();
+                  setState(() {
+                    _isPaused = false;
+                  });
+                } else {
+                  await widget.connection.pauseMeasurement();
+                  setState(() {
+                    _isPaused = true;
+                  });
+                }
+              },
             ),
             SizedBox(height: 10),
             ElevatedButton(
-              child: const Text("Messung abbrechen"),
-              onPressed: () async {
-                await widget.connection.stopMeasurement();
-
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => ScannerEntryScreen()),
-                  (Route<dynamic> route) => false,
-                );
-              },
+              child: const Text("Messung stoppen"),
+              onPressed: _showStopConfirmationDialog,
             ),
           ],
         ),
@@ -247,17 +222,44 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
   @override
   void initState() {
     super.initState();
-    //TODO: only when running on phone
+
+    _isPaused = widget.connection.isPaused;
 
     widget.connection.startSensorStream();
 
-    widget.connection.onAlarmReceived = (String alarmMessage) {
-      print("Debug: kjhdkfghdklfghj");
+    widget.connection.commandHandler.onAlarmReceived = (String alarmMessage) {
       _showAlarmPage(alarmMessage);
     };
 
+    widget.connection.commandHandler.onMeasurementPaused = () async {
+      await widget.connection.pauseMeasurement();
+      setState(() {
+        _isPaused = true;
+      });
+    };
+
+    widget.connection.commandHandler.onMeasurementResumed = () async {
+      await widget.connection.resumeMeasurement();
+      setState(() {
+        _isPaused = false;
+      });
+    };
+
+    widget.connection.commandHandler.onMeasurementStopped = () async {
+      await widget.connection.stopMeasurement();
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => ScannerEntryScreen()),
+          (Route<dynamic> route) => false,
+        );
+      }
+    };
+
     _streamSubscriptions.add(
-      userAccelerometerEventStream(samplingPeriod: sensorInterval).listen(
+      userAccelerometerEventStream(
+        samplingPeriod: accelerometerSensorInterval,
+      ).listen(
         (UserAccelerometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -288,7 +290,9 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      accelerometerEventStream(samplingPeriod: sensorInterval).listen(
+      accelerometerEventStream(
+        samplingPeriod: accelerometerSensorInterval,
+      ).listen(
         (AccelerometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -319,7 +323,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      gyroscopeEventStream(samplingPeriod: sensorInterval).listen(
+      gyroscopeEventStream(samplingPeriod: standardSensorInterval).listen(
         (GyroscopeEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -350,7 +354,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      magnetometerEventStream(samplingPeriod: sensorInterval).listen(
+      magnetometerEventStream(samplingPeriod: standardSensorInterval).listen(
         (MagnetometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -381,7 +385,7 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
       ),
     );
     _streamSubscriptions.add(
-      barometerEventStream(samplingPeriod: sensorInterval).listen(
+      barometerEventStream(samplingPeriod: standardSensorInterval).listen(
         (BarometerEvent event) {
           final now = event.timestamp;
           setState(() {
@@ -411,5 +415,42 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
         cancelOnError: true,
       ),
     );
+  }
+
+  Future<void> _showStopConfirmationDialog() async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Messung stoppen'),
+          content: const Text(
+            'Sind Sie sicher, dass Sie die Messung stoppen möchten? '
+            'Die Netzwerkverbindung wird unwiderruflich getrennt. Alle bisher gesendeten Daten sind gespeichert.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Stoppen'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await widget.connection.stopMeasurement();
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => ScannerEntryScreen()),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 }

@@ -1,12 +1,26 @@
 enum NetworkCommands {
   ConnectionRequest("ConnectionRequest"),
   ConnectionAccepted("ConnectionAccepted"),
-  StartNullMeasurement("StartNullMeasurement"),
-  StopMeasurement("StopMeasurement"),
-  DelayedMeasurement('DelayedMeasurement'),
+
+  StartNullMeasurementOnDevice("StartNullMeasurementOnDevice"),
+  StartNullMeasurementRemote("StartNullMeasurementRemote"),
+
+  StopMeasurementOnDevice("StopMeasurementOnDevice"),
+  StopMeasurementRemote("StopMeasurementRemote"),
+  PauseMeasurementOnDevice("PauseMeasurementOnDevice"),
+  PauseMeasurementRemote("PauseMeasurementRemote"),
+  ResumeMeasurementOnDevice("ResumeMeasurementOnDevice"),
+  ResumeMeasurementRemote("ResumeMeasurementRemote"),
+
+  DelayedMeasurementOnDevice('DelayedMeasurementOnDevice'),
+  DelayedMeasurementRemote("DelayedMeasurementRemote"),
+
   Alarm('Alarm'),
-  AverageValues('AverageValues'),
-  AlarmStop('AlarmStop');
+  AlarmStop('AlarmStop'),
+
+  BatteryLevel('BatteryLevel'),
+
+  AverageValues('AverageValues');
 
   final String command;
 
@@ -14,4 +28,11 @@ enum NetworkCommands {
 
   @override
   String toString() => command;
+
+  static NetworkCommands fromString(String value) {
+    return NetworkCommands.values.firstWhere(
+      (e) => e.command == value,
+      orElse: () => throw ArgumentError('Invalid command: $value'),
+    );
+  }
 }

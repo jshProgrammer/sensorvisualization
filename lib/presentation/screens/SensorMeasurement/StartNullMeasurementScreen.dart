@@ -4,7 +4,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:sensorvisualization/data/models/NetworkCommands.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -39,6 +39,25 @@ class _StartNullMeasurementScreenState
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
   bool activeDelay = false;
 
+  bool _isMeasurementActive = false;
+  bool _isDelayedMeasurementActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.connection.commandHandler.onStartNullMeasurementReceived = (
+      duration,
+    ) {
+      measurementSeconds = duration;
+      startNullMeasurement();
+    };
+
+    widget.connection.commandHandler.onDelayedMeasurementReceived = (duration) {
+      startDelayTimer(duration: duration);
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,12 +76,23 @@ class _StartNullMeasurementScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
+              onPressed:
+                  (_isMeasurementActive || _isDelayedMeasurementActive)
+                      ? null
+                      : () {
+                        activeDelay
+                            ? startDelayTimer()
+                            : startNullMeasurement();
+                      },
               child: Text(
-                activeDelay ? "Selbstauslöser starten" : "Nullmessung starten",
+                _isMeasurementActive
+                    ? "Messung läuft"
+                    : _isDelayedMeasurementActive
+                    ? "Selbstauslöser aktiv"
+                    : activeDelay
+                    ? "Selbstauslöser starten"
+                    : "Nullmessung starten",
               ),
-              onPressed: () {
-                activeDelay ? startDelayTimer() : startNullMeasurement();
-              },
             ),
             SizedBox(height: 20),
 
@@ -95,15 +125,21 @@ class _StartNullMeasurementScreenState
     );
   }
 
-  void startDelayTimer() {
-    int amountOfSeconds = int.tryParse(_delayController.text.trim()) ?? 0;
-    amountOfSeconds =
-        (TimeUnitChoice.fromValue(_selectedTimeUnit) == TimeUnitChoice.hours)
-            ? amountOfSeconds * 3600
-            : (TimeUnitChoice.fromValue(_selectedTimeUnit) ==
-                TimeUnitChoice.minutes)
-            ? amountOfSeconds * 60
-            : amountOfSeconds;
+  void startDelayTimer({int? duration}) {
+    _isDelayedMeasurementActive = true;
+    int amountOfSeconds;
+    if (duration == null) {
+      amountOfSeconds = int.tryParse(_delayController.text.trim()) ?? 0;
+      amountOfSeconds =
+          (TimeUnitChoice.fromValue(_selectedTimeUnit) == TimeUnitChoice.hours)
+              ? amountOfSeconds * 3600
+              : (TimeUnitChoice.fromValue(_selectedTimeUnit) ==
+                  TimeUnitChoice.minutes)
+              ? amountOfSeconds * 60
+              : amountOfSeconds;
+    } else {
+      amountOfSeconds = duration;
+    }
 
     widget.connection.sendDelayedMeasurement(amountOfSeconds);
     _setTimer(
@@ -133,30 +169,13 @@ class _StartNullMeasurementScreenState
   }
 
   void startNullMeasurement() {
+    _isMeasurementActive = true;
+
     widget.connection.sendStartingNullMeasurement(measurementSeconds);
     final DateTime endTime = DateTime.now().add(
       Duration(seconds: measurementSeconds),
     );
     _setTimer(measurementSeconds, endTime, _finishMeasurement);
-
-    /*_startTime = DateTime.now();
-
-    final endTime = DateTime.now().add(Duration(seconds: measurementSeconds));
-
-    _progressTimer = Timer.periodic(Duration(milliseconds: 20), (timer) {
-      final elapsed = DateTime.now().difference(_startTime).inMilliseconds;
-      final totalMillis = measurementSeconds * 1000;
-
-      setState(() {
-        progress = elapsed / totalMillis;
-        remainingSeconds = measurementSeconds - (elapsed / 1000).floor();
-      });
-
-      if (DateTime.now().isAfter(endTime)) {
-        timer.cancel();
-        _finishMeasurement();
-      }
-    });*/
 
     accelerometerEventStream(samplingPeriod: sensorInterval).listen((event) {
       if (DateTime.now().isBefore(endTime)) {
@@ -184,11 +203,10 @@ class _StartNullMeasurementScreenState
   }
 
   Future<void> _finishMeasurement() async {
-    await widget.connection.retrieveLocalIP();
     final result = {
       "command": NetworkCommands.AverageValues.command,
       'duration': measurementSeconds,
-      'ip': widget.connection.ownIPAddress,
+      'ip': widget.connection.localIP,
       SensorType.accelerometer.displayName: _averageTriplet(_accelData),
       SensorType.gyroscope.displayName: _averageTriplet(_gyroData),
       SensorType.magnetometer.displayName: _averageTriplet(_magnetData),
@@ -352,5 +370,13 @@ class _StartNullMeasurementScreenState
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    if (_progressTimer.isActive) {
+      _progressTimer.cancel();
+    }
+    super.dispose();
   }
 }

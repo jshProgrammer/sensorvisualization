@@ -9,10 +9,10 @@ import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
-import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
+import 'package:sensorvisualization/presentation/dialogs/ConnectedDevicesDialog.dart';
 import 'package:tuple/tuple.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
@@ -29,7 +29,7 @@ class ChartsHomeScreen extends StatefulWidget {
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   final List<ChartConfig> charts = [];
   final List<List<ChartConfig>> mCharts = [];
-  
+
   Map<String, Map<String, Set<MultiSelectDialogItem>>> chartSelections = {};
 
   int selectedTabIndex = 0;
@@ -123,17 +123,18 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     }
 
     setState(() {
-    final removedTab = mCharts.removeAt(selectedTabIndex);
-    for (final chart in removedTab) {
-      chartSelections.remove(chart.id);
-    }
-    selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
-  });
+      final removedTab = mCharts.removeAt(selectedTabIndex);
+      for (final chart in removedTab) {
+        chartSelections.remove(chart.id);
+      }
+      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+    });
   }
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
+  bool _selectedGridChoice = true;
 
   TextEditingController _secondsController = TextEditingController();
 
@@ -158,7 +159,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
           IconButton(
             icon: Icon(Icons.smartphone),
             onPressed: () {
-              showConnectedDevicesDialog();
+              showDialog(
+                context: context,
+                builder: (context) => const ConnectedDevicesDialog(),
+              );
             },
           ),
           IconButton(
@@ -293,40 +297,49 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             ),
 
           Expanded(
-            child: useMultipleCharts
-                ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
-                    ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : MultipleChartsPage(
-                        chartPages: mCharts[selectedTabIndex],
-                        chartSelections: chartSelections,
-                        onSelectedValuesChanged: (String chartId, Map<String, Set<MultiSelectDialogItem>> newSel) {
-                          setState(() {
-                            chartSelections[chartId] = newSel;
-                          });
-                        },
-                        onDeleteChart: (index) {
-                          setState(() {
-                            if (mCharts[selectedTabIndex].length > 1) {
-                              final removedChart = mCharts[selectedTabIndex].removeAt(index);
-                              chartSelections.remove(removedChart.id);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Mindestens ein Diagramm muss vorhanden sein.'),
-                                ),
-                              );
-                            }
-                          });
-                        },
-                      )
-                : charts.isEmpty
+            child:
+                useMultipleCharts
+                    ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
+                        ? const Center(child: Text('Keine Diagramme vorhanden'))
+                        : MultipleChartsPage(
+                          chartPages: mCharts[selectedTabIndex],
+                          chartSelections: chartSelections,
+                          onSelectedValuesChanged: (
+                            String chartId,
+                            Map<String, Set<MultiSelectDialogItem>> newSel,
+                          ) {
+                            setState(() {
+                              chartSelections[chartId] = newSel;
+                            });
+                          },
+                          onDeleteChart: (index) {
+                            setState(() {
+                              if (mCharts[selectedTabIndex].length > 1) {
+                                final removedChart = mCharts[selectedTabIndex]
+                                    .removeAt(index);
+                                chartSelections.remove(removedChart.id);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Mindestens ein Diagramm muss vorhanden sein.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            });
+                          },
+                        )
+                    : charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
                     : ChartPage.withSelectedValues(
                       chartConfig: charts[selectedChartIndex],
-                      selectedValues: chartSelections[charts[selectedChartIndex].id] ?? {},
+                      selectedValues:
+                          chartSelections[charts[selectedChartIndex].id] ?? {},
                       onSelectedValuesChanged: (newSelections) {
                         setState(() {
-                          chartSelections[charts[selectedChartIndex].id] = newSelections;
+                          chartSelections[charts[selectedChartIndex].id] =
+                              newSelections;
                         });
                       },
                     ),
@@ -525,8 +538,26 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                       },
                     ),
                     Divider(color: Colors.grey, thickness: 1, height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Diagramgitter:"),
+                        SizedBox(width: 10),
+                        Switch(
+                          value: _selectedGridChoice,
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              _selectedGridChoice = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+
+                    Divider(color: Colors.grey, thickness: 1, height: 20),
                     Text("Datenbank Synchronisation:"),
                     SizedBox(height: 8),
+                    //TODO: SegmentedButton evtl auch durch Switch ersetzen?
                     SegmentedButton<bool>(
                       segments: [
                         ButtonSegment<bool>(
@@ -575,6 +606,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             TextButton(
               child: Text('Speichern'),
               onPressed: () {
+                final settingsProvider = Provider.of<SettingsProvider>(
+                  context,
+                  listen: false,
+                );
                 if (_secondsController.text.isNotEmpty) {
                   final value =
                       int.tryParse(_secondsController.text) ??
@@ -588,128 +623,19 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                           : unitChoice == TimeUnitChoice.minutes
                           ? value * 60
                           : value * 3600);
-                  Provider.of<SettingsProvider>(
-                    context,
-                    listen: false,
-                  ).setScrollingSeconds(seconds);
+
+                  settingsProvider.setScrollingSeconds(seconds);
                 }
 
-                Provider.of<SettingsProvider>(
-                  context,
-                  listen: false,
-                ).setTimeChoice(_selectedTimeChoice);
-                Provider.of<SettingsProvider>(
-                  context,
-                  listen: false,
-                ).setDataMode(_selectedAbsRelData);
+                settingsProvider.setTimeChoice(_selectedTimeChoice);
+                settingsProvider.setDataMode(_selectedAbsRelData);
+                settingsProvider.setDataMode(_selectedAbsRelData);
+                settingsProvider.setShowGrid(_selectedGridChoice);
 
                 Navigator.of(context).pop();
               },
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void showConnectedDevicesDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        //TODO: Timer
-        return Consumer<ConnectionProvider>(
-          builder: (context, provider, _) {
-            return StatefulBuilder(
-              builder: (context, setState) {
-                final connectedDevices = provider.connectedDevices;
-
-                return AlertDialog(
-                  title: Text("Verbundene Geräte"),
-                  content:
-                      connectedDevices.isEmpty
-                          ? Text("Keine Geräte verbunden")
-                          : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children:
-                                connectedDevices.entries.map((entry) {
-                                  final state = provider
-                                      .getCurrentConnectionState(entry.key);
-                                  int? remainingSeconds = provider
-                                      .getRemainingConnectionDurationInSec(
-                                        entry.key,
-                                      );
-
-                                  Timer.periodic(Duration(seconds: 1), (timer) {
-                                    setState(() {
-                                      remainingSeconds = provider
-                                          .getRemainingConnectionDurationInSec(
-                                            entry.key,
-                                          );
-                                      if (remainingSeconds == null ||
-                                          remainingSeconds != null &&
-                                              remainingSeconds! <= 0) {
-                                        timer.cancel();
-                                      }
-                                    });
-                                  });
-
-                                  return ListTile(
-                                    title: Text(entry.value),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.circle,
-                                              color: state.iconColor,
-                                              size: 12,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text(state.displayName),
-                                            if (state ==
-                                                    ConnectionDisplayState
-                                                        .nullMeasurement ||
-                                                state ==
-                                                    ConnectionDisplayState
-                                                        .delayedMeasurement)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Text(
-                                                  remainingSeconds != null &&
-                                                          remainingSeconds! >= 0
-                                                      ? "Noch $remainingSeconds s"
-                                                      : "",
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 3),
-                                        Text(entry.key),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                  actions: [
-                    TextButton(
-                      child: Text('Schließen'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          },
         );
       },
     );

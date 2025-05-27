@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementScreen.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 

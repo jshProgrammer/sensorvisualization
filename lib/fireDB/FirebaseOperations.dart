@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 //TODO: Noch einstellungen in ChartHomeScreen ab Zeile 90 ca.
 
 class Firebasesync {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore;
   late final Databaseoperations _databaseOperations;
 
   final List<String> _tablesToSync = ['Note', 'Sensor', 'Identification'];
@@ -20,6 +20,9 @@ class Firebasesync {
   Timer? _syncTimer;
   int syncInterval = 10;
   bool isSyncing = false;
+
+  Firebasesync({FirebaseFirestore? firestore})
+    : firestore = firestore ?? FirebaseFirestore.instance;
 
   Future<void> initializeApp(AppDatabase localDB) async {
     _databaseOperations = Databaseoperations(localDB);
@@ -52,7 +55,6 @@ class Firebasesync {
 
   Future<void> syncToFirestore(MetadataCompanion metadata) async {
     try {
-      final firestore = FirebaseFirestore.instance;
       print('Versuche Sync mit Firestore...');
 
       await firestore.collection('local_data').add({
@@ -106,11 +108,11 @@ class Firebasesync {
         final localData = await _databaseOperations.readTableData(tableName);
 
         if (localData.isNotEmpty) {
-          final batch = _firestore.batch();
+          final batch = firestore.batch();
 
           final syncId =
               '${tableName}_${DateTime.now().millisecondsSinceEpoch}';
-          final metadataRef = _firestore.collection('local_data').doc(syncId);
+          final metadataRef = firestore.collection('local_data').doc(syncId);
 
           batch.set(metadataRef, {
             'name': tableName,
@@ -155,7 +157,7 @@ class Firebasesync {
     final twoWeeksAgo = DateTime.now().subtract(Duration(days: 14));
 
     try {
-      final cloudData = await _firestore.collection('local_data').get();
+      final cloudData = await firestore.collection('local_data').get();
 
       for (var table in cloudData.docs) {
         final data = table.data();
@@ -167,7 +169,7 @@ class Firebasesync {
             try {
               final entriesSnapshot =
                   await table.reference.collection('entries').get();
-              final batch = _firestore.batch();
+              final batch = firestore.batch();
 
               for (var doc in entriesSnapshot.docs) {
                 batch.delete(doc.reference);
@@ -215,7 +217,7 @@ class Firebasesync {
 
     try {
       final metadataDoc =
-          await _firestore.collection('local_data').doc(tableName).get();
+          await firestore.collection('local_data').doc(tableName).get();
 
       if (!metadataDoc.exists) {
         print("Tabelle $tableName existiert nicht in Firebase.");
@@ -270,7 +272,7 @@ class Firebasesync {
     }
 
     try {
-      final metadata = await _firestore.collection('local_data').get();
+      final metadata = await firestore.collection('local_data').get();
       return metadata.docs.map((doc) {
         final data = doc.data();
         return {
@@ -296,7 +298,7 @@ class Firebasesync {
 
     try {
       final querySnapshot =
-          await _firestore
+          await firestore
               .collection('local_data')
               .where('name', isEqualTo: tableName)
               .where('last_updated', isEqualTo: formattedDate)

@@ -6,6 +6,8 @@ enum ConnectionDisplayState {
   disconnected,
   nullMeasurement,
   delayedMeasurement,
+  paused,
+  sending,
 }
 
 extension ConnectionDisplayStateExtension on ConnectionDisplayState {
@@ -19,12 +21,16 @@ extension ConnectionDisplayStateExtension on ConnectionDisplayState {
         return 'Nullmessung';
       case ConnectionDisplayState.delayedMeasurement:
         return 'Selbstauslöser';
+      case ConnectionDisplayState.paused:
+        return 'Pausiert';
+      case ConnectionDisplayState.sending:
+        return 'Sendet';
     }
   }
 
   Color get iconColor {
     switch (this) {
-      case ConnectionDisplayState.connected:
+      case ConnectionDisplayState.connected || ConnectionDisplayState.sending:
         return Colors.green;
 
       case ConnectionDisplayState.disconnected:
@@ -35,6 +41,8 @@ extension ConnectionDisplayStateExtension on ConnectionDisplayState {
 
       case ConnectionDisplayState.delayedMeasurement:
         return Colors.blueGrey;
+      case ConnectionDisplayState.paused:
+        return Colors.purple;
     }
   }
 }
