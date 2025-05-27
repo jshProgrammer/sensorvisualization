@@ -1,55 +1,45 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/NetworkCommands.dart';
-import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/client/ClientCommandHandler.dart';
-import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
-import 'package:battery_plus/battery_plus.dart';
-
+import 'package:sensorvisualization/data/services/client/DeviceInfoManager.dart';
+import 'package:sensorvisualization/data/services/client/SensorDataManager.dart';
+import 'package:sensorvisualization/data/services/server/ConnectionManager.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:network_info_plus/network_info_plus.dart';
 
 class SensorClient {
   late WebSocketChannel channel;
 
-  late StreamSubscription accelerometerSub;
-  late StreamSubscription gyroscopeSub;
-  late StreamSubscription magnetometerSub;
-  late StreamSubscription barometerSub;
+  late final SensorDataManger _sensorDataManager;
+  late final DeviceInfoManager _deviceInfoManager;
+  late final ClientCommandHandler commandHandler;
 
   final String hostIPAddress;
   final String deviceName;
-  late final String ownIPAddress;
-  bool _ownIPAddressInitialized = false;
+  late final String localIP;
 
-  var battery = Battery();
-
-  bool _isPaused = false;
-
-  ClientCommandHandler commandHandler = ClientCommandHandler();
-
-  Timer? _batteryTimer;
+  bool get isPaused => _sensorDataManager.isPaused;
+  int get sensorInterval => _sensorDataManager.sensorInterval.inSeconds;
 
   SensorClient({required this.hostIPAddress, required this.deviceName}) {
     channel = WebSocketChannel.connect(Uri.parse('ws://$hostIPAddress:3001'));
+
+    _initializeComponents();
   }
 
-  Future<String?> retrieveLocalIP() async {
-    final info = NetworkInfo();
-    final wifiIP = await info.getWifiIP();
+  void _initializeComponents() async {
+    _deviceInfoManager = DeviceInfoManager(onDeviceInfo: sendJson);
 
-    if (!_ownIPAddressInitialized) {
-      ownIPAddress = wifiIP ?? '';
-      _ownIPAddressInitialized = true;
-    }
+    localIP = (await _deviceInfoManager.retrieveLocalIP())!;
 
-    return wifiIP;
+    _sensorDataManager = SensorDataManger(
+      onSensorData: sendJson,
+      localIP: localIP,
+    );
+
+    commandHandler = ClientCommandHandler();
   }
-
-  Duration sensorInterval = Duration(seconds: 1);
 
   Future<bool> initSocket() async {
     final completer = Completer<bool>();
@@ -57,7 +47,7 @@ class SensorClient {
     // send connection request including ip and custom device name to server
     final initializationMessage = jsonEncode({
       "command": NetworkCommands.ConnectionRequest.command,
-      "ip": await retrieveLocalIP(),
+      "ip": await _deviceInfoManager.retrieveLocalIP(),
       "deviceName": deviceName,
     });
     channel.sink.add(initializationMessage);
@@ -71,7 +61,7 @@ class SensorClient {
               NetworkCommands.ConnectionAccepted.command) {
             completer.complete(true);
 
-            startBatteryMonitoring();
+            _deviceInfoManager.startBatteryMonitoring();
 
             return;
           }
@@ -99,167 +89,55 @@ class SensorClient {
     );
   }
 
-  void startBatteryMonitoring() {
-    sendBatteryInformation();
-
-    _batteryTimer = Timer.periodic(Duration(minutes: 5), (timer) async {
-      await sendBatteryInformation();
-    });
+  // public API methods
+  void sendJson(Map<String, dynamic> json) {
+    channel.sink.add(jsonEncode(json));
   }
 
-  Future<void> sendBatteryInformation() async {
-    channel.sink.add(
-      jsonEncode({
-        "ip": ownIPAddress,
-        "command": NetworkCommands.BatteryLevel.command,
-        "level": await battery.batteryLevel,
-      }),
-    );
+  Future<void> startSensorStream() async {
+    await _sensorDataManager.startSensorStream();
   }
 
-  void sendStartingNullMeasurement(int durationInSeconds) {
+  Future<void> pauseMeasurement() async {
+    _sensorDataManager.pauseMeasurement();
+  }
+
+  Future<void> resumeMeasurement() async {
+    _sensorDataManager.resumeMeasurement();
+  }
+
+  Future<void> stopMeasurement() async {
+    await _sensorDataManager.stopSensorStream();
+    await channel.sink.close();
+  }
+
+  void sendStartingNullMeasurement(int durationInSeconds) async {
     channel.sink.add(
       jsonEncode({
         "command": NetworkCommands.StartNullMeasurementOnDevice.command,
         "duration": durationInSeconds,
         "timestamp": DateTime.now().toString(),
-        "ip": ownIPAddress,
+        "ip": await _deviceInfoManager.retrieveLocalIP(),
       }),
     );
   }
 
-  void sendDelayedMeasurement(int duration) {
+  void sendDelayedMeasurement(int duration) async {
     final message = {
       'command': NetworkCommands.DelayedMeasurementOnDevice.command,
-      'ip': ownIPAddress,
+      'ip': await _deviceInfoManager.retrieveLocalIP(),
       'timestamp': DateTime.now().toString(),
       'duration': duration,
     };
     channel.sink.add(jsonEncode(message));
   }
 
-  Future<void> startSensorStream() async {
-    final localIP = await retrieveLocalIP();
-    _isPaused = false;
-
-    accelerometerSub = accelerometerEventStream(
-      samplingPeriod: sensorInterval,
-    ).listen((AccelerometerEvent event) {
-      if (!_isPaused) {
-        final now = event.timestamp;
-        final message = {
-          'ip': localIP,
-          'sensor': SensorType.accelerometer.displayName,
-          'timestamp': now.toString(),
-          'x': event.x,
-          'y': event.y,
-          'z': event.z,
-        };
-        channel.sink.add(jsonEncode(message));
-      }
-    });
-
-    gyroscopeSub = gyroscopeEventStream(samplingPeriod: sensorInterval).listen((
-      GyroscopeEvent event,
-    ) {
-      if (!_isPaused) {
-        final now = event.timestamp;
-        final message = {
-          'ip': localIP,
-          'sensor': SensorType.gyroscope.displayName,
-          'timestamp': now.toString(),
-          'x': event.x,
-          'y': event.y,
-          'z': event.z,
-        };
-        channel.sink.add(jsonEncode(message));
-      }
-    });
-
-    magnetometerSub = magnetometerEventStream(
-      samplingPeriod: sensorInterval,
-    ).listen((MagnetometerEvent event) {
-      if (!_isPaused) {
-        final now = event.timestamp;
-        final message = {
-          'ip': localIP,
-          'sensor': SensorType.magnetometer.displayName,
-          'timestamp': now.toString(),
-          'x': event.x,
-          'y': event.y,
-          'z': event.z,
-        };
-        channel.sink.add(jsonEncode(message));
-      }
-    });
-
-    barometerSub = barometerEventStream(samplingPeriod: sensorInterval).listen((
-      BarometerEvent event,
-    ) {
-      if (!_isPaused) {
-        final now = event.timestamp;
-        final message = {
-          'ip': localIP,
-          'sensor': SensorType.barometer.displayName,
-          'timestamp': now.toString(),
-          'pressure': event.pressure,
-        };
-        channel.sink.add(jsonEncode(message));
-      }
-    });
-  }
-
-  Future<void> pauseMeasurement() async {
-    if (!_isPaused) {
-      _isPaused = true;
-
-      channel.sink.add(
-        jsonEncode({
-          "command": NetworkCommands.PauseMeasurementOnDevice.command,
-          "ip": await retrieveLocalIP(),
-          "timestamp": DateTime.now().toString(),
-        }),
-      );
-
-      print("Messung pausiert - Verbindung bleibt bestehen");
-    }
-  }
-
-  Future<void> resumeMeasurement() async {
-    if (_isPaused) {
-      _isPaused = false;
-
-      channel.sink.add(
-        jsonEncode({
-          "command": NetworkCommands.ResumeMeasurementOnDevice.command,
-          "ip": await retrieveLocalIP(),
-          "timestamp": DateTime.now().toString(),
-        }),
-      );
-
-      print("Messung fortgesetzt");
-    }
-  }
-
-  Future<void> stopMeasurement() async {
-    await accelerometerSub.cancel();
-    await gyroscopeSub.cancel();
-    await magnetometerSub.cancel();
-    await barometerSub.cancel();
-
-    channel.sink.add(
-      jsonEncode({
-        "command": NetworkCommands.StopMeasurementOnDevice.command,
-        "ip": await retrieveLocalIP(),
-      }),
-    );
-
-    await channel.sink.close();
-  }
-
   void sendNullMeasurementAverage(Map<String, Object> averageValues) {
-    channel.sink.add(jsonEncode(averageValues));
+    _sensorDataManager.sendNullMeasurementAverage(averageValues);
   }
 
-  bool get isPaused => _isPaused;
+  Future<void> disconnect() async {
+    _deviceInfoManager.stopBatteryMonitoring();
+    await _sensorDataManager.stopSensorStream();
+  }
 }

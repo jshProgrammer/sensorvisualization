@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/client/SensorClient.dart';
+
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/AlarmPage.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
 
@@ -195,7 +196,8 @@ class _SensorMessScreenState extends State<SensorMessScreen> {
                   onSelectionChanged: (value) {
                     setState(() {
                       sensorInterval = value.first;
-                      widget.connection.sensorInterval = sensorInterval;
+                      //TODO: setter hier rausschmeißen
+                      //widget.connection.sensorInterval = sensorInterval;
                       userAccelerometerEventStream(
                         samplingPeriod: sensorInterval,
                       );
