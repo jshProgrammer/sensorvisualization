@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
 import 'package:tuple/tuple.dart';
 
 class ChartConfig {
@@ -12,13 +13,20 @@ class ChartConfig {
   final Map<DateTime, String> notes = {};
   final Color color;
 
+  Map<String, List<WarningRange>> ranges = {
+    'green': [],
+    'yellow': [],
+    'red': [],
+  };
+  
+
   ChartConfig({
     required this.id,
     required this.title,
     required this.dataPoints,
     required this.color,
   });
-
+  
   void addDataPoint(
     String ipAddress,
     SensorType sensorType,

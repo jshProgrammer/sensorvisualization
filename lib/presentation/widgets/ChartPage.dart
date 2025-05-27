@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide Column;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_launcher_icons/config/config.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
@@ -91,11 +92,11 @@ class _ChartPageState extends State<ChartPage> {
 
   late DangerDetector _dangerDetector;
 
-  Map<String, List<WarningRange>> warningRanges = {
-    'green': [],
-    'yellow': [],
-    'red': [],
-  };
+  // Map<String, List<WarningRange>> warningRanges = {
+  //   'green': [],
+  //   'yellow': [],
+  //   'red': [],
+  // };
 
   late Databaseoperations _databaseOperations;
 
@@ -242,7 +243,7 @@ class _ChartPageState extends State<ChartPage> {
             final newDangers = DangerDetector.findDangerTimestamps(
               points: selectedPoints,
               timestamps: selectedTimestamps,
-              warningLevels: warningRanges,
+              warningLevels: widget.chartConfig.ranges,
             );
 
             final formattedNewDangers =
@@ -378,7 +379,7 @@ class _ChartPageState extends State<ChartPage> {
             final newDangers = DangerDetector.findDangerTimestamps(
               points: selectedPoints,
               timestamps: selectedTimestamps,
-              warningLevels: warningRanges,
+              warningLevels: widget.chartConfig.ranges,
             );
 
             final formattedNewDangers =
@@ -507,13 +508,16 @@ class _ChartPageState extends State<ChartPage> {
     final result = await showDialog<Map<String, List<WarningRange>>>(
       context: context,
       builder: (BuildContext context) {
-        return Warninglevelsselection(initialValues: warningRanges);
+        return Warninglevelsselection(initialValues: widget.chartConfig.ranges);
       },
     );
 
     if (result != null) {
       setState(() {
-        warningRanges = result;
+        widget.chartConfig.ranges = {
+          for (var entry in result.entries)
+          entry.key: List<WarningRange>.from(entry.value),
+        };
       });
     }
   }
@@ -927,7 +931,7 @@ class _ChartPageState extends State<ChartPage> {
                               chartConfig: widget.chartConfig,
                               autoFollowLatestData: autoFollowLatestData,
                               baselineX: baselineX,
-                              warningRanges: warningRanges,
+                              warningRanges: widget.chartConfig.ranges,
                               settingsProvider: Provider.of<SettingsProvider>(
                                 context,
                                 listen: false,
