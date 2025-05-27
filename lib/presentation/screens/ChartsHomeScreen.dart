@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
+import 'package:sensorvisualization/data/models/ChartTab.dart';
 import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
@@ -27,7 +28,7 @@ class ChartsHomeScreen extends StatefulWidget {
 }
 
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
-  final List<List<ChartConfig>> mCharts = [];
+  final List<ChartTab> mTabs = [];
 
   Map<String, Map<String, Set<MultiSelectDialogItem>>> chartSelections = {};
 
@@ -46,10 +47,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   }
 
   void _addNewChartToCurrentTab() {
-    if (selectedTabIndex >= mCharts.length) return;
+    if (selectedTabIndex >= mTabs.length) return;
 
     setState(() {
-      final tabCharts = mCharts[selectedTabIndex];
+      final tabCharts = mTabs[selectedTabIndex].charts;
       final newIndex = tabCharts.length;
       final newChart = ChartConfig(
         id: 'mchart_${selectedTabIndex}_$newIndex',
@@ -65,18 +66,22 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   void _addNewChartTab() {
     setState(() {
       final newChart = ChartConfig(
-        id: 'mchart_${mCharts.length}_0',
+        id: 'mchart_${mTabs.length}_0',
         title: 'Diagramm 1',
         dataPoints: {},
         color: Colors.primaries[0],
       );
-      mCharts.add([newChart]);
-      selectedTabIndex = mCharts.length - 1;
+      final newTab = ChartTab(
+      title: 'Tab ${mTabs.length + 1}',
+      charts: [newChart],
+      );
+      mTabs.add(newTab);
+      selectedTabIndex = mTabs.length - 1;
     });
   }
 
   void _deleteCurrentTab() {
-    if (mCharts.length <= 1) {
+    if (mTabs.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Mindestens ein Tab muss bestehen bleiben'),
@@ -86,12 +91,50 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     }
 
     setState(() {
-      final removedTab = mCharts.removeAt(selectedTabIndex);
-      for (final chart in removedTab) {
+      final removedTab = mTabs.removeAt(selectedTabIndex);
+      for (final chart in removedTab.charts) {
         chartSelections.remove(chart.id);
       }
-      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mTabs.length - 1);
     });
+  }
+
+  void _editCurrentTabName() async {
+    final currentTitle = mTabs[selectedTabIndex].title;
+    final controller = TextEditingController(text: currentTitle);
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tab umbenennen'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Neuer Name'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Abbrechen'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) {
+                Navigator.pop(context, value);
+              }
+            },
+            child: const Text('Speichern'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName.isNotEmpty) {
+      setState(() {
+        mTabs[selectedTabIndex].title = newName;
+      });
+    }
   }
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
@@ -102,7 +145,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<ChartConfig> activeCharts = (mCharts.isNotEmpty ? mCharts[selectedTabIndex] : []);
+    final List<ChartConfig> activeCharts = (mTabs.isNotEmpty ? mTabs[selectedTabIndex].charts : []);
 
     return Scaffold(
       appBar: AppBar(
@@ -186,7 +229,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
         children: [
             ChartSelectorTabMulti(
               selectedIndex: selectedTabIndex,
-              tabCount: mCharts.length,
+              tabTitles: mTabs.map((tab) => tab.title).toList(),
               onTabSelected: (index) {
                 setState(() {
                   selectedTabIndex = index;
@@ -209,6 +252,11 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                     onPressed: _addNewChartTab,
                   ),
                   IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'Aktuellen Tab umbenennen',
+                    onPressed: _editCurrentTabName,
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.close),
                     tooltip: 'Aktuellen Tab löschen',
                     onPressed: _deleteCurrentTab,
@@ -219,10 +267,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
           Expanded(
             child:
-                mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
+                mTabs.isEmpty || mTabs[selectedTabIndex].charts.isEmpty
                         ? const Center(child: Text('Keine Diagramme vorhanden'))
                         : MultipleChartsPage(
-                          chartPages: mCharts[selectedTabIndex],
+                          chartPages: mTabs[selectedTabIndex].charts,
                           chartSelections: chartSelections,
                           onSelectedValuesChanged: (
                             String chartId,
@@ -234,8 +282,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
                           },
                           onDeleteChart: (index) {
                             setState(() {
-                              if (mCharts[selectedTabIndex].length > 1) {
-                                final removedChart = mCharts[selectedTabIndex]
+                              if (mTabs[selectedTabIndex].charts.length > 1) {
+                                final removedChart = mTabs[selectedTabIndex].charts
                                     .removeAt(index);
                                 chartSelections.remove(removedChart.id);
                               } else {
