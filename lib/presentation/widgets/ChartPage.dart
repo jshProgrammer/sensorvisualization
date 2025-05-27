@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/drift.dart' hide Column;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_launcher_icons/config/config.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
@@ -57,6 +58,12 @@ class ChartPage extends StatefulWidget {
 class _ChartPageState extends State<ChartPage> {
   final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
+  bool _isEditingTitle = false;
+
+  late TextEditingController _titleController;
+
+  late FocusNode _focusNode;
+
   double baselineX = 0.0;
 
   bool autoFollowLatestData = true;
@@ -91,11 +98,11 @@ class _ChartPageState extends State<ChartPage> {
 
   late DangerDetector _dangerDetector;
 
-  Map<String, List<WarningRange>> warningRanges = {
-    'green': [],
-    'yellow': [],
-    'red': [],
-  };
+  // Map<String, List<WarningRange>> warningRanges = {
+  //   'green': [],
+  //   'yellow': [],
+  //   'red': [],
+  // };
 
   late Databaseoperations _databaseOperations;
 
@@ -111,6 +118,19 @@ class _ChartPageState extends State<ChartPage> {
             )
             : {};
     _transformationController = TransformationController();
+
+    _titleController = TextEditingController(text: widget.chartConfig.title);
+
+    _focusNode = FocusNode();
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus && _isEditingTitle) {
+        setState(() {
+          _titleController.text = widget.chartConfig.title;
+          _isEditingTitle = false;
+        });
+      }
+    });
 
     _startTime = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -242,7 +262,7 @@ class _ChartPageState extends State<ChartPage> {
             final newDangers = DangerDetector.findDangerTimestamps(
               points: selectedPoints,
               timestamps: selectedTimestamps,
-              warningLevels: warningRanges,
+              warningLevels: widget.chartConfig.ranges,
             );
 
             final formattedNewDangers =
@@ -277,6 +297,8 @@ class _ChartPageState extends State<ChartPage> {
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
+    _titleController.dispose();
+    _focusNode.dispose();
     _dataSubscription.cancel();
     simulator.stopSimulation();
     super.dispose();
@@ -345,33 +367,62 @@ class _ChartPageState extends State<ChartPage> {
                 ? jsonData['z'] as double
                 : 0.0;
 
-        final newDangers = DangerDetector.findDangerTimestamps(
-          points: [
-            FlSpot(timestamp, x),
-            FlSpot(timestamp, y),
-            FlSpot(timestamp, z),
-          ],
-          timestamps: [dateTime, dateTime, dateTime],
-          warningLevels: warningRanges,
-        );
 
-        for (final t in newDangers) {
-          if (!_allDangerTimestamps.contains(t)) {
-            _allDangerTimestamps.add(t);
-          }
-        }
 
-        _allDangerTimestamps.sort();
+        List<FlSpot> selectedPoints = [];
+        List<DateTime> selectedTimestamps = [];
 
-        _dangerDetector = DangerDetector(_allDangerTimestamps);
+            for (final device in selectedValues.keys) {
+              for (final sensorItem in selectedValues[device]!) {
+                if (sensorItem.attribute != null) {
+                  double val;
+                  switch (sensorItem.attribute!) {
+                    case SensorOrientation.x:
+                      val = x;
+                      break;
+                    case SensorOrientation.y:
+                      val = y;
+                      break;
+                    case SensorOrientation.z:
+                      val = z;
+                      break;
+                    case SensorOrientation.pressure:
+                      continue;
+                  }
+                  selectedPoints.add(FlSpot(timestamp, val));
+                  selectedTimestamps.add(dateTime);
+                }
+              }
+            }
 
-        if (newDangers.isNotEmpty) {
-          dangerNavigationController.setCurrent(newDangers.first);
-        }
+            selectedTimestamps.sort();
 
-        if (autoFollowLatestData) {
-          baselineX = timestamp;
-        }
+            final newDangers = DangerDetector.findDangerTimestamps(
+              points: selectedPoints,
+              timestamps: selectedTimestamps,
+              warningLevels: widget.chartConfig.ranges,
+            );
+
+            final formattedNewDangers =
+                newDangers.map((dt) => truncateToSeconds(dt)).toList();
+
+            for (final t in formattedNewDangers) {
+              if (!_allDangerTimestamps.contains(t)) {
+                _allDangerTimestamps.add(t);
+              }
+            }
+
+            _allDangerTimestamps.sort();
+
+            _dangerDetector = DangerDetector(_allDangerTimestamps);
+
+            if (formattedNewDangers.isNotEmpty) {
+              dangerNavigationController.setCurrent(formattedNewDangers.first);
+            }
+
+            if (autoFollowLatestData) {
+              baselineX = timestamp;
+            }
       });
     }
   }
@@ -478,13 +529,16 @@ class _ChartPageState extends State<ChartPage> {
     final result = await showDialog<Map<String, List<WarningRange>>>(
       context: context,
       builder: (BuildContext context) {
-        return Warninglevelsselection(initialValues: warningRanges);
+        return Warninglevelsselection(initialValues: widget.chartConfig.ranges);
       },
     );
 
     if (result != null) {
       setState(() {
-        warningRanges = result;
+        widget.chartConfig.ranges = {
+          for (var entry in result.entries)
+          entry.key: List<WarningRange>.from(entry.value),
+        };
       });
     }
   }
@@ -866,7 +920,39 @@ class _ChartPageState extends State<ChartPage> {
     return GestureDetector(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.chartConfig.title),
+          title: _isEditingTitle
+              ? SizedBox(
+                  width: 200,
+                  child: TextField(
+                    controller: _titleController,
+                    focusNode: _focusNode,
+                    autofocus: true,
+                    onSubmitted: (value) {
+                          if (value.trim().isNotEmpty) {
+                            setState(() {
+                            widget.chartConfig.title = value.trim();
+                            _isEditingTitle = false;
+                            });
+                          } else {
+                            setState(() {
+                              _titleController.text = widget.chartConfig.title;
+                              _isEditingTitle = false;
+                            });
+                          }
+                    },
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isEditingTitle = true;
+                    });
+                  },
+                  child: Text(
+                    widget.chartConfig.title,
+                    style: const TextStyle(fontSize: 20.0),
+                  ),
+                ),
           actions: buildAppBarActions(),
         ),
         body: Row(
@@ -898,7 +984,7 @@ class _ChartPageState extends State<ChartPage> {
                               chartConfig: widget.chartConfig,
                               autoFollowLatestData: autoFollowLatestData,
                               baselineX: baselineX,
-                              warningRanges: warningRanges,
+                              warningRanges: widget.chartConfig.ranges,
                               settingsProvider: Provider.of<SettingsProvider>(
                                 context,
                                 listen: false,

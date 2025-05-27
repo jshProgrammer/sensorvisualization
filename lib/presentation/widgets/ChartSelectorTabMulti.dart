@@ -3,13 +3,13 @@ import '../../data/models/ChartConfig.dart';
 
 class ChartSelectorTabMulti extends StatelessWidget {
   final int selectedIndex;
-  final int tabCount;
+  final List<String> tabTitles;
   final ValueChanged<int> onTabSelected;
 
   const ChartSelectorTabMulti({
     super.key,
     required this.selectedIndex,
-    required this.tabCount,
+    required this.tabTitles,
     required this.onTabSelected,
   });
 
@@ -19,12 +19,12 @@ class ChartSelectorTabMulti extends StatelessWidget {
       height: 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: tabCount,
+        itemCount: tabTitles.length,
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: FilterChip(
-              label: Text('Tab ${index + 1}'),
+              label: Text(tabTitles[index]),
               selected: selectedIndex == index,
               onSelected: (_) => onTabSelected(index),
             ),
