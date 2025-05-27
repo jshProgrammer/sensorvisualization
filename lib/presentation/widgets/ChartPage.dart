@@ -345,33 +345,62 @@ class _ChartPageState extends State<ChartPage> {
                 ? jsonData['z'] as double
                 : 0.0;
 
-        final newDangers = DangerDetector.findDangerTimestamps(
-          points: [
-            FlSpot(timestamp, x),
-            FlSpot(timestamp, y),
-            FlSpot(timestamp, z),
-          ],
-          timestamps: [dateTime, dateTime, dateTime],
-          warningLevels: warningRanges,
-        );
 
-        for (final t in newDangers) {
-          if (!_allDangerTimestamps.contains(t)) {
-            _allDangerTimestamps.add(t);
-          }
-        }
 
-        _allDangerTimestamps.sort();
+        List<FlSpot> selectedPoints = [];
+        List<DateTime> selectedTimestamps = [];
 
-        _dangerDetector = DangerDetector(_allDangerTimestamps);
+            for (final device in selectedValues.keys) {
+              for (final sensorItem in selectedValues[device]!) {
+                if (sensorItem.attribute != null) {
+                  double val;
+                  switch (sensorItem.attribute!) {
+                    case SensorOrientation.x:
+                      val = x;
+                      break;
+                    case SensorOrientation.y:
+                      val = y;
+                      break;
+                    case SensorOrientation.z:
+                      val = z;
+                      break;
+                    case SensorOrientation.pressure:
+                      continue;
+                  }
+                  selectedPoints.add(FlSpot(timestamp, val));
+                  selectedTimestamps.add(dateTime);
+                }
+              }
+            }
 
-        if (newDangers.isNotEmpty) {
-          dangerNavigationController.setCurrent(newDangers.first);
-        }
+            selectedTimestamps.sort();
 
-        if (autoFollowLatestData) {
-          baselineX = timestamp;
-        }
+            final newDangers = DangerDetector.findDangerTimestamps(
+              points: selectedPoints,
+              timestamps: selectedTimestamps,
+              warningLevels: warningRanges,
+            );
+
+            final formattedNewDangers =
+                newDangers.map((dt) => truncateToSeconds(dt)).toList();
+
+            for (final t in formattedNewDangers) {
+              if (!_allDangerTimestamps.contains(t)) {
+                _allDangerTimestamps.add(t);
+              }
+            }
+
+            _allDangerTimestamps.sort();
+
+            _dangerDetector = DangerDetector(_allDangerTimestamps);
+
+            if (formattedNewDangers.isNotEmpty) {
+              dangerNavigationController.setCurrent(formattedNewDangers.first);
+            }
+
+            if (autoFollowLatestData) {
+              baselineX = timestamp;
+            }
       });
     }
   }
