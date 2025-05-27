@@ -58,6 +58,12 @@ class ChartPage extends StatefulWidget {
 class _ChartPageState extends State<ChartPage> {
   final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
+  bool _isEditingTitle = false;
+
+  late TextEditingController _titleController;
+
+  late FocusNode _focusNode;
+
   double baselineX = 0.0;
 
   bool autoFollowLatestData = true;
@@ -112,6 +118,19 @@ class _ChartPageState extends State<ChartPage> {
             )
             : {};
     _transformationController = TransformationController();
+
+    _titleController = TextEditingController(text: widget.chartConfig.title);
+
+    _focusNode = FocusNode();
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus && _isEditingTitle) {
+        setState(() {
+          _titleController.text = widget.chartConfig.title;
+          _isEditingTitle = false;
+        });
+      }
+    });
 
     _startTime = DateTime.now();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -278,6 +297,8 @@ class _ChartPageState extends State<ChartPage> {
   void dispose() {
     _transformationController.dispose();
     _noteController.dispose();
+    _titleController.dispose();
+    _focusNode.dispose();
     _dataSubscription.cancel();
     simulator.stopSimulation();
     super.dispose();
@@ -899,7 +920,39 @@ class _ChartPageState extends State<ChartPage> {
     return GestureDetector(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.chartConfig.title),
+          title: _isEditingTitle
+              ? SizedBox(
+                  width: 200,
+                  child: TextField(
+                    controller: _titleController,
+                    focusNode: _focusNode,
+                    autofocus: true,
+                    onSubmitted: (value) {
+                          if (value.trim().isNotEmpty) {
+                            setState(() {
+                            widget.chartConfig.title = value.trim();
+                            _isEditingTitle = false;
+                            });
+                          } else {
+                            setState(() {
+                              _titleController.text = widget.chartConfig.title;
+                              _isEditingTitle = false;
+                            });
+                          }
+                    },
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isEditingTitle = true;
+                    });
+                  },
+                  child: Text(
+                    widget.chartConfig.title,
+                    style: const TextStyle(fontSize: 20.0),
+                  ),
+                ),
           actions: buildAppBarActions(),
         ),
         body: Row(

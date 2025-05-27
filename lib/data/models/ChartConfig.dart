@@ -7,7 +7,7 @@ import 'package:tuple/tuple.dart';
 
 class ChartConfig {
   final String id;
-  final String title;
+  String title;
   final Map<String, Map<Tuple2<SensorType, SensorOrientation>, List<FlSpot>>>
   dataPoints; // ip-address of device -> sensor type and orientation -> data points
   final Map<DateTime, String> notes = {};
