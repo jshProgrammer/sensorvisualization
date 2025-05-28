@@ -5,14 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:provider/provider.dart';
+import 'package:sensorvisualization/data/models/ChartTab.dart';
 import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
-import 'package:sensorvisualization/data/services/SampleData.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartSelectorTab.dart';
+import 'package:sensorvisualization/presentation/dialogs/ConnectedDevicesDialog.dart';
 import 'package:tuple/tuple.dart';
 import '../../data/models/ChartConfig.dart';
 import 'package:sensorvisualization/presentation/widgets/ChartPage.dart';
@@ -27,46 +28,29 @@ class ChartsHomeScreen extends StatefulWidget {
 }
 
 class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
-  final List<ChartConfig> charts = [];
-  final List<List<ChartConfig>> mCharts = [];
+  final List<ChartTab> mTabs = [];
 
   Map<String, Map<String, Set<MultiSelectDialogItem>>> chartSelections = {};
 
   int selectedTabIndex = 0;
 
   int selectedChartIndex = 0;
-  bool useMultipleCharts = false;
 
   final firebaseSync = Firebasesync();
 
   @override
   void initState() {
     super.initState();
-    _addNewChart();
+    _addNewChartTab();
 
     GlobalStartTime().initializeStartTime();
   }
 
-  void _addNewChart() {
-    setState(() {
-      final newIndex = charts.length;
-      final newChart = ChartConfig(
-        id: 'chart_$newIndex',
-        title: 'Diagramm ${newIndex + 1}',
-        dataPoints: {},
-        color: Colors.primaries[newIndex % Colors.primaries.length],
-      );
-      charts.add(newChart);
-      chartSelections[newChart.id] = {};
-      selectedChartIndex = charts.length - 1;
-    });
-  }
-
   void _addNewChartToCurrentTab() {
-    if (selectedTabIndex >= mCharts.length) return;
+    if (selectedTabIndex >= mTabs.length) return;
 
     setState(() {
-      final tabCharts = mCharts[selectedTabIndex];
+      final tabCharts = mTabs[selectedTabIndex].charts;
       final newIndex = tabCharts.length;
       final newChart = ChartConfig(
         id: 'mchart_${selectedTabIndex}_$newIndex',
@@ -82,38 +66,22 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   void _addNewChartTab() {
     setState(() {
       final newChart = ChartConfig(
-        id: 'mchart_${mCharts.length}_0',
+        id: 'mchart_${mTabs.length}_0',
         title: 'Diagramm 1',
         dataPoints: {},
         color: Colors.primaries[0],
       );
-      mCharts.add([newChart]);
-      selectedTabIndex = mCharts.length - 1;
-    });
-  }
-
-  void _deleteChart(int index) {
-    if (charts.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mindestens ein Diagramm muss bestehen bleiben'),
-        ),
+      final newTab = ChartTab(
+        title: 'Tab ${mTabs.length + 1}',
+        charts: [newChart],
       );
-      return;
-    }
-
-    setState(() {
-      final removedChart = charts.removeAt(index);
-      chartSelections.remove(removedChart.id);
-
-      if (selectedChartIndex >= charts.length) {
-        selectedChartIndex = charts.length - 1;
-      }
+      mTabs.add(newTab);
+      selectedTabIndex = mTabs.length - 1;
     });
   }
 
   void _deleteCurrentTab() {
-    if (mCharts.length <= 1) {
+    if (mTabs.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Mindestens ein Tab muss bestehen bleiben'),
@@ -123,12 +91,51 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
     }
 
     setState(() {
-      final removedTab = mCharts.removeAt(selectedTabIndex);
-      for (final chart in removedTab) {
+      final removedTab = mTabs.removeAt(selectedTabIndex);
+      for (final chart in removedTab.charts) {
         chartSelections.remove(chart.id);
       }
-      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mCharts.length - 1);
+      selectedTabIndex = (selectedTabIndex - 1).clamp(0, mTabs.length - 1);
     });
+  }
+
+  void _editCurrentTabName() async {
+    final currentTitle = mTabs[selectedTabIndex].title;
+    final controller = TextEditingController(text: currentTitle);
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Tab umbenennen'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(hintText: 'Neuer Name'),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Abbrechen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final value = controller.text.trim();
+                  if (value.isNotEmpty) {
+                    Navigator.pop(context, value);
+                  }
+                },
+                child: const Text('Speichern'),
+              ),
+            ],
+          ),
+    );
+
+    if (newName != null && newName.isNotEmpty) {
+      setState(() {
+        mTabs[selectedTabIndex].title = newName;
+      });
+    }
   }
 
   int _selectedTimeChoice = TimeChoice.timestamp.value;
@@ -140,9 +147,7 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final List<ChartConfig> activeCharts =
-        useMultipleCharts
-            ? (mCharts.isNotEmpty ? mCharts[selectedTabIndex] : [])
-            : charts;
+        (mTabs.isNotEmpty ? mTabs[selectedTabIndex].charts : []);
 
     return Scaffold(
       appBar: AppBar(
@@ -158,7 +163,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
           IconButton(
             icon: Icon(Icons.smartphone),
             onPressed: () {
-              showConnectedDevicesDialog();
+              showDialog(
+                context: context,
+                builder: (context) => const ConnectedDevicesDialog(),
+              );
             },
           ),
           IconButton(
@@ -220,143 +228,84 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
               }
             },
           ),
-          Row(
-            children: [
-              Text(
-                'Mehrere Diagramme',
-                style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
-              ),
-              Switch(
-                value: useMultipleCharts,
-                onChanged: (value) {
-                  setState(() {
-                    useMultipleCharts = value;
-                    if (useMultipleCharts && mCharts.isEmpty) {
-                      _addNewChartTab();
-                    }
-                  });
-                },
-                activeColor: Colors.blue,
-                inactiveTrackColor: const Color.fromARGB(255, 70, 70, 70),
-                inactiveThumbColor: Colors.grey,
-              ),
-            ],
-          ),
         ],
       ),
       body: Column(
         children: [
-          if (useMultipleCharts)
-            ChartSelectorTabMulti(
-              selectedIndex: selectedTabIndex,
-              tabCount: mCharts.length,
-              onTabSelected: (index) {
-                setState(() {
-                  selectedTabIndex = index;
-                });
-              },
-            )
-          else
-            ChartSelectorTab(
-              charts: charts,
-              selectedChartIndex: selectedChartIndex,
-              onTabSelected: (index) {
-                setState(() {
-                  selectedChartIndex = index;
-                });
-              },
+          ChartSelectorTabMulti(
+            selectedIndex: selectedTabIndex,
+            tabTitles: mTabs.map((tab) => tab.title).toList(),
+            onTabSelected: (index) {
+              setState(() {
+                selectedTabIndex = index;
+              });
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Neues Diagramm im aktuellen Tab hinzufügen',
+                  onPressed: _addNewChartToCurrentTab,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.tab),
+                  tooltip: 'Neuen Tab hinzufügen',
+                  onPressed: _addNewChartTab,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Aktuellen Tab umbenennen',
+                  onPressed: _editCurrentTabName,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Aktuellen Tab löschen',
+                  onPressed: _deleteCurrentTab,
+                ),
+              ],
             ),
-
-          if (useMultipleCharts)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Neues Diagramm im aktuellen Tab hinzufügen',
-                    onPressed: _addNewChartToCurrentTab,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.tab),
-                    tooltip: 'Neuen Tab hinzufügen',
-                    onPressed: _addNewChartTab,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    tooltip: 'Aktuellen Tab löschen',
-                    onPressed: _deleteCurrentTab,
-                  ),
-                ],
-              ),
-            ),
+          ),
 
           Expanded(
             child:
-                useMultipleCharts
-                    ? mCharts.isEmpty || mCharts[selectedTabIndex].isEmpty
-                        ? const Center(child: Text('Keine Diagramme vorhanden'))
-                        : MultipleChartsPage(
-                          chartPages: mCharts[selectedTabIndex],
-                          chartSelections: chartSelections,
-                          onSelectedValuesChanged: (
-                            String chartId,
-                            Map<String, Set<MultiSelectDialogItem>> newSel,
-                          ) {
-                            setState(() {
-                              chartSelections[chartId] = newSel;
-                            });
-                          },
-                          onDeleteChart: (index) {
-                            setState(() {
-                              if (mCharts[selectedTabIndex].length > 1) {
-                                final removedChart = mCharts[selectedTabIndex]
-                                    .removeAt(index);
-                                chartSelections.remove(removedChart.id);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Mindestens ein Diagramm muss vorhanden sein.',
-                                    ),
-                                  ),
-                                );
-                              }
-                            });
-                          },
-                        )
-                    : charts.isEmpty
+                mTabs.isEmpty || mTabs[selectedTabIndex].charts.isEmpty
                     ? const Center(child: Text('Keine Diagramme vorhanden'))
-                    : ChartPage.withSelectedValues(
-                      chartConfig: charts[selectedChartIndex],
-                      selectedValues:
-                          chartSelections[charts[selectedChartIndex].id] ?? {},
-                      onSelectedValuesChanged: (newSelections) {
+                    : MultipleChartsPage(
+                      chartPages: mTabs[selectedTabIndex].charts,
+                      chartSelections: chartSelections,
+                      onSelectedValuesChanged: (
+                        String chartId,
+                        Map<String, Set<MultiSelectDialogItem>> newSel,
+                      ) {
                         setState(() {
-                          chartSelections[charts[selectedChartIndex].id] =
-                              newSelections;
+                          chartSelections[chartId] = newSel;
+                        });
+                      },
+                      onDeleteChart: (index) {
+                        setState(() {
+                          if (mTabs[selectedTabIndex].charts.length > 1) {
+                            final removedChart = mTabs[selectedTabIndex].charts
+                                .removeAt(index);
+                            chartSelections.remove(removedChart.id);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Mindestens ein Diagramm muss vorhanden sein.',
+                                ),
+                              ),
+                            );
+                          }
                         });
                       },
                     ),
           ),
-
-          if (!useMultipleCharts)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              tooltip: 'Diagramm löschen',
-              onPressed: () => _deleteChart(selectedChartIndex),
-            ),
         ],
       ),
-      floatingActionButton:
-          useMultipleCharts
-              ? null
-              : FloatingActionButton(
-                onPressed: _addNewChart,
-                tooltip: 'Neues Diagramm hinzufügen',
-                child: const Icon(Icons.add_chart),
-              ),
     );
   }
 
@@ -616,117 +565,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
               },
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void showConnectedDevicesDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Consumer<ConnectionProvider>(
-          builder: (context, provider, _) {
-            return StatefulBuilder(
-              builder: (context, setState) {
-                final connectedDevices = provider.connectedDevices;
-
-                Timer? dialogTimer;
-
-                dialogTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-                  if (context.mounted) {
-                    setState(() {});
-                  } else {
-                    timer.cancel();
-                  }
-                });
-
-                return AlertDialog(
-                  title: Text("Verbundene Geräte"),
-                  content:
-                      connectedDevices.isEmpty
-                          ? Text("Keine Geräte verbunden")
-                          : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children:
-                                connectedDevices.entries.map((entry) {
-                                  final state = provider
-                                      .getCurrentConnectionState(entry.key);
-                                  int? remainingSeconds = provider
-                                      .getRemainingConnectionDurationInSec(
-                                        entry.key,
-                                      );
-
-                                  return ListTile(
-                                    title: Text(entry.value),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.circle,
-                                              color: state.iconColor,
-                                              size: 12,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text(state.displayName),
-                                            if (state ==
-                                                ConnectionDisplayState.paused)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Icon(
-                                                  Icons.pause_circle_outline,
-                                                  size: 16,
-                                                  color: Colors.purple,
-                                                ),
-                                              ),
-                                            if (state ==
-                                                    ConnectionDisplayState
-                                                        .nullMeasurement ||
-                                                state ==
-                                                    ConnectionDisplayState
-                                                        .delayedMeasurement)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Text(
-                                                  remainingSeconds != null &&
-                                                          remainingSeconds! >= 0
-                                                      ? "Noch $remainingSeconds s"
-                                                      : "",
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 3),
-                                        Text(entry.key),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                  actions: [
-                    TextButton(
-                      child: Text('Schließen'),
-                      onPressed: () {
-                        dialogTimer?.cancel();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          },
         );
       },
     );

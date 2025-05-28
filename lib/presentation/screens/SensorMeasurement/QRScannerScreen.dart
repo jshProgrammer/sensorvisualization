@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementScreen.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementView.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key, required this.deviceName});
@@ -25,50 +24,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           Expanded(
             flex: 4,
             child: MobileScanner(
-              onDetect: (BarcodeCapture barcodeCapture) {
-                final String? code = barcodeCapture.barcodes.first.rawValue;
-                if (code != null && code != scannedCode) {
-                  setState(() {
-                    scannedCode = code;
-                  });
-                  debugPrint('Scanned QR Code: $code');
-
-                  var connection = SensorClient(
-                    hostIPAddress: scannedCode!,
-                    deviceName: widget.deviceName,
-                  );
-                  connection.initSocket().then((isConnected) {
-                    if (isConnected) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => StartNullMeasurementScreen(
-                                connection: connection,
-                              ),
-                        ),
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder:
-                            (context) => AlertDialog(
-                              title: const Text('Verbindungsfehler'),
-                              content: const Text(
-                                'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            ),
-                      );
-                    }
-                  });
-                }
-              },
+              onDetect:
+                  (BarcodeCapture barcodeCapture) => {
+                    _onDetect(barcodeCapture),
+                  },
             ),
           ),
 
@@ -85,6 +44,53 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _onDetect(BarcodeCapture barcodeCapture) {
+    final String? code = barcodeCapture.barcodes.first.rawValue;
+    if (code != null && code != scannedCode) {
+      setState(() {
+        scannedCode = code;
+      });
+      debugPrint('Scanned QR Code: $code');
+
+      var connection = SensorClient(
+        hostIPAddress: scannedCode!,
+        deviceName: widget.deviceName,
+      );
+      connection.initSocket().then((isConnected) {
+        if (isConnected) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => StartNullMeasurementView(connection: connection),
+            ),
+          );
+        } else {
+          _showErrorDialog();
+        }
+      });
+    }
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Verbindungsfehler'),
+            content: const Text(
+              'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
     );
   }
 }

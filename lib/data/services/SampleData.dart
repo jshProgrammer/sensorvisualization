@@ -74,6 +74,15 @@ class SampleData {
         attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.deviationTo90Degrees,
+        type: ItemType.seperator,
+      ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.deviationTo90Degrees,
+        attribute: SensorOrientation.degree,
+        type: ItemType.data,
+      ),
 
       MultiSelectDialogItem(
         sensorName: SensorType.gyroscope,

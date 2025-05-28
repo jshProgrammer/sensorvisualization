@@ -9,7 +9,6 @@ import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
-import 'package:sensorvisualization/data/services/SensorServer.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/presentation/widgets/WarningLevelsSelection.dart';
@@ -47,10 +46,8 @@ class Sensordata {
   List<FlSpot> getFilteredDataPoints(
     String ipAddress,
     SensorType sensorName,
-    SensorOrientation attribute, {
-    //TODO: to be implemented
-    int baselineY = 0,
-  }) {
+    SensorOrientation attribute,
+  ) {
     final double xMin;
     final double xMax;
     final double currentMaxX = _getMaxX();
@@ -156,8 +153,9 @@ class Sensordata {
         minY: _getMinY(),
         maxY: _getMaxY(),
 
+        //TODO: evtl Logik für Grid Interval einfügen
         gridData: FlGridData(
-          show: true,
+          show: settingsProvider.showGrid,
           horizontalInterval: 0.5,
           verticalInterval: 0.5,
           getDrawingHorizontalLine: (value) {

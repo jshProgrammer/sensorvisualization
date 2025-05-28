@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sensorvisualization/data/services/SensorClient.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementScreen.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
+import 'package:sensorvisualization/data/services/client/SensorClient.dart';
+import 'package:sensorvisualization/presentation/screens/SensorMeasurement/StartNullMeasurementView.dart';
+
 import 'QRScannerScreen.dart';
 
 class ScannerEntryScreen extends StatefulWidget {
@@ -32,8 +32,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => StartNullMeasurementScreen(connection: connection),
+        builder: (context) => StartNullMeasurementView(connection: connection),
       ),
     );
   }
@@ -57,39 +56,7 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () async {
-                if (_isDeviceNameEntered) {
-                  final scannedCode = await Navigator.push<String>(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => QRScannerScreen(
-                            deviceName: _deviceNameController.text.trim(),
-                          ),
-                    ),
-                  );
-                  if (scannedCode != null) {
-                    _navigateToStartMeasurementPage(scannedCode);
-                  }
-                } else {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text('Fehlender Gerätename'),
-                          content: const Text(
-                            'Bitte gib zuerst einen Gerätenamen ein.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        ),
-                  );
-                }
-              },
+              onPressed: () => _handleQRCodeScan(),
               icon: const Icon(Icons.qr_code_scanner),
               label: const Text('QR-Code scannen'),
               style: ElevatedButton.styleFrom(
@@ -110,65 +77,96 @@ class _EntryScreenState extends State<ScannerEntryScreen> {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                if (_isDeviceNameEntered) {
-                  if (_ipController.text.isNotEmpty) {
-                    connection = SensorClient(
-                      hostIPAddress: _ipController.text.trim(),
-                      deviceName: _deviceNameController.text.trim(),
-                    );
-                    connection.initSocket().then((isConnected) {
-                      if (isConnected) {
-                        _navigateToStartMeasurementPage(
-                          _ipController.text.trim(),
-                        );
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder:
-                              (context) => AlertDialog(
-                                title: const Text('Verbindungsfehler'),
-                                content: const Text(
-                                  'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                        );
-                      }
-                    });
-                  }
-                } else {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertDialog(
-                          title: const Text('Fehlender Gerätename'),
-                          content: const Text(
-                            'Bitte gib zuerst einen Gerätenamen ein.',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('OK'),
-                            ),
-                          ],
-                        ),
-                  );
-                }
+                _handleManualIPInput();
               },
-
-              child: const Text('Weiter zur Messung'),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
               ),
+              child: const Text('Weiter zur Messung'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _handleQRCodeScan() async {
+    if (_isDeviceNameEntered) {
+      final scannedCode = await Navigator.push<String>(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => QRScannerScreen(
+                deviceName: _deviceNameController.text.trim(),
+              ),
+        ),
+      );
+      if (scannedCode != null) {
+        _navigateToStartMeasurementPage(scannedCode);
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Fehlender Gerätename'),
+              content: const Text('Bitte gib zuerst einen Gerätenamen ein.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+      );
+    }
+  }
+
+  void _handleManualIPInput() {
+    if (_isDeviceNameEntered) {
+      if (_ipController.text.isNotEmpty) {
+        connection = SensorClient(
+          hostIPAddress: _ipController.text.trim(),
+          deviceName: _deviceNameController.text.trim(),
+        );
+        connection.initSocket().then((isConnected) {
+          if (isConnected) {
+            _navigateToStartMeasurementPage(_ipController.text.trim());
+          } else {
+            showDialog(
+              context: context,
+              builder:
+                  (context) => AlertDialog(
+                    title: const Text('Verbindungsfehler'),
+                    content: const Text(
+                      'Die Verbindung zum Sensor konnte nicht hergestellt werden. Bitte überprüfe die IP-Adresse.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
+            );
+          }
+        });
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Fehlender Gerätename'),
+              content: const Text('Bitte gib zuerst einen Gerätenamen ein.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+      );
+    }
   }
 }
