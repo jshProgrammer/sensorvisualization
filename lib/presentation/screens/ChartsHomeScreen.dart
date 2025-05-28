@@ -72,8 +72,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
         color: Colors.primaries[0],
       );
       final newTab = ChartTab(
-      title: 'Tab ${mTabs.length + 1}',
-      charts: [newChart],
+        title: 'Tab ${mTabs.length + 1}',
+        charts: [newChart],
       );
       mTabs.add(newTab);
       selectedTabIndex = mTabs.length - 1;
@@ -105,29 +105,30 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
     final newName = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Tab umbenennen'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: 'Neuer Name'),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Abbrechen'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Tab umbenennen'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(hintText: 'Neuer Name'),
+              autofocus: true,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Abbrechen'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final value = controller.text.trim();
+                  if (value.isNotEmpty) {
+                    Navigator.pop(context, value);
+                  }
+                },
+                child: const Text('Speichern'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (value.isNotEmpty) {
-                Navigator.pop(context, value);
-              }
-            },
-            child: const Text('Speichern'),
-          ),
-        ],
-      ),
     );
 
     if (newName != null && newName.isNotEmpty) {
@@ -145,7 +146,8 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<ChartConfig> activeCharts = (mTabs.isNotEmpty ? mTabs[selectedTabIndex].charts : []);
+    final List<ChartConfig> activeCharts =
+        (mTabs.isNotEmpty ? mTabs[selectedTabIndex].charts : []);
 
     return Scaffold(
       appBar: AppBar(
@@ -161,7 +163,10 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
           IconButton(
             icon: Icon(Icons.smartphone),
             onPressed: () {
-              showConnectedDevicesDialog();
+              showDialog(
+                context: context,
+                builder: (context) => const ConnectedDevicesDialog(),
+              );
             },
           ),
           IconButton(
@@ -227,77 +232,77 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
       ),
       body: Column(
         children: [
-            ChartSelectorTabMulti(
-              selectedIndex: selectedTabIndex,
-              tabTitles: mTabs.map((tab) => tab.title).toList(),
-              onTabSelected: (index) {
-                setState(() {
-                  selectedTabIndex = index;
-                });
-              },
+          ChartSelectorTabMulti(
+            selectedIndex: selectedTabIndex,
+            tabTitles: mTabs.map((tab) => tab.title).toList(),
+            onTabSelected: (index) {
+              setState(() {
+                selectedTabIndex = index;
+              });
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Neues Diagramm im aktuellen Tab hinzufügen',
+                  onPressed: _addNewChartToCurrentTab,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.tab),
+                  tooltip: 'Neuen Tab hinzufügen',
+                  onPressed: _addNewChartTab,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  tooltip: 'Aktuellen Tab umbenennen',
+                  onPressed: _editCurrentTabName,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Aktuellen Tab löschen',
+                  onPressed: _deleteCurrentTab,
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    tooltip: 'Neues Diagramm im aktuellen Tab hinzufügen',
-                    onPressed: _addNewChartToCurrentTab,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.tab),
-                    tooltip: 'Neuen Tab hinzufügen',
-                    onPressed: _addNewChartTab,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    tooltip: 'Aktuellen Tab umbenennen',
-                    onPressed: _editCurrentTabName,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    tooltip: 'Aktuellen Tab löschen',
-                    onPressed: _deleteCurrentTab,
-                  ),
-                ],
-              ),
-            ),
+          ),
 
           Expanded(
             child:
                 mTabs.isEmpty || mTabs[selectedTabIndex].charts.isEmpty
-                        ? const Center(child: Text('Keine Diagramme vorhanden'))
-                        : MultipleChartsPage(
-                          chartPages: mTabs[selectedTabIndex].charts,
-                          chartSelections: chartSelections,
-                          onSelectedValuesChanged: (
-                            String chartId,
-                            Map<String, Set<MultiSelectDialogItem>> newSel,
-                          ) {
-                            setState(() {
-                              chartSelections[chartId] = newSel;
-                            });
-                          },
-                          onDeleteChart: (index) {
-                            setState(() {
-                              if (mTabs[selectedTabIndex].charts.length > 1) {
-                                final removedChart = mTabs[selectedTabIndex].charts
-                                    .removeAt(index);
-                                chartSelections.remove(removedChart.id);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Mindestens ein Diagramm muss vorhanden sein.',
-                                    ),
-                                  ),
-                                );
-                              }
-                            });
-                          },
-                        )
+                    ? const Center(child: Text('Keine Diagramme vorhanden'))
+                    : MultipleChartsPage(
+                      chartPages: mTabs[selectedTabIndex].charts,
+                      chartSelections: chartSelections,
+                      onSelectedValuesChanged: (
+                        String chartId,
+                        Map<String, Set<MultiSelectDialogItem>> newSel,
+                      ) {
+                        setState(() {
+                          chartSelections[chartId] = newSel;
+                        });
+                      },
+                      onDeleteChart: (index) {
+                        setState(() {
+                          if (mTabs[selectedTabIndex].charts.length > 1) {
+                            final removedChart = mTabs[selectedTabIndex].charts
+                                .removeAt(index);
+                            chartSelections.remove(removedChart.id);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Mindestens ein Diagramm muss vorhanden sein.',
+                                ),
+                              ),
+                            );
+                          }
+                        });
+                      },
+                    ),
           ),
         ],
       ),
@@ -560,117 +565,6 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
               },
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void showConnectedDevicesDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Consumer<ConnectionProvider>(
-          builder: (context, provider, _) {
-            return StatefulBuilder(
-              builder: (context, setState) {
-                final connectedDevices = provider.connectedDevices;
-
-                Timer? dialogTimer;
-
-                dialogTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-                  if (context.mounted) {
-                    setState(() {});
-                  } else {
-                    timer.cancel();
-                  }
-                });
-
-                return AlertDialog(
-                  title: Text("Verbundene Geräte"),
-                  content:
-                      connectedDevices.isEmpty
-                          ? Text("Keine Geräte verbunden")
-                          : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children:
-                                connectedDevices.entries.map((entry) {
-                                  final state = provider
-                                      .getCurrentConnectionState(entry.key);
-                                  int? remainingSeconds = provider
-                                      .getRemainingConnectionDurationInSec(
-                                        entry.key,
-                                      );
-
-                                  return ListTile(
-                                    title: Text(entry.value),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.circle,
-                                              color: state.iconColor,
-                                              size: 12,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text(state.displayName),
-                                            if (state ==
-                                                ConnectionDisplayState.paused)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Icon(
-                                                  Icons.pause_circle_outline,
-                                                  size: 16,
-                                                  color: Colors.purple,
-                                                ),
-                                              ),
-                                            if (state ==
-                                                    ConnectionDisplayState
-                                                        .nullMeasurement ||
-                                                state ==
-                                                    ConnectionDisplayState
-                                                        .delayedMeasurement)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 8,
-                                                ),
-                                                child: Text(
-                                                  remainingSeconds != null &&
-                                                          remainingSeconds! >= 0
-                                                      ? "Noch $remainingSeconds s"
-                                                      : "",
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[700],
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 3),
-                                        Text(entry.key),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                          ),
-                  actions: [
-                    TextButton(
-                      child: Text('Schließen'),
-                      onPressed: () {
-                        dialogTimer?.cancel();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              },
-            );
-          },
         );
       },
     );

@@ -89,14 +89,18 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
         device.value,
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
-      subtitle: _buildDeviceInfo(
-        state,
-        device.key,
-        remainingSeconds,
-        provider.batteryLevels[device.key],
+      subtitle: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildDeviceInfo(
+            state,
+            device.key,
+            remainingSeconds,
+            provider.batteryLevels[device.key],
+          ),
+          _buildPopupMenu(provider, device.key, state),
+        ],
       ),
-
-      trailing: _buildPopupMenu(provider, device.key, state),
     );
   }
 
