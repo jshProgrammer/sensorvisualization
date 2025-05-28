@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_launcher_icons/config/config.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:sensorvisualization/controller/server/DangerDetector.dart';
+import 'package:sensorvisualization/controller/server/DangerNavigationController.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
@@ -29,8 +31,6 @@ import 'package:sensorvisualization/data/services/ChartExporter.dart';
 import 'package:sensorvisualization/data/services/SensorDataSimulator.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
-import 'DangerDetector.dart';
-import 'DangerNavigationController.dart';
 
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
@@ -367,62 +367,60 @@ class _ChartPageState extends State<ChartPage> {
                 ? jsonData['z'] as double
                 : 0.0;
 
-
-
         List<FlSpot> selectedPoints = [];
         List<DateTime> selectedTimestamps = [];
 
-            for (final device in selectedValues.keys) {
-              for (final sensorItem in selectedValues[device]!) {
-                if (sensorItem.attribute != null) {
-                  double val;
-                  switch (sensorItem.attribute!) {
-                    case SensorOrientation.x:
-                      val = x;
-                      break;
-                    case SensorOrientation.y:
-                      val = y;
-                      break;
-                    case SensorOrientation.z:
-                      val = z;
-                      break;
-                    case SensorOrientation.pressure:
-                      continue;
-                  }
-                  selectedPoints.add(FlSpot(timestamp, val));
-                  selectedTimestamps.add(dateTime);
-                }
+        for (final device in selectedValues.keys) {
+          for (final sensorItem in selectedValues[device]!) {
+            if (sensorItem.attribute != null) {
+              double val;
+              switch (sensorItem.attribute!) {
+                case SensorOrientation.x:
+                  val = x;
+                  break;
+                case SensorOrientation.y:
+                  val = y;
+                  break;
+                case SensorOrientation.z:
+                  val = z;
+                  break;
+                case SensorOrientation.pressure:
+                  continue;
               }
+              selectedPoints.add(FlSpot(timestamp, val));
+              selectedTimestamps.add(dateTime);
             }
+          }
+        }
 
-            selectedTimestamps.sort();
+        selectedTimestamps.sort();
 
-            final newDangers = DangerDetector.findDangerTimestamps(
-              points: selectedPoints,
-              timestamps: selectedTimestamps,
-              warningLevels: widget.chartConfig.ranges,
-            );
+        final newDangers = DangerDetector.findDangerTimestamps(
+          points: selectedPoints,
+          timestamps: selectedTimestamps,
+          warningLevels: widget.chartConfig.ranges,
+        );
 
-            final formattedNewDangers =
-                newDangers.map((dt) => truncateToSeconds(dt)).toList();
+        final formattedNewDangers =
+            newDangers.map((dt) => truncateToSeconds(dt)).toList();
 
-            for (final t in formattedNewDangers) {
-              if (!_allDangerTimestamps.contains(t)) {
-                _allDangerTimestamps.add(t);
-              }
-            }
+        for (final t in formattedNewDangers) {
+          if (!_allDangerTimestamps.contains(t)) {
+            _allDangerTimestamps.add(t);
+          }
+        }
 
-            _allDangerTimestamps.sort();
+        _allDangerTimestamps.sort();
 
-            _dangerDetector = DangerDetector(_allDangerTimestamps);
+        _dangerDetector = DangerDetector(_allDangerTimestamps);
 
-            if (formattedNewDangers.isNotEmpty) {
-              dangerNavigationController.setCurrent(formattedNewDangers.first);
-            }
+        if (formattedNewDangers.isNotEmpty) {
+          dangerNavigationController.setCurrent(formattedNewDangers.first);
+        }
 
-            if (autoFollowLatestData) {
-              baselineX = timestamp;
-            }
+        if (autoFollowLatestData) {
+          baselineX = timestamp;
+        }
       });
     }
   }
@@ -537,7 +535,7 @@ class _ChartPageState extends State<ChartPage> {
       setState(() {
         widget.chartConfig.ranges = {
           for (var entry in result.entries)
-          entry.key: List<WarningRange>.from(entry.value),
+            entry.key: List<WarningRange>.from(entry.value),
         };
       });
     }
@@ -920,39 +918,40 @@ class _ChartPageState extends State<ChartPage> {
     return GestureDetector(
       child: Scaffold(
         appBar: AppBar(
-          title: _isEditingTitle
-              ? SizedBox(
-                  width: 200,
-                  child: TextField(
-                    controller: _titleController,
-                    focusNode: _focusNode,
-                    autofocus: true,
-                    onSubmitted: (value) {
-                          if (value.trim().isNotEmpty) {
-                            setState(() {
+          title:
+              _isEditingTitle
+                  ? SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: _titleController,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      onSubmitted: (value) {
+                        if (value.trim().isNotEmpty) {
+                          setState(() {
                             widget.chartConfig.title = value.trim();
                             _isEditingTitle = false;
-                            });
-                          } else {
-                            setState(() {
-                              _titleController.text = widget.chartConfig.title;
-                              _isEditingTitle = false;
-                            });
-                          }
+                          });
+                        } else {
+                          setState(() {
+                            _titleController.text = widget.chartConfig.title;
+                            _isEditingTitle = false;
+                          });
+                        }
+                      },
+                    ),
+                  )
+                  : GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isEditingTitle = true;
+                      });
                     },
+                    child: Text(
+                      widget.chartConfig.title,
+                      style: const TextStyle(fontSize: 20.0),
+                    ),
                   ),
-                )
-              : GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _isEditingTitle = true;
-                    });
-                  },
-                  child: Text(
-                    widget.chartConfig.title,
-                    style: const TextStyle(fontSize: 20.0),
-                  ),
-                ),
           actions: buildAppBarActions(),
         ),
         body: Row(

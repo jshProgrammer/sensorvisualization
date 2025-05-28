@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/QRScannerScreen.dart';
 
 import 'package:sensorvisualization/presentation/screens/SensorMeasurement/ScannerEntryScreen.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'package:sensorvisualization/presentation/screens/ChartsHomeScreen.dart';
 
 class TabsHomeScreen extends StatefulWidget {

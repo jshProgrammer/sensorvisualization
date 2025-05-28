@@ -9,7 +9,6 @@ import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
 import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/SensorMessScreen.dart';
 import 'presentation/screens/ChartsHomeScreen.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/fireDB/firebase_options.dart';

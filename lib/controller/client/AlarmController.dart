@@ -1,45 +1,36 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:sensorvisualization/data/services/client/SensorClient.dart';
+import 'package:sensorvisualization/main.dart';
+import 'package:sensorvisualization/model/client/AlarmState.dart';
 
-class Alarmpage extends StatefulWidget {
-  final Function? onAlarmStopReceived;
-  final SensorClient connection;
-  const Alarmpage({
-    Key? key,
-    this.onAlarmStopReceived,
-    required this.connection,
-  }) : super(key: key);
-  @override
-  AlarmPageState createState() => AlarmPageState();
-}
-
-class AlarmPageState extends State<Alarmpage> {
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+class AlarmController extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final SensorClient connection;
+  final Function? onAlarmStopReceived;
 
-  bool isPlaying = false;
   Timer? _timer;
 
-  @override
-  void initState() {
-    super.initState();
-    initNotifications();
+  AlarmState _state = AlarmState();
+  AlarmState get state => _state;
+
+  AlarmController({required this.connection, this.onAlarmStopReceived}) {
+    _initNotifications();
     _loadAudio();
+
+    connection.commandHandler.onAlarmStopReceived = () {
+      stopAlarmNotification();
+    };
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       triggerAlarmNotification();
     });
-    widget.connection.commandHandler.onAlarmStopReceived = () {
-      stopAlarmNotification();
-    };
   }
 
-  Future<void> initNotifications() async {
+  Future<void> _initNotifications() async {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -99,23 +90,16 @@ class AlarmPageState extends State<Alarmpage> {
     } catch (e) {
       print("Fehler beim Abspielen: $e");
     }
-    setState(() {
-      isPlaying = true;
-      print("Alarm gestartet");
-    });
+
+    _updateState(_state.copyWith(isPlaying: true));
   }
 
   Future<void> stopAlarmNotification() async {
     await flutterLocalNotificationsPlugin.cancel(0);
     await _audioPlayer.stop();
-    setState(() {
-      isPlaying = false;
-      print("Alarm gestoppt");
-    });
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
-    widget.onAlarmStopReceived?.call();
+
+    _updateState(_state.copyWith(isPlaying: false));
+    onAlarmStopReceived?.call();
   }
 
   Future<void> _loadAudio() async {
@@ -128,49 +112,15 @@ class AlarmPageState extends State<Alarmpage> {
     }
   }
 
+  void _updateState(AlarmState newState) {
+    _state = newState;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
     _audioPlayer.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.red,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.warning, size: 100, color: Colors.white),
-            SizedBox(height: 20),
-            Text(
-              'ALARM!',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await stopAlarmNotification();
-                setState(() {
-                  isPlaying = false;
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.red,
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
-              child: Text('Alarm abbrechen', style: TextStyle(fontSize: 20)),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

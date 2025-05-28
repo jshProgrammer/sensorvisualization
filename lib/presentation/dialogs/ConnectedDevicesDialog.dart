@@ -47,15 +47,17 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
               content:
                   connectedDevices.isEmpty
                       ? Text("Keine Geräte verbunden")
-                      : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children:
-                            connectedDevices.entries
-                                .map(
-                                  (entry) =>
-                                      _buildDeviceListTile(provider, entry),
-                                )
-                                .toList(),
+                      : SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children:
+                              connectedDevices.entries
+                                  .map(
+                                    (entry) =>
+                                        _buildDeviceListTile(provider, entry),
+                                  )
+                                  .toList(),
+                        ),
                       ),
               actions: [
                 TextButton(
@@ -87,18 +89,14 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
         device.value,
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
-      subtitle: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildDeviceInfo(
-            state,
-            device.key,
-            remainingSeconds,
-            provider.batteryLevels[device.key],
-          ),
-          _buildPopupMenu(provider, device.key, state),
-        ],
+      subtitle: _buildDeviceInfo(
+        state,
+        device.key,
+        remainingSeconds,
+        provider.batteryLevels[device.key],
       ),
+
+      trailing: _buildPopupMenu(provider, device.key, state),
     );
   }
 
