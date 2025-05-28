@@ -5,13 +5,14 @@ enum SensorType {
   barometer,
   userAccelerometer,
   simulatedData,
+  deviationTo90Degrees,
 }
 
 extension SensorTypeExtension on SensorType {
   String get displayName {
     switch (this) {
       case SensorType.accelerometer:
-        return 'Beschleunigungssensor';
+        return 'Beschleunigungssensor'; //Beschleunigungssensor
       case SensorType.gyroscope:
         return 'Gyroskop';
       case SensorType.magnetometer:
@@ -22,6 +23,8 @@ extension SensorTypeExtension on SensorType {
         return 'User Beschleunigungssensor';
       case SensorType.simulatedData:
         return 'Simulierte Daten';
+      case SensorType.deviationTo90Degrees:
+        return 'Abweichung zu 90 Grad';
     }
   }
 
@@ -37,6 +40,8 @@ extension SensorTypeExtension on SensorType {
         return SensorType.barometer;
       case 'simulierte daten':
         return SensorType.simulatedData;
+      case 'abweichung zu 90 grad':
+        return SensorType.deviationTo90Degrees;
       default:
         return null;
     }

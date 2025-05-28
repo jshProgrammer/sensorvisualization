@@ -9,8 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-//TODO: Noch einstellungen in ChartHomeScreen ab Zeile 90 ca.
-
 class Firebasesync {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final Databaseoperations _databaseOperations;
@@ -145,7 +143,6 @@ class Firebasesync {
     }
   }
 
-  //Noch bei start der App aufrufen TODO
   Future<void> deleteOldTablesInFirestore() async {
     if (!await isInternetAvailable()) {
       print("Keine Internetverbindung. Löschung alter Tabellen übersprungen.");
@@ -286,10 +283,14 @@ class Firebasesync {
     }
   }
 
-  Future<void> exportTableByNameAndDate(String tableName, DateTime date) async {
+  Future<List<String>> exportTableByNameAndDate(
+    String tableName,
+    DateTime date,
+  ) async {
+    List<String> exportedFiles = [];
     if (!await isInternetAvailable()) {
       print("Keine Internetverbindung. Export übersprungen.");
-      return;
+      return exportedFiles;
     }
 
     final formattedDate = date.toIso8601String();
@@ -306,7 +307,7 @@ class Firebasesync {
         print(
           "Keine Tabelle mit dem Namen $tableName und Datum $formattedDate gefunden.",
         );
-        return;
+        return exportedFiles;
       }
 
       for (var metadataDoc in querySnapshot.docs) {
@@ -344,9 +345,12 @@ class Firebasesync {
         await file.writeAsString(csvData);
 
         print("Tabelle ${metadataDoc.id} als CSV exportiert: $path");
+        exportedFiles.add(path);
       }
+      return exportedFiles;
     } catch (e) {
       print("Fehler beim Exportieren der Tabelle $tableName: $e");
+      return exportedFiles;
     }
   }
 }

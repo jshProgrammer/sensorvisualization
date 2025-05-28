@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:intl/intl.dart';
 import 'package:sensorvisualization/data/models/SensorOrientation.dart';
 import 'package:sensorvisualization/data/models/SensorType.dart';
@@ -119,5 +121,25 @@ class SensorDataTransformation {
         'z': _parseToDouble(receivedJsonData[SensorOrientation.z.displayName]),
       };
     }
+  }
+
+  static double deviationTo90Degrees(
+    double accelerationX,
+    double accelerationY,
+    double accelerationZ,
+  ) {
+    double deviation = 0.0;
+    final magnitude = sqrt(
+      accelerationX * accelerationX +
+          accelerationY * accelerationY +
+          accelerationZ * accelerationZ,
+    );
+    if (magnitude > 0) {
+      final angleDeg = acos(accelerationZ / magnitude) * (180 / pi);
+      deviation = (angleDeg - 90).abs();
+    } else {
+      print("XXX help!!!");
+    }
+    return deviation;
   }
 }

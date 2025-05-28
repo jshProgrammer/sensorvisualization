@@ -1,4 +1,4 @@
-enum SensorOrientation { x, y, z, pressure }
+enum SensorOrientation { x, y, z, pressure, degree }
 
 extension SensorOrientationExtension on SensorOrientation {
   String get displayName {
@@ -11,6 +11,8 @@ extension SensorOrientationExtension on SensorOrientation {
         return 'z';
       case SensorOrientation.pressure:
         return 'pressure';
+      case SensorOrientation.degree:
+        return 'Abweichung';
     }
   }
 }

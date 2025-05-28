@@ -232,6 +232,8 @@ class _ChartPageState extends State<ChartPage> {
                       break;
                     case SensorOrientation.pressure:
                       continue;
+                    case SensorOrientation.degree:
+                      continue;
                   }
                   selectedPoints.add(FlSpot(timestamp, val));
                   selectedTimestamps.add(dateTime);
@@ -295,6 +297,33 @@ class _ChartPageState extends State<ChartPage> {
             SensorDataTransformation.transformDateTimeToSecondsAsDouble(
               jsonData["timestamp"],
             );
+
+        if (jsonData.containsKey('sensor') &&
+            jsonData['sensor'] != null &&
+            jsonData['sensor'] == SensorType.accelerometer &&
+            jsonData.containsKey('x') &&
+            jsonData['x'] != null &&
+            jsonData.containsKey('y') &&
+            jsonData['y'] != null &&
+            jsonData.containsKey('z') &&
+            jsonData['z'] != null) {
+          try {
+            double deviation = SensorDataTransformation.deviationTo90Degrees(
+              jsonData['x'] as double,
+              jsonData['y'] as double,
+              jsonData['z'] as double,
+            );
+
+            widget.chartConfig.addDataPoint(
+              jsonData['ip'],
+              SensorType.deviationTo90Degrees,
+              SensorOrientation.degree,
+              FlSpot(timestampAsDouble, deviation),
+            );
+          } catch (e) {
+            print('Fehler bei der Berechnung der Abweichung zu 90 Grad: $e');
+          }
+        }
 
         if (jsonData.containsKey('x') && jsonData['x'] != null) {
           widget.chartConfig.addDataPoint(
@@ -582,7 +611,8 @@ class _ChartPageState extends State<ChartPage> {
         tooltip: 'Diagramm exportieren',
         onSelected: (value) async {
           if (value == 'pdf') {
-            final exporter = ChartExporter(_chartKey);
+            await Future.delayed(Duration.zero);
+            final exporter = ChartExporter(_chartKey, getLegendData());
             final path = await exporter.exportToPDF("Diagramm_Export");
 
             if (!context.mounted) return;
@@ -762,6 +792,8 @@ class _ChartPageState extends State<ChartPage> {
       return;
     }
 
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -796,7 +828,7 @@ class _ChartPageState extends State<ChartPage> {
                       IconButton(
                         icon: const Icon(Icons.arrow_forward),
                         onPressed:
-                            currentIndex < dates.length - 1
+                            currentIndex < tables.length - 1
                                 ? () {
                                   setState(() {
                                     currentIndex++;
@@ -810,17 +842,34 @@ class _ChartPageState extends State<ChartPage> {
                   ElevatedButton(
                     onPressed: () async {
                       try {
-                        await firebasesync.exportTableByNameAndDate(
-                          currentTable['name'],
-                          DateTime.parse(currentTable['last_updated']),
-                        );
+                        List<String> paths = await firebasesync
+                            .exportTableByNameAndDate(
+                              currentTable['name'],
+                              DateTime.parse(currentTable['last_updated']),
+                            );
+
                         Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Export erfolgreich'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
+
+                        if (paths.isNotEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${paths.length} CSV-Dateien exportiert',
+                              ),
+                              action: SnackBarAction(
+                                label: 'Öffnen',
+                                onPressed: () async {
+                                  for (var path in paths) {
+                                    final uri = Uri.file(path);
+                                    if (await canLaunchUrl(uri)) {
+                                      await launchUrl(uri);
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        }
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -1092,6 +1141,43 @@ class _ChartPageState extends State<ChartPage> {
         ),
       ),
     );
+  }
+
+  List<Map<String, dynamic>> getLegendData() {
+    List<Map<String, dynamic>> legendData = [];
+    int sensorIndex = 0;
+
+    var connectionProvider = Provider.of<ConnectionProvider>(
+      context,
+      listen: false,
+    );
+
+    for (String device in selectedValues.keys) {
+      for (MultiSelectDialogItem sensor in selectedValues[device]!) {
+        final List<List<int>?> dashPatterns = [
+          null, // solid
+          [10, 5], // dashed
+          [2, 4], // dotted
+          [15, 5, 5, 5], // dash-dot
+          [8, 3, 2, 3], // short-dash-dot
+          [20, 5, 5, 5, 5, 5], // complex pattern
+        ];
+        final dashArray = dashPatterns[sensorIndex % dashPatterns.length];
+        final isDashed = dashArray != null;
+
+        legendData.add({
+          'device': connectionProvider.connectedDevices[device] ?? "Simulator",
+          'sensorName': sensor.sensorName.displayName,
+          'attribute': sensor.attribute!.displayName,
+          'color': Sensordata.getSensorColor(sensor.attribute!.displayName),
+          'isDashed': isDashed,
+        });
+
+        sensorIndex++;
+      }
+    }
+
+    return legendData;
   }
 
   List<Widget> _buildLegendItems() {

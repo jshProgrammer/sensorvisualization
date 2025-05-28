@@ -44,6 +44,7 @@ void main() async {
       child: MyApp(),
     ),
   );
+  firebaseSync.deleteOldTablesInFirestore();
 }
 
 // Notification-Plugin initialisieren

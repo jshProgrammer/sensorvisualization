@@ -1,0 +1,23 @@
+Sensor                  Unit           Description
+Accerlerometer          m/s^2          Acceleration inclusive gravitation
+
+User Accerlerometer     m/s^2          Acceleration without gravitation 
+
+Gyroscope               rad/s          angular velocity --> to deg/s 
+                                        import 'dart:math';
+                                        double radiansToDegrees(double radians) {
+                                            return radians * (180 / pi);
+                                        }
+
+Barometer               hPa
+
+Magentometer            μT
+
+
+
+double deviationTo90Degrees(double accelerationX, double accelerationY, double accelerationZ){
+    final magnitude = sqrt(accelerationX*accelerationX+accelerationY*accelerationY+accelerationZ*accelerationZ);
+    final angleDeg = acos(accelerationZ / magnitude) * (180/ pi);
+    final deviation = (angleDeg - 90).abs();
+    return deviation;
+}

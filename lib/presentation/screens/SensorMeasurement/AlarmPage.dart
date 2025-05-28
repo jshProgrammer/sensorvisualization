@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -120,9 +121,13 @@ class AlarmPageState extends State<Alarmpage> {
 
   Future<void> _loadAudio() async {
     try {
-      await _audioPlayer.setAsset('audio/alarm.mp3');
-      await _audioPlayer.setLoopMode(LoopMode.all);
-      await _audioPlayer.setVolume(1.0);
+      if (Platform.isWindows) {
+        await _audioPlayer.setFilePath('assets/windows/alarm.wav');
+      } else {
+        await _audioPlayer.setAsset('audio/alarm.mp3');
+        await _audioPlayer.setLoopMode(LoopMode.all);
+        await _audioPlayer.setVolume(1.0);
+      }
     } catch (e) {
       print("Fehler beim Laden der Audiodatei: $e");
     }
