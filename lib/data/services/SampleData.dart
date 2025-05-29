@@ -59,6 +59,7 @@ class SampleData {
         sensorName: SensorType.accelerometer,
         type: ItemType.seperator,
       ),
+
       MultiSelectDialogItem(
         sensorName: SensorType.accelerometer,
         attribute: SensorOrientation.x,
@@ -74,13 +75,26 @@ class SampleData {
         attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
+
       MultiSelectDialogItem(
         sensorName: SensorType.deviationTo90Degrees,
         type: ItemType.seperator,
       ),
+
       MultiSelectDialogItem(
         sensorName: SensorType.deviationTo90Degrees,
         attribute: SensorOrientation.degree,
+        type: ItemType.data,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.displacementOneMeter,
+        type: ItemType.seperator,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.displacementOneMeter,
+        attribute: SensorOrientation.displacement,
         type: ItemType.data,
       ),
 
@@ -101,15 +115,6 @@ class SampleData {
       MultiSelectDialogItem(
         sensorName: SensorType.gyroscope,
         attribute: SensorOrientation.z,
-        type: ItemType.data,
-      ),
-      MultiSelectDialogItem(
-        sensorName: SensorType.deviationTo90Degrees,
-        type: ItemType.seperator,
-      ),
-      MultiSelectDialogItem(
-        sensorName: SensorType.deviationTo90Degrees,
-        attribute: SensorOrientation.degree,
         type: ItemType.data,
       ),
       MultiSelectDialogItem(

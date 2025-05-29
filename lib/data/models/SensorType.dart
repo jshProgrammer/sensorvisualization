@@ -6,6 +6,7 @@ enum SensorType {
   userAccelerometer,
   simulatedData,
   deviationTo90Degrees,
+  displacementOneMeter,
 }
 
 extension SensorTypeExtension on SensorType {
@@ -25,6 +26,8 @@ extension SensorTypeExtension on SensorType {
         return 'Simulierte Daten';
       case SensorType.deviationTo90Degrees:
         return 'Abweichung zu 90 Grad';
+      case SensorType.displacementOneMeter:
+        return 'Displacement 1 Meter';
     }
   }
 
@@ -42,6 +45,8 @@ extension SensorTypeExtension on SensorType {
         return SensorType.simulatedData;
       case 'abweichung zu 90 grad':
         return SensorType.deviationTo90Degrees;
+      case 'displacement 1 meter':
+        return SensorType.displacementOneMeter;
       default:
         return null;
     }

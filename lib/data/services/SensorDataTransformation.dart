@@ -142,4 +142,13 @@ class SensorDataTransformation {
     }
     return deviation;
   }
+
+  //calculation of the displacement of the top point in mm with a wall height of 1m
+  static double topPointDisplacement(double angleDegrees) {
+    double displacement = 0.0;
+    final anglerad = angleDegrees * (pi / 180);
+    displacement = 1 * sin(anglerad);
+    displacement = displacement * 1000;
+    return displacement;
+  }
 }

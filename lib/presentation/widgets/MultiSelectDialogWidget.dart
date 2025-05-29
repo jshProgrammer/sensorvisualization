@@ -184,6 +184,27 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
         attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
+      MultiSelectDialogItem(
+        sensorName: SensorType.deviationTo90Degrees,
+        type: ItemType.seperator,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.deviationTo90Degrees,
+        attribute: SensorOrientation.degree,
+        type: ItemType.data,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.displacementOneMeter,
+        type: ItemType.seperator,
+      ),
+
+      MultiSelectDialogItem(
+        sensorName: SensorType.displacementOneMeter,
+        attribute: SensorOrientation.displacement,
+        type: ItemType.data,
+      ),
 
       MultiSelectDialogItem(
         sensorName: SensorType.gyroscope,

@@ -8,9 +8,6 @@ import 'package:sensorvisualization/data/services/providers/SettingsProvider.dar
 import 'package:sensorvisualization/model/client/MeasurementState.dart';
 import 'package:sensorvisualization/model/client/NullMeasurementModel.dart';
 
-//TODO: Selbstauslöser funktioniert nicht mehr
-//TODO: Vergleich mit alter Datei vor Löschen
-//TODO: prüfen, ob noch Remote-Steuerung möglich
 class NullMeasurementController extends ChangeNotifier {
   final SensorClient connection;
   final Duration sensorInterval = Duration(milliseconds: 100);

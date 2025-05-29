@@ -252,6 +252,8 @@ class _ChartPageState extends State<ChartPage> {
                       continue;
                     case SensorOrientation.degree:
                       continue;
+                    case SensorOrientation.displacement:
+                      continue;
                   }
                   selectedPoints.add(FlSpot(timestamp, val));
                   selectedTimestamps.add(dateTime);
@@ -345,6 +347,36 @@ class _ChartPageState extends State<ChartPage> {
           }
         }
 
+        if (jsonData.containsKey('sensor') &&
+            jsonData['sensor'] != null &&
+            jsonData['sensor'] == SensorType.accelerometer &&
+            jsonData.containsKey('x') &&
+            jsonData['x'] != null &&
+            jsonData.containsKey('y') &&
+            jsonData['y'] != null &&
+            jsonData.containsKey('z') &&
+            jsonData['z'] != null) {
+          try {
+            double deviation = SensorDataTransformation.deviationTo90Degrees(
+              jsonData['x'] as double,
+              jsonData['y'] as double,
+              jsonData['z'] as double,
+            );
+            double displacement = SensorDataTransformation.topPointDisplacement(
+              deviation,
+            );
+
+            widget.chartConfig.addDataPoint(
+              jsonData['ip'],
+              SensorType.displacementOneMeter,
+              SensorOrientation.displacement,
+              FlSpot(timestampAsDouble, displacement),
+            );
+          } catch (e) {
+            print('Fehler bei der Berechnung der Abweichung zu 90 Grad: $e');
+          }
+        }
+
         if (jsonData.containsKey('x') && jsonData['x'] != null) {
           widget.chartConfig.addDataPoint(
             jsonData['ip'],
@@ -416,6 +448,8 @@ class _ChartPageState extends State<ChartPage> {
                 case SensorOrientation.pressure:
                   continue;
                 case SensorOrientation.degree:
+                  continue;
+                case SensorOrientation.displacement:
                   continue;
               }
               selectedPoints.add(FlSpot(timestamp, val));
