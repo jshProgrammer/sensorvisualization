@@ -234,9 +234,20 @@ class Sensordata {
             tooltipPadding: const EdgeInsets.all(8),
             getTooltipItems: (List<LineBarSpot> touchedSpots) {
               return touchedSpots.map((spot) {
-                final index = spot.x.toInt();
+                final spotMillis = (spot.x * 1000).toInt();
+
+                String? noteText;
+                for(final entry in chartConfig.notes.entries){
+                  final noteMillis = entry.key.millisecondsSinceEpoch;
+                  if((noteMillis - spotMillis).abs() <= 500){
+                    noteText = entry.key.toString() + ": " + entry.value;
+                    break;
+                  }
+                }
+
                 return LineTooltipItem(
-                  chartConfig.notes[index] ?? "Keine Notiz",
+                  noteText ?? "Keine Notiz",
+
                   TextStyle(
                     color:
                         spot.y >= 2.5
