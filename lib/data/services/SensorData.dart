@@ -23,6 +23,8 @@ class Sensordata {
   final SettingsProvider settingsProvider;
   final ConnectionProvider connectionProvider;
 
+  final TextEditingController timeController;
+
   Map<String, List<WarningRange>> ranges = {
     'green': [],
     'yellow': [],
@@ -37,11 +39,14 @@ class Sensordata {
     Map<String, List<WarningRange>>? warningRanges,
     required this.settingsProvider,
     required this.connectionProvider,
+    required this.timeController,
   }) {
     if (warningRanges != null) {
       ranges = warningRanges;
     }
   }
+
+  final formatterNote = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   List<FlSpot> getFilteredDataPoints(
     String ipAddress,
@@ -141,7 +146,7 @@ class Sensordata {
     );
   }
 
-  LineChart getLineChart(double baselineX) {
+  LineChart getLineChart(BuildContext context, double baselineX) {
     return LineChart(
       duration: Duration.zero,
       LineChartData(
@@ -182,8 +187,9 @@ class Sensordata {
                   DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(
                     value.toInt() * 1000,
                   );
-
+                  
                   final formatter = DateFormat('HH:mm:ss');
+
                   String formattedTime = formatter.format(dateTime);
 
                   return Text(
@@ -239,8 +245,9 @@ class Sensordata {
                 String? noteText;
                 for(final entry in chartConfig.notes.entries){
                   final noteMillis = entry.key.millisecondsSinceEpoch;
-                  if((noteMillis - spotMillis).abs() <= 500){
-                    noteText = entry.key.toString() + ": " + entry.value;
+                  if((noteMillis - spotMillis).abs() <= 200){
+                    
+                    noteText = formatterNote.format(entry.key).toString() + ": " + entry.value;
                     break;
                   }
                 }
@@ -258,6 +265,23 @@ class Sensordata {
               }).toList();
             },
           ),
+          touchCallback: (FlTouchEvent event, LineTouchResponse? response){
+            if (event is FlTapUpEvent &&
+                response != null &&
+                response.lineBarSpots != null &&
+                response.lineBarSpots!.isNotEmpty){
+                  final touchedSpot = response.lineBarSpots!.first;
+                  final touchedTime = DateTime.fromMillisecondsSinceEpoch(
+                    touchedSpot.x.toInt() * 1000,
+                  );
+
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted){
+                      timeController.text = formatterNote.format(touchedTime);
+                    }
+                  });
+                }
+          }
         ),
         extraLinesData: ExtraLinesData(verticalLines: _getNotesVerticalLines()),
         rangeAnnotations: RangeAnnotations(
