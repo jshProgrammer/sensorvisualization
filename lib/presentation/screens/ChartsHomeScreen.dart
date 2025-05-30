@@ -9,6 +9,7 @@ import 'package:sensorvisualization/data/models/ChartTab.dart';
 import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
 import 'package:sensorvisualization/data/models/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
+import 'package:sensorvisualization/data/services/Lexikon.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
@@ -143,6 +144,68 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
 
   TextEditingController _secondsController = TextEditingController();
+  //URL Noch anpassen
+  final List<LexikonEntry> entries = [
+    LexikonEntry(
+      title: 'Accelerometer',
+      description:
+          'Einheit: m/s^2. Gemessen wird die Beschleunigung inklusive der Erdbeschleunigung.',
+      url: 'https://pub.dev/packages/sensors_plus',
+    ),
+    LexikonEntry(
+      title: 'Gyroskop',
+      description:
+          'Einheit: rad/s. Misst die Winkelgeschwindigkeit eines Objekts.',
+      url:
+          'https://developer.android.com/reference/android/hardware/SensorEvent#values',
+    ),
+    LexikonEntry(
+      title: 'Magnetometer',
+      description:
+          'Einheit: μT (Mikrotesla). Misst die Stärke und Richtung des Magnetfelds.',
+      url:
+          'https://developer.android.com/reference/android/hardware/SensorEvent#values',
+    ),
+    LexikonEntry(
+      title: 'Barometer',
+      description:
+          'Einheit: hPa (Hektopascal). Misst den Luftdruck, der auf die Höhe des Objekts schließen lässt.',
+      url: 'https://pub.dev/packages/sensors_plus',
+    ),
+    LexikonEntry(
+      title: 'Deviation',
+      description:
+          'Einheit: °. Berechnet mithilfe des Accelerometers die Abweichung von der vertikalen Ausrichtung.',
+      url:
+          'https://www.mathworks.com/help/fusion/ug/estimate-orientation-through-inertial-sensor-fusion.html',
+    ),
+    LexikonEntry(
+      title: 'Displacement',
+      description:
+          'Einheit: mm. Berechnet die Bewegung der geraden in mm auf einen Meter Distanz.',
+      url: 'https://mbientlab.com/tutorials/SensorFusion.html',
+    ),
+    LexikonEntry(
+      title: 'Entwickler',
+      description: 'Jasmin Wander',
+      url: 'https://github.com/xjasx4',
+    ),
+    LexikonEntry(
+      title: 'Entwickler',
+      description: 'Sebastian Nagles',
+      url: 'https://github.com/SebasN12',
+    ),
+    LexikonEntry(
+      title: 'Entwickler',
+      description: 'Joshua Pfennig',
+      url: 'https://github.com/jshProgrammer',
+    ),
+    LexikonEntry(
+      title: 'Entwickler',
+      description: 'Tom Knoblach',
+      url: 'https://github.com/Gottschalk125',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +236,16 @@ class _ChartsHomeScreenState extends State<ChartsHomeScreen> {
             icon: Icon(Icons.qr_code),
             onPressed: () async {
               showQRCodeDialog();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.book),
+            tooltip: "Lexikon",
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => LexikonDialog(entries: entries),
+              );
             },
           ),
           //TODO: Textfeld für Alarm Message einfügen
