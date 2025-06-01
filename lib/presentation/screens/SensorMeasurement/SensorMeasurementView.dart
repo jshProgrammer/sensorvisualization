@@ -187,9 +187,7 @@ class _SensorMeasurementViewState extends State<SensorMeasurementView> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlarmView(
-          connection: widget.connection,
-        ); //TODO: hier noch Message anpassen
+        return AlarmView(connection: widget.connection);
       },
     );
   }

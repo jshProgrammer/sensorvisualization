@@ -56,7 +56,6 @@ class NullMeasurementModel {
     return data.reduce((a, b) => a + b) / data.length;
   }
 
-  //TODO: vlt praktisch
   Map<String, dynamic> getAllAverages() {
     return {
       SensorType.accelerometer.displayName: calculateAverageTriplet(

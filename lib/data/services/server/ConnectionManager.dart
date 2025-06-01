@@ -18,9 +18,6 @@ class ConnectionManager {
   static final Map<String, Map<SensorType, Map<SensorOrientation, double>>>
   nullMeasurementValues = {};
 
-  //TODO: messung stoppen funktioniert nicht mehr
-  //TODO: Anzeige ConnectionState (Nullmessung, Selbstauslöser) funktioniert nicht mehr
-
   final Map<String, String> connectedDevices = {}; // ip-address => device-name
   final Map<String, Tuple2<ConnectionDisplayState, DateTime?>>
   connectionStates =

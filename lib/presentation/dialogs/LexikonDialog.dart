@@ -1,17 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sensorvisualization/data/models/LexikonEntry.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-class LexikonEntry {
-  final String title;
-  final String description;
-  final String url;
-
-  LexikonEntry({
-    required this.title,
-    required this.description,
-    required this.url,
-  });
-}
 
 class LexikonDialog extends StatelessWidget {
   final List<LexikonEntry> entries;
