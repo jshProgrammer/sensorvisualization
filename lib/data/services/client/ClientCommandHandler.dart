@@ -1,4 +1,4 @@
-import 'package:sensorvisualization/data/models/NetworkCommands.dart';
+import 'package:sensorvisualization/data/settingsModels/NetworkCommands.dart';
 
 class ClientCommandHandler {
   Function(String)? onAlarmReceived;

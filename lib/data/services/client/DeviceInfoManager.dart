@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:sensorvisualization/data/models/NetworkCommands.dart';
+import 'package:sensorvisualization/data/settingsModels/NetworkCommands.dart';
 
 class DeviceInfoManager {
   final Battery _battery = Battery();

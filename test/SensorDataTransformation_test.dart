@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sensorvisualization/data/models/SensorOrientation.dart';
-import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/settingsModels/SensorOrientation.dart';
+import 'package:sensorvisualization/data/settingsModels/SensorType.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
 

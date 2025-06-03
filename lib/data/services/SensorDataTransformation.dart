@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:intl/intl.dart';
-import 'package:sensorvisualization/data/models/SensorOrientation.dart';
-import 'package:sensorvisualization/data/models/SensorType.dart';
+import 'package:sensorvisualization/data/settingsModels/SensorOrientation.dart';
+import 'package:sensorvisualization/data/settingsModels/SensorType.dart';
 import 'package:sensorvisualization/data/services/GlobalStartTime.dart';
 
 class SensorDataTransformation {

@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:sensorvisualization/data/models/NetworkCommands.dart';
+import 'package:sensorvisualization/data/settingsModels/NetworkCommands.dart';
 import 'package:sensorvisualization/data/services/client/ClientCommandHandler.dart';
 import 'package:sensorvisualization/data/services/client/DeviceInfoManager.dart';
 import 'package:sensorvisualization/data/services/client/SensorDataManager.dart';
-import 'package:sensorvisualization/data/services/server/ConnectionManager.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class SensorClient {

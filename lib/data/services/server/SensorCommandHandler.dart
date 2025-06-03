@@ -3,8 +3,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
-import 'package:sensorvisualization/data/models/NetworkCommands.dart';
+import 'package:sensorvisualization/data/settingsModels/ConnectionDisplayState.dart';
+import 'package:sensorvisualization/data/settingsModels/NetworkCommands.dart';
 import 'package:sensorvisualization/data/services/server/ConnectionManager.dart';
 import 'package:sensorvisualization/data/services/server/SensorDataProcessor.dart';
 

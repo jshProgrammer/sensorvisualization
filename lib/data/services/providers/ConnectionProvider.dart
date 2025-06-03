@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sensorvisualization/data/models/ConnectionDisplayState.dart';
+import 'package:sensorvisualization/data/settingsModels/ConnectionDisplayState.dart';
 import 'package:sensorvisualization/data/services/server/ConnectionManager.dart';
 import 'package:sensorvisualization/data/services/server/SensorCommandHandler.dart';
 import 'package:sensorvisualization/data/services/server/SensorDataProcessor.dart';

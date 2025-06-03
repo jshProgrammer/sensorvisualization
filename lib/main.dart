@@ -8,7 +8,7 @@ import 'package:sensorvisualization/data/services/providers/SettingsProvider.dar
 import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/fireDB/FirebaseOperations.dart';
-import 'package:sensorvisualization/presentation/screens/TabsHomeScreen.dart';
+import 'package:sensorvisualization/presentation/visualization/TabsHomeScreen.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 import 'package:sensorvisualization/fireDB/firebase_options.dart';
 import 'package:flutter/material.dart';
