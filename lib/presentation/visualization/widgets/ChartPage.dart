@@ -1299,17 +1299,6 @@ class _ChartPageState extends State<ChartPage> {
 
     for (String device in selectedValues.keys) {
       for (MultiSelectDialogItem sensor in selectedValues[device]!) {
-        final List<List<int>?> dashPatterns = [
-          null, // solid
-          [10, 5], // dashed
-          [2, 4], // dotted
-          [15, 5, 5, 5], // dash-dot
-          [8, 3, 2, 3], // short-dash-dot
-          [20, 5, 5, 5, 5, 5], // complex pattern
-        ];
-        final dashArray = dashPatterns[sensorIndex % dashPatterns.length];
-        final isDashed = dashArray != null;
-
         legendData.add({
           'device': connectionProvider.connectedDevices[device] ?? "Simulator",
           'sensorName': sensor.sensorName.displayName,
@@ -1317,7 +1306,6 @@ class _ChartPageState extends State<ChartPage> {
           'color': SensorDataController.getSensorColor(
             sensor.attribute!.displayName,
           ),
-          'isDashed': isDashed,
         });
 
         sensorIndex++;
@@ -1338,17 +1326,6 @@ class _ChartPageState extends State<ChartPage> {
 
     for (String device in selectedValues.keys) {
       for (MultiSelectDialogItem sensor in selectedValues[device]!) {
-        final List<List<int>?> dashPatterns = [
-          null, // solid
-          [10, 5], // dashed
-          [2, 4], // dotted
-          [15, 5, 5, 5], // dash-dot
-          [8, 3, 2, 3], // short-dash-dot
-          [20, 5, 5, 5, 5, 5], // complex pattern
-        ];
-        final dashArray = dashPatterns[sensorIndex % dashPatterns.length];
-        final isDashed = dashArray != null;
-
         rows.add(
           Row(
             children: [
@@ -1358,7 +1335,6 @@ class _ChartPageState extends State<ChartPage> {
                   color: SensorDataController.getSensorColor(
                     sensor.attribute!.displayName,
                   ),
-                  isDashed: isDashed,
                 ),
               ),
               const SizedBox(width: 4),
@@ -1381,9 +1357,8 @@ class _ChartPageState extends State<ChartPage> {
 
 class LineStylePainter extends CustomPainter {
   final Color color;
-  final bool isDashed;
 
-  LineStylePainter({required this.color, required this.isDashed});
+  LineStylePainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1392,25 +1367,11 @@ class LineStylePainter extends CustomPainter {
           ..color = color
           ..strokeWidth = 3;
 
-    if (isDashed) {
-      const dashWidth = 6.0;
-      const dashSpace = 4.0;
-      double startX = 0;
-      while (startX < size.width) {
-        canvas.drawLine(
-          Offset(startX, size.height / 2),
-          Offset(startX + dashWidth, size.height / 2),
-          paint,
-        );
-        startX += dashWidth + dashSpace;
-      }
-    } else {
-      canvas.drawLine(
-        Offset(0, size.height / 2),
-        Offset(size.width, size.height / 2),
-        paint,
-      );
-    }
+    canvas.drawLine(
+      Offset(0, size.height / 2),
+      Offset(size.width, size.height / 2),
+      paint,
+    );
   }
 
   @override
