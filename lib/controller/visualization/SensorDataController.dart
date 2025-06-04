@@ -231,15 +231,6 @@ class SensorDataController {
     MultiSelectDialogItem sensor,
     int index,
   ) {
-    final dashPatterns = <List<int>?>[
-      null, // solid
-      [10, 5], // dashed
-      [2, 4], // dotted
-      [15, 5, 5, 5], // dash-dot
-      [8, 3, 2, 3], // short-dash-dot
-      [20, 5, 5, 5, 5, 5], // complex pattern
-    ];
-
     return LineChartBarData(
       spots: getFilteredDataPoints(
         deviceIp,
@@ -249,8 +240,6 @@ class SensorDataController {
       isCurved: false,
       color: getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
-      isStrokeCapRound: false,
-      dashArray: dashPatterns[index % dashPatterns.length],
       dotData: FlDotData(show: false),
     );
   }
