@@ -18,7 +18,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  bool firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseReady = true;
+  } catch (e) {
+    print('Firebase konnte nicht initialisiert werden: $e');
+  }
+
   if (!Platform.isWindows) {
     _initializeNotifications();
   }
@@ -27,13 +36,20 @@ void main() async {
   final dbOps = Databaseoperations(appDatabase);
 
   final firebaseSync = Firebasesync();
-  await firebaseSync.initializeApp(appDatabase);
+  if (firebaseReady) {
+    try {
+      await firebaseSync.initializeApp(appDatabase);
+      firebaseSync.deleteOldTablesInFirestore();
+    } catch (e) {
+      print('FirebaseSync konnte nicht initialisiert werden: $e');
+    }
+  }
 
   runApp(
     MultiProvider(
       providers: [
         Provider<Databaseoperations>.value(value: dbOps),
-        Provider<Firebasesync>.value(value: firebaseSync),
+        if (firebaseReady) Provider<Firebasesync>.value(value: firebaseSync),
         ChangeNotifierProvider(create: (_) => ConnectionProvider(dbOps)),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
