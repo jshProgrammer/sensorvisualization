@@ -285,14 +285,14 @@ class Firebasesync {
     }
   }
 
-  Future<List<String>> exportTableByNameAndDate(
+  Future<String> exportTableByNameAndDate(
     String tableName,
     DateTime date,
   ) async {
-    List<String> exportedFiles = [];
+    String exportedFile = '';
     if (!await isInternetAvailable()) {
       print("Keine Internetverbindung. Export übersprungen.");
-      return exportedFiles;
+      return exportedFile;
     }
 
     final formattedDate = date.toIso8601String();
@@ -309,7 +309,7 @@ class Firebasesync {
         print(
           "Keine Tabelle mit dem Namen $tableName und Datum $formattedDate gefunden.",
         );
-        return exportedFiles;
+        return exportedFile;
       }
 
       for (var metadataDoc in querySnapshot.docs) {
@@ -347,12 +347,12 @@ class Firebasesync {
         await file.writeAsString(csvData);
 
         print("Tabelle ${metadataDoc.id} als CSV exportiert: $path");
-        exportedFiles.add(path);
+        exportedFile = path.toString();
       }
-      return exportedFiles;
+      return exportedFile;
     } catch (e) {
       print("Fehler beim Exportieren der Tabelle $tableName: $e");
-      return exportedFiles;
+      return exportedFile;
     }
   }
 }

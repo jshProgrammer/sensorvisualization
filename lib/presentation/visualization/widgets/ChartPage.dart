@@ -930,7 +930,7 @@ class _ChartPageState extends State<ChartPage> {
                   ElevatedButton(
                     onPressed: () async {
                       try {
-                        List<String> paths = await firebasesync
+                        String paths = await firebasesync
                             .exportTableByNameAndDate(
                               currentTable['name'],
                               DateTime.parse(currentTable['last_updated']),
@@ -941,20 +941,31 @@ class _ChartPageState extends State<ChartPage> {
                         if (paths.isNotEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                '${paths.length} CSV-Dateien exportiert',
-                              ),
-                              action: SnackBarAction(
-                                label: 'Öffnen',
-                                onPressed: () async {
-                                  for (var path in paths) {
-                                    final uri = Uri.file(path);
-                                    if (await canLaunchUrl(uri)) {
-                                      await launchUrl(uri);
-                                    }
+                              content: GestureDetector(
+                                onTap: () async {
+                                  final uri = Uri.file(paths);
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Konnte Datei nicht öffnen.',
+                                        ),
+                                      ),
+                                    );
                                   }
                                 },
+                                child: Text(
+                                  'CSV-Datei exportiert: $paths',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
                               ),
+                              duration: const Duration(seconds: 4),
+                              behavior: SnackBarBehavior.floating,
                             ),
                           );
                         }
