@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
+import 'package:sensorvisualization/data/settingsModels/SensorType.dart';
 import 'package:sensorvisualization/database/AppDatabase.dart';
 import 'package:sensorvisualization/database/DatabaseOperations.dart';
 
@@ -19,20 +20,51 @@ class SensorDataProcessor {
   }
 
   void process(Map<String, dynamic> parsed) {
+    //TODO: refactoring
     databaseOperations.insertSensorData(
       SensorCompanion(
         date: Value(DateTime.parse(parsed['timestamp'])),
         ip: Value(parsed['ip']),
-        accelerationX: Value(parsed['x']),
-        accelerationY: Value(parsed['y']),
-        accelerationZ: Value(parsed['z']),
-        gyroskopX: Value(parsed['gyroscopeX']),
-        gyroskopY: Value(parsed['gyroscopeY']),
-        gyroskopZ: Value(parsed['gyroscopeZ']),
-        magnetometerX: Value(parsed['magnetometerX']),
-        magnetometerY: Value(parsed['magnetometerY']),
-        magnetometerZ: Value(parsed['magnetometerZ']),
-        barometer: Value(parsed['barometer']),
+        accelerationX:
+            parsed["sensor"] == SensorType.accelerometer.displayName
+                ? Value(parsed['x'])
+                : Value(null),
+        accelerationY:
+            parsed["sensor"] == SensorType.accelerometer.displayName
+                ? Value(parsed['y'])
+                : Value(null),
+        accelerationZ:
+            parsed["sensor"] == SensorType.accelerometer.displayName
+                ? Value(parsed['z'])
+                : Value(null),
+        gyroskopX:
+            parsed["sensor"] == SensorType.gyroscope.displayName
+                ? Value(parsed['x'])
+                : Value(null),
+        gyroskopY:
+            parsed["sensor"] == SensorType.gyroscope.displayName
+                ? Value(parsed['y'])
+                : Value(null),
+        gyroskopZ:
+            parsed["sensor"] == SensorType.gyroscope.displayName
+                ? Value(parsed['z'])
+                : Value(null),
+        magnetometerX:
+            parsed["sensor"] == SensorType.magnetometer.displayName
+                ? Value(parsed['x'])
+                : Value(null),
+        magnetometerY:
+            parsed["sensor"] == SensorType.magnetometer.displayName
+                ? Value(parsed['y'])
+                : Value(null),
+        magnetometerZ:
+            parsed["sensor"] == SensorType.magnetometer.displayName
+                ? Value(parsed['z'])
+                : Value(null),
+        barometer:
+            parsed["sensor"] == SensorType.barometer.displayName
+                ? Value(parsed['pressure'])
+                : Value(null),
       ),
     );
 
