@@ -6,7 +6,7 @@ import 'package:sensorvisualization/data/settingsModels/NetworkCommands.dart';
 import 'package:sensorvisualization/data/settingsModels/SensorType.dart';
 import 'package:sensorvisualization/data/services/client/ClientCommandHandler.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
-import 'package:sensorvisualization/presentation/screens/SensorMeasurement/old_AlarmPage.dart';
+//import 'package:sensorvisualization/presentation/screens/SensorMeasurement/old_AlarmPage.dart';
 import 'package:battery_plus/battery_plus.dart';
 
 import 'package:web_socket_channel/web_socket_channel.dart';

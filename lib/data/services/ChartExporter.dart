@@ -72,8 +72,7 @@ class ChartExporter {
           final sensorData = {
             'name': 'Sensor ${sensorIndex + 1}',
             'color': PdfColor.fromInt(line.color?.value ?? 0xFF000000),
-            'isDashed': sensorIndex > 0,
-            'dashPattern': sensorIndex > 0 ? [5, 5] : null,
+
             'data':
                 line.spots.map((spot) => {'x': spot.x, 'y': spot.y}).toList(),
           };

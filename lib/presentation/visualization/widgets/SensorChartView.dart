@@ -7,18 +7,21 @@ import 'package:sensorvisualization/data/settingsModels/ColorSettings.dart';
 import 'package:sensorvisualization/data/services/SensorDataTransformation.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
+import 'package:sensorvisualization/data/settingsModels/MultiselectDialogItem.dart';
 import 'package:sensorvisualization/model/visualization/ChartConfigurationModel.dart';
 import 'package:sensorvisualization/model/visualization/VisualizationSensorDataModel.dart';
 
 class SensorChartView extends StatefulWidget {
   final ChartConfigurationModel configModel;
   final VisualizationSensorDataModel sensorDataModel;
+  final Map<String, Map<MultiSelectDialogItem, Color>> selectedColors;
 
   //TODO: alternative Lösung zu Key Restart: ValueNotifier
   SensorChartView({
     Key? key,
     required this.configModel,
     required this.sensorDataModel,
+    required this.selectedColors,
   }) : super(
          key: ValueKey([
            sensorDataModel.warningRanges.hashCode,
@@ -42,6 +45,7 @@ class _SensorChartViewState extends State<SensorChartView> {
       settingsProvider: context.read<SettingsProvider>(),
       timeController: TextEditingController(),
       onTitlesDataText: onTitlesDataTest,
+      selectedColors: widget.selectedColors,
     );
   }
 

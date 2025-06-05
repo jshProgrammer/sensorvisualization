@@ -18,6 +18,7 @@ class SensorDataController {
   final ChartConfigurationModel _configModel;
   final SettingsProvider _settingsProvider;
   final TextEditingController _timeController;
+  final Map<String, Map<MultiSelectDialogItem, Color>> selectedColors;
 
   static final DateFormat _formatterNote = DateFormat('yyyy-MM-dd HH:mm:ss');
 
@@ -35,6 +36,7 @@ class SensorDataController {
     required SettingsProvider settingsProvider,
     required TextEditingController timeController,
     required this.onTitlesDataText,
+    required this.selectedColors,
   }) : _dataModel = dataModel,
        _configModel = configModel,
        _settingsProvider = settingsProvider,
@@ -231,15 +233,6 @@ class SensorDataController {
     MultiSelectDialogItem sensor,
     int index,
   ) {
-    final dashPatterns = <List<int>?>[
-      null, // solid
-      [10, 5], // dashed
-      [2, 4], // dotted
-      [15, 5, 5, 5], // dash-dot
-      [8, 3, 2, 3], // short-dash-dot
-      [20, 5, 5, 5, 5, 5], // complex pattern
-    ];
-
     return LineChartBarData(
       spots: getFilteredDataPoints(
         deviceIp,
@@ -247,10 +240,10 @@ class SensorDataController {
         sensor.attribute!,
       ),
       isCurved: false,
-      color: getSensorColor(sensor.attribute!.displayName),
+      color:
+          selectedColors[deviceIp]?[sensor] ??
+          getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
-      isStrokeCapRound: false,
-      dashArray: dashPatterns[index % dashPatterns.length],
       dotData: FlDotData(show: false),
     );
   }

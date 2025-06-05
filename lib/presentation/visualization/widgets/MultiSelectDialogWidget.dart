@@ -4,13 +4,33 @@ import 'package:sensorvisualization/data/settingsModels/MultiselectDialogItem.da
 import 'package:sensorvisualization/data/settingsModels/SensorOrientation.dart';
 import 'package:sensorvisualization/data/settingsModels/SensorType.dart';
 import 'package:sensorvisualization/data/services/providers/ConnectionProvider.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+
+class SensorSelectionWithColor {
+  final MultiSelectDialogItem sensor;
+  final Color color;
+
+  SensorSelectionWithColor({required this.sensor, required this.color});
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is SensorSelectionWithColor && other.sensor == sensor;
+  }
+
+  @override
+  int get hashCode => sensor.hashCode;
+}
 
 class Multiselectdialogwidget extends StatefulWidget {
-  const Multiselectdialogwidget({Key? key, required this.initialSelectedValues})
-    : super(key: key);
+  const Multiselectdialogwidget({
+    Key? key,
+    required this.initialSelectedValues,
+    this.initialSelectedColors = const {},
+  }) : super(key: key);
 
-  final Map<String, Set<MultiSelectDialogItem>>
-  initialSelectedValues; // device name => (multiple) sensors
+  final Map<String, Set<MultiSelectDialogItem>> initialSelectedValues;
+  final Map<String, Map<MultiSelectDialogItem, Color>> initialSelectedColors;
 
   @override
   State<StatefulWidget> createState() => _MultiSelectDialogState();
@@ -18,12 +38,29 @@ class Multiselectdialogwidget extends StatefulWidget {
 
 class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   Map<String, Set<MultiSelectDialogItem>> _selectedSensors = {};
-  late String _currentSelectedDevice; // ip-address
+  Map<String, Map<MultiSelectDialogItem, Color>> _selectedColors = {};
+  late String _currentSelectedDevice;
+
+  final List<Color> _predefinedColors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.teal,
+    Colors.pink,
+    Colors.brown,
+    Colors.indigo,
+    Colors.amber,
+    Colors.cyan,
+    Colors.lime,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _selectedSensors = widget.initialSelectedValues;
+    _selectedSensors = Map.from(widget.initialSelectedValues);
+    _selectedColors = Map.from(widget.initialSelectedColors);
 
     final devices =
         Provider.of<ConnectionProvider>(
@@ -44,10 +81,72 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
           () => <MultiSelectDialogItem>{},
         );
         _selectedSensors[_currentSelectedDevice]!.add(sensor);
+
+        _selectedColors.putIfAbsent(_currentSelectedDevice, () => {});
+        if (!_selectedColors[_currentSelectedDevice]!.containsKey(sensor)) {
+          _selectedColors[_currentSelectedDevice]![sensor] =
+              _getNextAvailableColor();
+        }
       } else {
-        _selectedSensors[_currentSelectedDevice]!.remove(sensor);
+        _selectedSensors[_currentSelectedDevice]?.remove(sensor);
+        _selectedColors[_currentSelectedDevice]?.remove(sensor);
       }
     });
+  }
+
+  Color _getNextAvailableColor() {
+    final usedColors =
+        _selectedColors[_currentSelectedDevice]?.values.toSet() ?? {};
+    for (Color color in _predefinedColors) {
+      if (!usedColors.contains(color)) {
+        return color;
+      }
+    }
+    return Colors.primaries[DateTime.now().millisecond %
+        Colors.primaries.length];
+  }
+
+  void _showColorPicker(MultiSelectDialogItem sensor) {
+    Color pickerColor =
+        _selectedColors[_currentSelectedDevice]?[sensor] ?? Colors.red;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Farbe für ${sensor.attribute?.displayName ?? sensor.sensorName.displayName}',
+          ),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (Color color) {
+                pickerColor = color;
+              },
+              showLabel: true,
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _selectedColors.putIfAbsent(_currentSelectedDevice, () => {});
+                  _selectedColors[_currentSelectedDevice]![sensor] =
+                      pickerColor;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Übernehmen'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _onCancelTap() {
@@ -55,7 +154,14 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   }
 
   void _onSubmitTap() {
-    Navigator.pop(context, _selectedSensors);
+    Navigator.pop(context, {
+      'sensors': _selectedSensors,
+      'colors': _selectedColors,
+    });
+  }
+
+  Map<String, Map<MultiSelectDialogItem, Color>> getSelectedColors() {
+    return _selectedColors;
   }
 
   @override
@@ -73,7 +179,7 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
       ),
       ...deviceEntries.map((entry) {
         return DropdownMenuItem<String>(
-          value: entry.key, // z. B. "192.168.1.5"
+          value: entry.key,
           child: Text('${entry.value} (${entry.key})'),
         );
       }),
@@ -82,33 +188,36 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
     return AlertDialog(
       title: const Text('Sensorauswahl'),
       contentPadding: const EdgeInsets.all(20.0),
-      content: SingleChildScrollView(
-        child: Column(
-          children: [
-            DropdownButton<String>(
-              value: _currentSelectedDevice,
-              hint: const Text('Sensor auswählen'),
-              items: dropdownItems,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _currentSelectedDevice = newValue ?? _currentSelectedDevice;
-                });
-              },
-            ),
-            const SizedBox(height: 20.0),
-            ListTileTheme(
-              contentPadding: const EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
-              child: ListBody(
-                children:
-                    getSensorChoices(
-                      _currentSelectedDevice ==
-                              SensorType.simulatedData.displayName
-                          ? SensorType.simulatedData
-                          : SensorType.accelerometer,
-                    ).map(_buildItem).toList(),
+      content: SizedBox(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButton<String>(
+                value: _currentSelectedDevice,
+                hint: const Text('Sensor auswählen'),
+                items: dropdownItems,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _currentSelectedDevice = newValue ?? _currentSelectedDevice;
+                  });
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: 20.0),
+              ListTileTheme(
+                contentPadding: const EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+                child: ListBody(
+                  children:
+                      getSensorChoices(
+                        _currentSelectedDevice ==
+                                SensorType.simulatedData.displayName
+                            ? SensorType.simulatedData
+                            : SensorType.accelerometer,
+                      ).map(_buildItem).toList(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       actions: <Widget>[
@@ -121,20 +230,51 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
   Widget _buildItem(MultiSelectDialogItem item) {
     final selectedSet = _selectedSensors[_currentSelectedDevice] ?? {};
     final checked = selectedSet.contains(item);
+    final itemColor = _selectedColors[_currentSelectedDevice]?[item];
 
     return item.type == ItemType.data
-        ? CheckboxListTile(
-          value: checked,
-          title: Text(item.attribute!.displayName),
-          controlAffinity: ListTileControlAffinity.leading,
-          onChanged: (checked) => _onItemCheckedChange(item, checked!),
+        ? Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: CheckboxListTile(
+                  value: checked,
+                  title: Text(item.attribute!.displayName),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (checked) => _onItemCheckedChange(item, checked!),
+                ),
+              ),
+              if (checked) ...[
+                Container(
+                  width: 14,
+                  height: 14,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: itemColor ?? Colors.grey,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black54),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.palette, size: 20),
+                  onPressed: () => _showColorPicker(item),
+                  tooltip: 'Farbe ändern',
+                ),
+              ] else
+                const SizedBox(width: 64),
+            ],
+          ),
         )
         : Container(
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Text(
               item.sensorName.displayName,
-              style: TextStyle(color: Color.fromARGB(255, 91, 91, 91)),
+              style: const TextStyle(
+                color: Color.fromARGB(255, 91, 91, 91),
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         );
@@ -188,24 +328,20 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
         sensorName: SensorType.deviationTo90Degrees,
         type: ItemType.seperator,
       ),
-
       MultiSelectDialogItem(
         sensorName: SensorType.deviationTo90Degrees,
         attribute: SensorOrientation.degree,
         type: ItemType.data,
       ),
-
       MultiSelectDialogItem(
         sensorName: SensorType.displacementOneMeter,
         type: ItemType.seperator,
       ),
-
       MultiSelectDialogItem(
         sensorName: SensorType.displacementOneMeter,
         attribute: SensorOrientation.displacement,
         type: ItemType.data,
       ),
-
       MultiSelectDialogItem(
         sensorName: SensorType.gyroscope,
         type: ItemType.seperator,
@@ -225,7 +361,6 @@ class _MultiSelectDialogState extends State<Multiselectdialogwidget> {
         attribute: SensorOrientation.z,
         type: ItemType.data,
       ),
-
       MultiSelectDialogItem(
         sensorName: SensorType.magnetometer,
         type: ItemType.seperator,
