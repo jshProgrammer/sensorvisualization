@@ -18,6 +18,7 @@ class SensorDataController {
   final ChartConfigurationModel _configModel;
   final SettingsProvider _settingsProvider;
   final TextEditingController _timeController;
+  final Map<String, Map<MultiSelectDialogItem, Color>> selectedColors;
 
   static final DateFormat _formatterNote = DateFormat('yyyy-MM-dd HH:mm:ss');
 
@@ -35,6 +36,7 @@ class SensorDataController {
     required SettingsProvider settingsProvider,
     required TextEditingController timeController,
     required this.onTitlesDataText,
+    required this.selectedColors,
   }) : _dataModel = dataModel,
        _configModel = configModel,
        _settingsProvider = settingsProvider,
@@ -238,7 +240,9 @@ class SensorDataController {
         sensor.attribute!,
       ),
       isCurved: false,
-      color: getSensorColor(sensor.attribute!.displayName),
+      color:
+          selectedColors[deviceIp]?[sensor] ??
+          getSensorColor(sensor.attribute!.displayName),
       barWidth: 4,
       dotData: FlDotData(show: false),
     );

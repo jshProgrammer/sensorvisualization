@@ -79,6 +79,7 @@ class _ChartPageState extends State<ChartPage> {
   int? selectedPointIndex;
 
   Map<String, Set<MultiSelectDialogItem>> selectedValues = {};
+  Map<String, Map<MultiSelectDialogItem, Color>> selectedColors = {};
 
   final GlobalKey _chartKey = GlobalKey();
 
@@ -576,17 +577,31 @@ class _ChartPageState extends State<ChartPage> {
   }
 
   void _showMultiSelect(BuildContext context) async {
-    final result = await showDialog<Map<String, Set<MultiSelectDialogItem>>>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (BuildContext context) {
-        return Multiselectdialogwidget(initialSelectedValues: selectedValues);
+        return Multiselectdialogwidget(
+          initialSelectedValues: selectedValues,
+          initialSelectedColors: selectedColors,
+        );
       },
     );
 
     if (result != null) {
-      setState(() {
-        _updateSelectedValues(result);
-      });
+      if (result['sensors'] != null) {
+        final sensors =
+            result['sensors'] as Map<String, Set<MultiSelectDialogItem>>;
+        setState(() {
+          selectedValues = sensors;
+        });
+      }
+      if (result['colors'] != null) {
+        final colors =
+            result['colors'] as Map<String, Map<MultiSelectDialogItem, Color>>;
+        setState(() {
+          selectedColors = colors;
+        });
+      }
     }
   }
 
@@ -1086,6 +1101,7 @@ class _ChartPageState extends State<ChartPage> {
                                   'green': [WarningRange(1, 2)],
                                 }*/,
                               ),
+                              selectedColors: selectedColors,
                             ),
 
                             /*SensorChartView(
@@ -1303,9 +1319,11 @@ class _ChartPageState extends State<ChartPage> {
           'device': connectionProvider.connectedDevices[device] ?? "Simulator",
           'sensorName': sensor.sensorName.displayName,
           'attribute': sensor.attribute!.displayName,
-          'color': SensorDataController.getSensorColor(
-            sensor.attribute!.displayName,
-          ),
+          'color':
+              selectedColors[device]?[sensor] ??
+              SensorDataController.getSensorColor(
+                sensor.attribute!.displayName,
+              ),
         });
 
         sensorIndex++;
@@ -1332,9 +1350,11 @@ class _ChartPageState extends State<ChartPage> {
               CustomPaint(
                 size: const Size(24, 12),
                 painter: LineStylePainter(
-                  color: SensorDataController.getSensorColor(
-                    sensor.attribute!.displayName,
-                  ),
+                  color:
+                      selectedColors[device]?[sensor] ??
+                      SensorDataController.getSensorColor(
+                        sensor.attribute!.displayName,
+                      ),
                 ),
               ),
               const SizedBox(width: 4),
