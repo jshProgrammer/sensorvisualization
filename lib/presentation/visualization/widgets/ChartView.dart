@@ -89,8 +89,6 @@ class _ChartViewState extends State<ChartView> {
       listen: false,
     );
 
-    //TODO: wirklich nötig?!
-
     List<DateTime> currentDangerTimes = List<DateTime>.from(
       _chartController.dangerNavigationController.all,
     );
@@ -644,22 +642,23 @@ class _ChartViewState extends State<ChartView> {
               ),
             ],
       ),
-      //TODO: fix later
-      /*ElevatedButton(
-          child: Text(
-            isSimulationRunning ? "Simulaton stoppen" : "Simulation start",
-          ),
-          onPressed: () {
-            if (!isSimulationRunning) {
-              simulator.startSimulation(intervalMs: 1000);
-              _startTime = DateTime.now();
-              isSimulationRunning = true;
-            } else {
-              isSimulationRunning = false;
-              simulator.stopSimulation();
-            }
-          },
-        ),*/
+      ElevatedButton(
+        child: Text(
+          _chartController.isSimulationRunning
+              ? "Simulaton stoppen"
+              : "Simulation start",
+        ),
+        onPressed: () {
+          if (!_chartController.isSimulationRunning) {
+            _chartController.simulator.startSimulation(intervalMs: 1000);
+            _chartController.startTime = DateTime.now();
+            _chartController.isSimulationRunning = true;
+          } else {
+            _chartController.isSimulationRunning = false;
+            _chartController.simulator.stopSimulation();
+          }
+        },
+      ),
     ];
   }
 

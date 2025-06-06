@@ -9,7 +9,6 @@ import 'package:sensorvisualization/presentation/visualization/dialogs/QRCodeDia
 import 'package:sensorvisualization/presentation/visualization/dialogs/SettingsDialog.dart';
 import 'package:sensorvisualization/presentation/visualization/dialogs/StartAlarmDialog.dart';
 import 'package:sensorvisualization/presentation/visualization/dialogs/StopAlarmDialog.dart';
-import 'package:sensorvisualization/presentation/visualization/widgets/ChartPage.dart';
 import 'package:sensorvisualization/presentation/visualization/widgets/ChartSelectorTabMulti.dart';
 import 'package:sensorvisualization/presentation/visualization/widgets/ChartView.dart';
 

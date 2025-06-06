@@ -41,6 +41,7 @@ class ChartController extends ChangeNotifier {
   final firebasesync = Firebasesync();
 
   late SensorDataSimulator simulator;
+  bool isSimulationRunning = false;
   late StreamSubscription _dataSubscription;
 
   DangerNavigationController dangerNavigationController =
@@ -72,6 +73,12 @@ class ChartController extends ChangeNotifier {
   double get baselineX => _chartModel.baselineX;
   set baselineX(double value) {
     _chartModel.baselineX = value;
+    notifyListeners();
+  }
+
+  DateTime get startTime => _chartModel.startTime;
+  set startTime(DateTime value) {
+    _chartModel.startTime = value;
     notifyListeners();
   }
 
@@ -215,9 +222,7 @@ class ChartController extends ChangeNotifier {
         List<FlSpot> selectedPoints = [];
         List<DateTime> selectedTimestamps = [];
 
-        //TODO: ! ergänzt!!!
         for (final device in selectedValues!.keys) {
-          //TODO: ! ergänzt!!!
           for (final sensorItem in selectedValues![device]!) {
             if (sensorItem.attribute != null) {
               double val;
@@ -401,9 +406,7 @@ class ChartController extends ChangeNotifier {
     List<FlSpot> selectedPoints = [];
     List<DateTime> selectedTimestamps = [];
 
-    //TODO: hier ! ergänzt!!!
     for (final device in _chartModel.selectedValues!.keys) {
-      //TODO: hier ! ergänzt!!!
       for (final sensorItem in selectedValues![device]!) {
         if (sensorItem.attribute != null) {
           double val;
