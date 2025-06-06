@@ -11,6 +11,7 @@ import 'package:sensorvisualization/presentation/visualization/dialogs/StartAlar
 import 'package:sensorvisualization/presentation/visualization/dialogs/StopAlarmDialog.dart';
 import 'package:sensorvisualization/presentation/visualization/widgets/ChartPage.dart';
 import 'package:sensorvisualization/presentation/visualization/widgets/ChartSelectorTabMulti.dart';
+import 'package:sensorvisualization/presentation/visualization/widgets/ChartView.dart';
 
 class VisualizationHomeScreen extends StatefulWidget {
   const VisualizationHomeScreen({super.key});
@@ -208,7 +209,7 @@ class _VisualizationHomeScreenState extends State<VisualizationHomeScreen> {
                         height: 500,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: ChartPage.withSelectedValues(
+                          child: ChartView(
                             chartConfig: chart,
                             selectedValues:
                                 _controller.chartSelections[chart.id] ?? {},
