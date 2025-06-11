@@ -35,8 +35,12 @@ class ChartView extends StatefulWidget {
   State<ChartView> createState() => _ChartViewState();
 }
 
-class _ChartViewState extends State<ChartView> {
+class _ChartViewState extends State<ChartView>
+    with AutomaticKeepAliveClientMixin {
   late ChartController _chartController;
+
+  @override
+  bool get wantKeepAlive => true;
 
   final GlobalKey _chartKey = GlobalKey();
 
@@ -84,6 +88,7 @@ class _ChartViewState extends State<ChartView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final settingsProvider = Provider.of<SettingsProvider>(
       context,
       listen: false,
@@ -645,7 +650,7 @@ class _ChartViewState extends State<ChartView> {
       ElevatedButton(
         child: Text(
           _chartController.isSimulationRunning
-              ? "Simulaton stoppen"
+              ? "Simulation stoppen"
               : "Simulation start",
         ),
         onPressed: () {
