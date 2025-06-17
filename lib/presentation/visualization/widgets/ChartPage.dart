@@ -58,8 +58,12 @@ class ChartPage extends StatefulWidget {
   State<ChartPage> createState() => _ChartPageState();
 }
 
-class _ChartPageState extends State<ChartPage> {
+class _ChartPageState extends State<ChartPage>
+    with AutomaticKeepAliveClientMixin {
   final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+
+  @override
+  bool get wantKeepAlive => true;
 
   bool _isEditingTitle = false;
 
@@ -811,7 +815,7 @@ class _ChartPageState extends State<ChartPage> {
       ),*/
       ElevatedButton(
         child: Text(
-          isSimulationRunning ? "Simulaton stoppen" : "Simulation start",
+          isSimulationRunning ? "Simulation stoppen" : "Simulation start",
         ),
         onPressed: () {
           if (!isSimulationRunning) {
@@ -1012,6 +1016,7 @@ class _ChartPageState extends State<ChartPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final settingsProvider = Provider.of<SettingsProvider>(
       context,
       listen: false,
