@@ -45,12 +45,12 @@ class SensorMeasurementController extends ChangeNotifier {
 
     connection.commandHandler.onMeasurementPaused = () async {
       await connection.pauseMeasurement();
-      _updateMeasurementState(_measurementState.copyWith(isPaused: true));
+      updateMeasurementState(_measurementState.copyWith(isPaused: true));
     };
 
     connection.commandHandler.onMeasurementResumed = () async {
       await connection.resumeMeasurement();
-      _updateMeasurementState(_measurementState.copyWith(isPaused: false));
+      updateMeasurementState(_measurementState.copyWith(isPaused: false));
     };
 
     connection.commandHandler.onMeasurementStopped = () async {
@@ -70,9 +70,9 @@ class SensorMeasurementController extends ChangeNotifier {
         samplingPeriod: accelerometerSensorInterval,
       ).listen(
         (UserAccelerometerEvent event) {
-          _updateUserAccelerometerData(event);
+          updateUserAccelerometerData(event);
         },
-        onError: (e) => _showSensorError("User Beschleunigungssensor"),
+        onError: (e) => showSensorError("User Beschleunigungssensor"),
         cancelOnError: true,
       ),
     );
@@ -81,42 +81,42 @@ class SensorMeasurementController extends ChangeNotifier {
         samplingPeriod: accelerometerSensorInterval,
       ).listen(
         (AccelerometerEvent event) {
-          _updateAccelerometerData(event);
+          updateAccelerometerData(event);
         },
-        onError: (e) => _showSensorError("Beschleunigungssensor"),
+        onError: (e) => showSensorError("Beschleunigungssensor"),
         cancelOnError: true,
       ),
     );
     _streamSubscriptions.add(
       gyroscopeEventStream(samplingPeriod: standardSensorInterval).listen(
         (GyroscopeEvent event) {
-          _updateGyroscopeData(event);
+          updateGyroscopeData(event);
         },
-        onError: (e) => _showSensorError("Gyroskop"),
+        onError: (e) => showSensorError("Gyroskop"),
         cancelOnError: true,
       ),
     );
     _streamSubscriptions.add(
       magnetometerEventStream(samplingPeriod: standardSensorInterval).listen(
         (MagnetometerEvent event) {
-          _updateMagnetometerData(event);
+          updateMagnetometerData(event);
         },
-        onError: (e) => _showSensorError("Magnetometer"),
+        onError: (e) => showSensorError("Magnetometer"),
         cancelOnError: true,
       ),
     );
     _streamSubscriptions.add(
       barometerEventStream(samplingPeriod: standardSensorInterval).listen(
         (BarometerEvent event) {
-          _updateBarometerData(event);
+          updateBarometerData(event);
         },
-        onError: (e) => _showSensorError("Barometer"),
+        onError: (e) => showSensorError("Barometer"),
         cancelOnError: true,
       ),
     );
   }
 
-  void _updateUserAccelerometerData(UserAccelerometerEvent event) {
+  void updateUserAccelerometerData(UserAccelerometerEvent event) {
     final now = event.timestamp;
     int? interval;
 
@@ -129,7 +129,7 @@ class SensorMeasurementController extends ChangeNotifier {
       }
     }
 
-    _updateSensorData(
+    updateSensorData(
       _sensorData.copyWith(
         userAccelerometerEvent: event,
         userAccelerometerUpdateTime: now,
@@ -138,7 +138,7 @@ class SensorMeasurementController extends ChangeNotifier {
     );
   }
 
-  void _updateAccelerometerData(AccelerometerEvent event) {
+  void updateAccelerometerData(AccelerometerEvent event) {
     final now = event.timestamp;
     int? interval;
 
@@ -151,7 +151,7 @@ class SensorMeasurementController extends ChangeNotifier {
       }
     }
 
-    _updateSensorData(
+    updateSensorData(
       _sensorData.copyWith(
         accelerometerEvent: event,
         accelerometerUpdateTime: now,
@@ -160,7 +160,7 @@ class SensorMeasurementController extends ChangeNotifier {
     );
   }
 
-  void _updateGyroscopeData(GyroscopeEvent event) {
+  void updateGyroscopeData(GyroscopeEvent event) {
     final now = event.timestamp;
     int? interval;
 
@@ -171,7 +171,7 @@ class SensorMeasurementController extends ChangeNotifier {
       }
     }
 
-    _updateSensorData(
+    updateSensorData(
       _sensorData.copyWith(
         gyroscopeEvent: event,
         gyroscopeUpdateTime: now,
@@ -180,7 +180,7 @@ class SensorMeasurementController extends ChangeNotifier {
     );
   }
 
-  void _updateMagnetometerData(MagnetometerEvent event) {
+  void updateMagnetometerData(MagnetometerEvent event) {
     final now = event.timestamp;
     int? interval;
 
@@ -193,7 +193,7 @@ class SensorMeasurementController extends ChangeNotifier {
       }
     }
 
-    _updateSensorData(
+    updateSensorData(
       _sensorData.copyWith(
         magnetometerEvent: event,
         magnetometerUpdateTime: now,
@@ -202,7 +202,7 @@ class SensorMeasurementController extends ChangeNotifier {
     );
   }
 
-  void _updateBarometerData(BarometerEvent event) {
+  void updateBarometerData(BarometerEvent event) {
     final now = event.timestamp;
     int? interval;
 
@@ -213,7 +213,7 @@ class SensorMeasurementController extends ChangeNotifier {
       }
     }
 
-    _updateSensorData(
+    updateSensorData(
       _sensorData.copyWith(
         barometerEvent: event,
         barometerUpdateTime: now,
@@ -222,30 +222,30 @@ class SensorMeasurementController extends ChangeNotifier {
     );
   }
 
-  void _showSensorError(String sensorName) {
+  void showSensorError(String sensorName) {
     onErrorReceived?.call(
       "Dein Gerät scheint keinen $sensorName zu unterstützen",
     );
   }
 
-  void _updateSensorData(MeasurementSensorDataModel newData) {
+  void updateSensorData(MeasurementSensorDataModel newData) {
     _sensorData = newData;
     notifyListeners();
   }
 
-  void _updateMeasurementState(MeasurementState newState) {
+  void updateMeasurementState(MeasurementState newState) {
     _measurementState = newState;
     notifyListeners();
   }
 
   Future<void> pauseMeasurement() async {
     await connection.pauseMeasurement();
-    _updateMeasurementState(_measurementState.copyWith(isPaused: true));
+    updateMeasurementState(_measurementState.copyWith(isPaused: true));
   }
 
   Future<void> resumeMeasurement() async {
     await connection.resumeMeasurement();
-    _updateMeasurementState(_measurementState.copyWith(isPaused: false));
+    updateMeasurementState(_measurementState.copyWith(isPaused: false));
   }
 
   Future<void> stopMeasurement() async {
