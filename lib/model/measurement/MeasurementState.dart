@@ -7,6 +7,9 @@ class MeasurementState {
   final int? remainingSeconds;
   final int? delayRemainingSeconds;
 
+  final double? measurementProgress;
+  final double? delayProgress;
+
   const MeasurementState({
     this.isPaused = false,
     this.isNullMeasurement = false,
@@ -15,6 +18,8 @@ class MeasurementState {
     this.measurementDuration,
     this.remainingSeconds,
     this.delayRemainingSeconds,
+    this.measurementProgress,
+    this.delayProgress,
   });
 
   MeasurementState copyWith({
@@ -25,6 +30,8 @@ class MeasurementState {
     int? measurementDuration,
     int? remainingSeconds,
     int? delayRemainingSeconds,
+    double? measurementProgress,
+    double? delayProgress,
   }) {
     return MeasurementState(
       isPaused: isPaused ?? this.isPaused,
@@ -35,6 +42,8 @@ class MeasurementState {
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       delayRemainingSeconds:
           delayRemainingSeconds ?? this.delayRemainingSeconds,
+      measurementProgress: measurementProgress ?? this.measurementProgress,
+      delayProgress: delayProgress ?? this.delayProgress,
     );
   }
 }

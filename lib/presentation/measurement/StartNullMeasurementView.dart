@@ -16,7 +16,7 @@ class StartNullMeasurementView extends StatefulWidget {
       _StartNullMeasurementViewState();
 }
 
-class _StartNullMeasurementViewState extends State<StartNullMeasurementView> {
+class _StartNullMeasurementViewState extends State<StartNullMeasurementView> with SingleTickerProviderStateMixin {
   late NullMeasurementController _controller;
   late TextEditingController _delayController;
 
@@ -80,7 +80,7 @@ class _StartNullMeasurementViewState extends State<StartNullMeasurementView> {
             Stack(
               alignment: Alignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: 200.0,
                   height: 200.0,
                   child: CircularProgressIndicator(
@@ -89,7 +89,6 @@ class _StartNullMeasurementViewState extends State<StartNullMeasurementView> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                   ),
                 ),
-
                 Text(
                   '${_controller.measurementState.remainingSeconds}',
                   style: TextStyle(

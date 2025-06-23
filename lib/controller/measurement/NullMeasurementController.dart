@@ -44,13 +44,12 @@ class NullMeasurementController extends ChangeNotifier {
   }
 
   double get progress {
-    if (_measurementState.measurementDuration == null ||
-        _measurementState.remainingSeconds == null) {
-      return 0.0;
+    if (_measurementState.isDelayActive) {
+      return _measurementState.delayProgress ?? 0.0;
+    } else if (!_measurementState.isPaused) {
+      return _measurementState.measurementProgress ?? 0.0;
     }
-    final total = _measurementState.measurementDuration!;
-    final remaining = _measurementState.remainingSeconds!;
-    return (total - remaining) / total;
+    return 0.0;
   }
 
   bool get isDelayEnabled => _measurementState.isDelayEnabled;
@@ -125,32 +124,44 @@ class NullMeasurementController extends ChangeNotifier {
   }
 
   void _startProgressTimer(
-    int duration,
-    Function onFinish, {
-    bool isDelay = false,
-  }) {
+      int duration,
+      Function onFinish, {
+        bool isDelay = false,
+      }) {
     DateTime startTime = DateTime.now();
     DateTime endTime = startTime.add(Duration(seconds: duration));
 
     _progressTimer = Timer.periodic(Duration(milliseconds: 20), (timer) {
-      final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-      final newRemainingSeconds = duration - (elapsed / 1000).floor();
+      final now = DateTime.now();
+      final elapsed = now.difference(startTime).inMilliseconds;
+      final totalDurationMs = duration * 1000;
+
+      // Berechne verbleibende Zeit in Millisekunden für smooth progress
+      final remainingMs = totalDurationMs - elapsed;
+      final remainingSeconds = (remainingMs / 1000).clamp(0.0, duration.toDouble());
+
+      // Für die Anzeige runden wir auf ganze Sekunden
+      final displaySeconds = remainingSeconds.ceil().clamp(0, duration);
 
       if (isDelay) {
         _updateMeasurementState(
           _measurementState.copyWith(
-            delayRemainingSeconds: newRemainingSeconds.clamp(0, duration),
+            delayRemainingSeconds: displaySeconds,
+            // Fügen Sie ein neues Feld für smooth progress hinzu
+            delayProgress: 1.0 - (remainingMs / totalDurationMs).clamp(0.0, 1.0),
           ),
         );
       } else {
         _updateMeasurementState(
           _measurementState.copyWith(
-            remainingSeconds: newRemainingSeconds.clamp(0, duration),
+            remainingSeconds: displaySeconds,
+            // Fügen Sie ein neues Feld für smooth progress hinzu
+            measurementProgress: 1.0 - (remainingMs / totalDurationMs).clamp(0.0, 1.0),
           ),
         );
       }
 
-      if (DateTime.now().isAfter(endTime)) {
+      if (now.isAfter(endTime)) {
         timer.cancel();
         onFinish();
       }
