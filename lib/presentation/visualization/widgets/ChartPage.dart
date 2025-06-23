@@ -851,18 +851,14 @@ class _ChartPageState extends State<ChartPage>
     if (settingsProvider.selectedTimeChoice ==
         TimeChoice.relativeToStart.value) {
       sliderMin = 0;
-      sliderMax =
-          maxX == 0
-              ? settingsProvider.scrollingSeconds.toDouble()
-              : SensorDataTransformation.transformDateTimeToSecondsSinceStart(
-                DateTime.fromMillisecondsSinceEpoch((maxX * 1000).toInt()),
-              ).toDouble();
-    } else {
+    }
+    else {
       sliderMin = SensorDataTransformation.transformDateTimeToSecondsAsDouble(
         GlobalStartTime().startTime,
       );
-      sliderMax = maxX;
     }
+    sliderMax = maxX;
+
 
     if (sliderMax < sliderMin) {
       // e.g. if no data has been sent yet
