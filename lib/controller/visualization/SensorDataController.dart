@@ -146,12 +146,11 @@ class SensorDataController {
     );
   }
 
-  //TODO: evtl Logik für Grid Interval einfügen
   FlGridData _buildGridData() {
     return FlGridData(
       show: _settingsProvider.showGrid,
-      horizontalInterval: 0.5,
-      verticalInterval: 0.5,
+      horizontalInterval: (_getMaxY() - _getMinY()) > 0  ? (_getMaxY() - _getMinY()) / 10 : 5,
+      verticalInterval: _settingsProvider.scrollingSeconds / 10,
       getDrawingHorizontalLine:
           (value) => FlLine(
             color: ColorSettings.lineColor,

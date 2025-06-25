@@ -82,11 +82,31 @@ class _SettingsDialogState extends State<SettingsDialog> {
               const Divider(color: Colors.grey, thickness: 1, height: 20),
               _buildSensorDataSection(setStateDialog),
               const Divider(color: Colors.grey, thickness: 1, height: 20),
+              _buildGridSection(setStateDialog),
+              const Divider(color: Colors.grey, thickness: 1, height: 20),
               _buildDatabaseSyncSection(setStateDialog),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildGridSection(StateSetter setStateDialog) {
+    return  Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text("Diagramgitter:"),
+        SizedBox(width: 10),
+        Switch(
+          value: widget.controller.selectedGridChoice,
+          onChanged: (value) {
+            setStateDialog(() {
+              widget.controller.toggleGridChoice();
+            });
+          },
+        ),
+      ],
     );
   }
 

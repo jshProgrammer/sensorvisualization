@@ -58,7 +58,6 @@ class SensorCommandHandler {
         case NetworkCommands.BatteryLevel:
           connectionManager.updateBatteryLevel(ip, decoded['level']);
           break;
-        //TODO: evtl noch AlarmStop, falls von Handy gesendet
         default:
           throw Exception("Illegal command received");
       }

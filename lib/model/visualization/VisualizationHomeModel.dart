@@ -18,6 +18,7 @@ class VisualizationHomeModel {
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
+  bool _selectedGridChoice = false;
 
   //TODO: evtl auslagern?
   //TODO: URL Noch anpassen
@@ -92,6 +93,11 @@ class VisualizationHomeModel {
   int get selectedTimeChoice => _selectedTimeChoice;
   int get selectedAbsRelData => _selectedAbsRelData;
   int get selectedTimeUnit => _selectedTimeUnit;
+  bool get selectedGridChoice => _selectedGridChoice;
+  set selectedGridChoice(bool value) {
+    _selectedGridChoice = value;
+  }
+
   List<LexikonEntry> get lexikonEntries => List.unmodifiable(_lexikonEntries);
 
   List<ChartConfig> get activeCharts {

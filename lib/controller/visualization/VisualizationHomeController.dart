@@ -33,6 +33,8 @@ class VisualizationHomeController extends ChangeNotifier {
   int get selectedTimeChoice => _model.selectedTimeChoice;
   int get selectedAbsRelData => _model.selectedAbsRelData;
   int get selectedTimeUnit => _model.selectedTimeUnit;
+  bool get selectedGridChoice => _model.selectedGridChoice;
+
 
   void _initializeController() {
     addNewChartTab();
@@ -123,6 +125,10 @@ class VisualizationHomeController extends ChangeNotifier {
     _model.firebaseSync.syncInterval = interval;
   }
 
+  void toggleGridChoice() {
+    _model.selectedGridChoice = !_model.selectedGridChoice;
+  }
+
   void renameCurrentTab(String newName) {
     _model.renameCurrentTab(newName);
     notifyListeners();
@@ -167,10 +173,9 @@ class VisualizationHomeController extends ChangeNotifier {
           SettingsProvider.DEFAULT_SCROLLING_SECONDS;
       final unitChoice = TimeUnitChoice.fromValue(_model.selectedTimeUnit);
       final seconds = _calculateSeconds(value, unitChoice);
-
       settingsProvider.setScrollingSeconds(seconds);
     }
-
+    settingsProvider.setShowGrid(_model.selectedGridChoice);
     settingsProvider.setTimeChoice(_model.selectedTimeChoice);
     settingsProvider.setDataMode(_model.selectedAbsRelData);
   }

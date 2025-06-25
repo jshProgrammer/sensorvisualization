@@ -233,8 +233,4 @@ class _VisualizationHomeScreenState extends State<VisualizationHomeScreen> {
               ),
     );
   }
-
-  //TODO: Werte aller Dialogs werden auch bei Klicken auf Abbrechen gespeichert
-
-  //TODO: war vorher nicht Tab bei IOS deaktiviert?!
 }
