@@ -12,6 +12,40 @@ class SettingsDialog extends StatefulWidget {
 }
 
 class _SettingsDialogState extends State<SettingsDialog> {
+  late String _originalSecondsValue;
+  late int _originalTimeUnit;
+  late int _originalTimeChoice;
+  late int _originalAbsRelData;
+  late bool _originalFirebaseSyncStatus;
+  late int _originalSyncInterval;
+
+
+  @override
+  void initState() {
+    super.initState();
+    // Ursprüngliche Werte sichern
+    _backupOriginalValues();
+  }
+
+  void _backupOriginalValues() {
+    _originalSecondsValue = widget.controller.secondsController.text;
+    _originalTimeUnit = widget.controller.selectedTimeUnit;
+    _originalTimeChoice = widget.controller.selectedTimeChoice;
+    _originalAbsRelData = widget.controller.selectedAbsRelData;
+    _originalFirebaseSyncStatus = widget.controller.firebaseSync.isSyncing;
+    _originalSyncInterval = widget.controller.firebaseSync.syncInterval;
+  }
+
+  void _restoreOriginalValues() {
+    widget.controller.secondsController.text = _originalSecondsValue;
+    widget.controller.updateTimeUnit(_originalTimeUnit);
+    widget.controller.updateTimeChoice(_originalTimeChoice);
+    widget.controller.updateAbsRelData(_originalAbsRelData);
+    widget.controller.updateFirebaseSyncStatus(_originalFirebaseSyncStatus);
+    widget.controller.updateSyncInterval(_originalSyncInterval);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -20,7 +54,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
       actions: [
         TextButton(
           child: const Text('Schließen'),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            _restoreOriginalValues();
+            Navigator.of(context).pop();},
         ),
         TextButton(
           child: const Text('Speichern'),
@@ -69,7 +105,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ),
                 decoration: InputDecoration(
                   labelText:
-                      'default: ${SettingsProvider.DEFAULT_SCROLLING_SECONDS} s',
+                  'default: ${SettingsProvider.DEFAULT_SCROLLING_SECONDS} s',
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -77,28 +113,28 @@ class _SettingsDialogState extends State<SettingsDialog> {
             const SizedBox(width: 8),
             DropdownButton<String>(
               value:
-                  TimeUnitChoice.fromValue(
-                    widget.controller.selectedTimeUnit,
-                  ).asString(),
+              TimeUnitChoice.fromValue(
+                widget.controller.selectedTimeUnit,
+              ).asString(),
               onChanged: (String? newValue) {
                 setStateDialog(() {
                   final unit = TimeUnitChoice.values.firstWhere(
-                    (e) => e.asString() == newValue,
+                        (e) => e.asString() == newValue,
                   );
                   widget.controller.updateTimeUnit(unit.value);
                 });
               },
               items:
-                  TimeUnitChoice.values
-                      .map((e) => e.asString())
-                      .toList()
-                      .map(
-                        (value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        ),
-                      )
-                      .toList(),
+              TimeUnitChoice.values
+                  .map((e) => e.asString())
+                  .toList()
+                  .map(
+                    (value) => DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                ),
+              )
+                  .toList(),
             ),
           ],
         ),

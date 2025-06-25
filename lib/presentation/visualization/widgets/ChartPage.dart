@@ -1136,8 +1136,7 @@ class _ChartPageState extends State<ChartPage>
                       children: [
                         Expanded(
                           child: Slider(
-                            //TODO: bei zeit ab start geht er bis -unlimited
-                            //TODO: Slider startet immer links?!
+
                             value: baselineX.clamp(
                               getSliderMinMax(settingsProvider).item1,
                               getSliderMinMax(settingsProvider).item2,
