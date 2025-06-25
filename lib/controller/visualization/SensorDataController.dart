@@ -243,7 +243,7 @@ class SensorDataController {
       color:
           selectedColors[deviceIp]?[sensor] ??
           getSensorColor(sensor.attribute!.displayName),
-      barWidth: 4,
+      barWidth: _settingsProvider.scrollingSeconds < 60 ? 4 : _settingsProvider.scrollingSeconds < 300 ? 2 : 1,
       dotData: FlDotData(show: false),
     );
   }
