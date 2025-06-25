@@ -17,6 +17,10 @@ class SensorDataTransformation {
     return dateTime.difference(GlobalStartTime().startTime).inSeconds;
   }
 
+  static DateTime transformUnixSecondsToDateTime(double seconds) {
+    return DateTime.fromMillisecondsSinceEpoch(seconds.toInt() * 1000);
+  }
+
   // transformation necessary due to restriction of fl_chart (only num values for x-axis)
   static double transformDateTimeToSecondsAsDouble(DateTime dateTime) {
     return dateTime.millisecondsSinceEpoch.toDouble() / 1000.0;

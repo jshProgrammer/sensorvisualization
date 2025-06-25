@@ -845,19 +845,10 @@ class _ChartPageState extends State<ChartPage>
       .fold(0.0, (prev, spot) => spot.y > prev ? spot.y : prev);
 
   Tuple2<double, double> getSliderMinMax(SettingsProvider settingsProvider) {
-    double sliderMin;
-    double sliderMax;
-
-    if (settingsProvider.selectedTimeChoice ==
-        TimeChoice.relativeToStart.value) {
-      sliderMin = 0;
-    }
-    else {
-      sliderMin = SensorDataTransformation.transformDateTimeToSecondsAsDouble(
-        GlobalStartTime().startTime,
-      );
-    }
-    sliderMax = maxX;
+    double sliderMin = SensorDataTransformation.transformDateTimeToSecondsAsDouble(
+      GlobalStartTime().startTime,
+    );
+    double sliderMax = maxX;
 
 
     if (sliderMax < sliderMin) {
