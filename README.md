@@ -67,19 +67,48 @@ flutter run
 ```plaintext
 sensorvisualization/
 ├── lib/
-│   ├── data/                 
-│   |   ├── models/         
+│   ├── controller/    
+│   |   ├── measurement/ 
+│   |   ├── visualization/ 
+│   ├── data/                         
 │   |   ├── services/ 
+│   │   |   ├── client/ 
 │   │   |   ├── providers/ 
-│   ├── database/                
-│   ├── presentation/    
-│   |   ├── screens/
-│   │   |   ├── SensorMeasurement/ 
+│   │   |   ├── server/ 
+│   |   ├── settingsModels/ 
+│   ├── database/           
+│   ├── fireDB/    
+│   ├── model/ 
+│   |   ├── measurement/ 
+│   |   ├── visualization/                
+│   ├── presentation/  
+│   |   ├── measurement/   
+│   |   ├── visualization/
+│   |   |   ├── dialogs/
+│   |   |   ├── widgets/
 │   |   ├── widgets/          
 │   └── main.dart       # entry point
 ├── pubspec.yaml
 └── README.md
 ```
+
+## Screenshots
+
+### Messungs-Screens
+<img src="assets/Measurement_Sender/Measurement_01_Home.PNG" width="220" alt="screenshot: Measurement Home screen displaying option to insert or scan qr code of ip address" >
+<img src="assets/Measurement_Sender/Measurement_02_Null_Measurement.PNG" width="220" alt="screenshot: null measurement screen displaying timer" >
+<img src="assets/Measurement_Sender/Measurement_03_Settings.PNG" width="220" alt="screenshot: Measurement screen with popup displaying settings for nullmeasurement and self timer" >
+<img src="assets/Measurement_Sender/Measurement_04.PNG" width="220" alt="screenshot: Measurement screen displaying current sensor values and buttons to pause or stop measurement" >
+<img src="assets/Measurement_Sender/Measurement_05_Stop_confirm_dialog.PNG" width="220" alt="screenshot: Measurement screen asking for confirmation when user stops measurement" >
+
+### Empfänger-/ Host Screens
+<img src="assets/Visualization_Host_Recipient/Visualization_01_Home.png" width="900" alt="screenshot: Visualization home screen including diagrams, tabs, visualization of current sensor data and warning levels" ></br>
+<img src="assets/Visualization_Host_Recipient/Visualization_02_QR_Code_Network.png" width="400" alt="screenshot: Visualization screen with qr code to connect devices" >
+<img src="assets/Visualization_Host_Recipient/Visualization_03b_Color_Sensor_choice.png" width="400" alt="screenshot: Visualization home screen displaying sensor choices for selection of data to display including color choice" >
+<img src="assets/Visualization_Host_Recipient/Visualization_04_Warning_Levels_Dialog.png" width="400" alt="screenshot: Visualization home screen dialog to select warning levels" >
+<img src="assets/Visualization_Host_Recipient/Visualization_05_Settings_Dialog.png" width="400" alt="screenshot: Visualization home screen dialog to select settings, e.g. abs./rel. data, option to show grid, ..." >
+<img src="assets/Visualization_Host_Recipient/Visualization_06a_Connected_Devices.png" width="400" alt="screenshot: Visualization home screen dialog to display connected devices including real life data" >
+<img src="assets/Visualization_Host_Recipient/Visualization_06b_Connected_Devices.png" width="400" alt="screenshot: Visualization home screen dialog including remote options (not possible ones being disabled)" >
 
 ## Contributor
 
@@ -159,24 +188,54 @@ flutter run
 - Time display in NATO format
 - Automatic alarm in case of exceeding limits
 
-## Projectstructur
+## Project structure
 
 ```plaintext
 sensorvisualization/
 ├── lib/
-│   ├── data/                 
-│   |   ├── models/         
-│   |   ├── services/   
-│   │   |   ├── providers/   
-│   ├── database/                
-│   ├── presentation/    
-│   |   ├── screens/
-│   │   |   ├── SensorMeasurement/
+│   ├── controller/    
+│   |   ├── measurement/ 
+│   |   ├── visualization/ 
+│   ├── data/                         
+│   |   ├── services/ 
+│   │   |   ├── client/ 
+│   │   |   ├── providers/ 
+│   │   |   ├── server/ 
+│   |   ├── settingsModels/ 
+│   ├── database/           
+│   ├── fireDB/    
+│   ├── model/ 
+│   |   ├── measurement/ 
+│   |   ├── visualization/                
+│   ├── presentation/  
+│   |   ├── measurement/   
+│   |   ├── visualization/
+│   |   |   ├── dialogs/
+│   |   |   ├── widgets/
 │   |   ├── widgets/          
 │   └── main.dart       # entry point
 ├── pubspec.yaml
 └── README.md
 ```
+
+## Screenshots
+
+### Measurement Screens
+<img src="assets/Measurement_Sender/Measurement_01_Home.PNG" width="220" alt="screenshot: Measurement Home screen displaying option to insert or scan qr code of ip address" >
+<img src="assets/Measurement_Sender/Measurement_02_Null_Measurement.PNG" width="220" alt="screenshot: null measurement screen displaying timer" >
+<img src="assets/Measurement_Sender/Measurement_03_Settings.PNG" width="220" alt="screenshot: Measurement screen with popup displaying settings for nullmeasurement and self timer" >
+<img src="assets/Measurement_Sender/Measurement_04.PNG" width="220" alt="screenshot: Measurement screen displaying current sensor values and buttons to pause or stop measurement" >
+<img src="assets/Measurement_Sender/Measurement_05_Stop_confirm_dialog.PNG" width="220" alt="screenshot: Measurement screen asking for confirmation when user stops measurement" >
+
+### Recipient/ Host Screens
+<img src="assets/Visualization_Host_Recipient/Visualization_01_Home.png" width="900" alt="screenshot: Visualization home screen including diagrams, tabs, visualization of current sensor data and warning levels" ></br>
+<img src="assets/Visualization_Host_Recipient/Visualization_02_QR_Code_Network.png" width="400" alt="screenshot: Visualization screen with qr code to connect devices" >
+<img src="assets/Visualization_Host_Recipient/Visualization_03b_Color_Sensor_choice.png" width="400" alt="screenshot: Visualization home screen displaying sensor choices for selection of data to display including color choice" >
+<img src="assets/Visualization_Host_Recipient/Visualization_04_Warning_Levels_Dialog.png" width="400" alt="screenshot: Visualization home screen dialog to select warning levels" >
+<img src="assets/Visualization_Host_Recipient/Visualization_05_Settings_Dialog.png" width="400" alt="screenshot: Visualization home screen dialog to select settings, e.g. abs./rel. data, option to show grid, ..." >
+<img src="assets/Visualization_Host_Recipient/Visualization_06a_Connected_Devices.png" width="400" alt="screenshot: Visualization home screen dialog to display connected devices including real life data" >
+<img src="assets/Visualization_Host_Recipient/Visualization_06b_Connected_Devices.png" width="400" alt="screenshot: Visualization home screen dialog including remote options (not possible ones being disabled)" >
+
 
 ## Contributor
 
