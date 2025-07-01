@@ -32,10 +32,8 @@ class _EditTabNameDialogState extends State<EditTabNameDialog> {
         ElevatedButton(
           onPressed: () {
             final value = controller.text.trim();
-            if (value.isNotEmpty) {
-              widget.controller.renameCurrentTab(value);
-              Navigator.pop(context, value);
-            }
+            widget.controller.renameCurrentTab(value);
+            Navigator.pop(context, value);
           },
           child: const Text('Speichern'),
         ),
