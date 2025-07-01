@@ -38,21 +38,7 @@ import 'package:sensorvisualization/database/DatabaseOperations.dart';
 class ChartPage extends StatefulWidget {
   final ChartConfig chartConfig;
 
-  final Map<String, Set<MultiSelectDialogItem>>? selectedValues;
-
-  final void Function(Map<String, Set<MultiSelectDialogItem>>)?
-  onSelectedValuesChanged;
-
-  const ChartPage({super.key, required this.chartConfig})
-    : selectedValues = null,
-      onSelectedValuesChanged = null;
-
-  const ChartPage.withSelectedValues({
-    super.key,
-    required this.chartConfig,
-    required this.selectedValues,
-    required this.onSelectedValuesChanged,
-  });
+  const ChartPage({super.key, required this.chartConfig});
 
   @override
   State<ChartPage> createState() => _ChartPageState();
@@ -82,9 +68,6 @@ class _ChartPageState extends State<ChartPage>
 
   int? selectedPointIndex;
 
-  Map<String, Set<MultiSelectDialogItem>> selectedValues = {};
-  Map<String, Map<MultiSelectDialogItem, Color>> selectedColors = {};
-
   final GlobalKey _chartKey = GlobalKey();
 
   late StreamSubscription _dataSubscription;
@@ -106,12 +89,6 @@ class _ChartPageState extends State<ChartPage>
 
   late DangerDetector _dangerDetector;
 
-  // Map<String, List<WarningRange>> warningRanges = {
-  //   'green': [],
-  //   'yellow': [],
-  //   'red': [],
-  // };
-
   late Databaseoperations _databaseOperations;
 
   //Only for Simulation
@@ -119,12 +96,6 @@ class _ChartPageState extends State<ChartPage>
   void initState() {
     super.initState();
 
-    selectedValues =
-        widget.selectedValues != null
-            ? Map<String, Set<MultiSelectDialogItem>>.from(
-              widget.selectedValues!,
-            )
-            : {};
     _transformationController = TransformationController();
 
     _titleController = TextEditingController(text: widget.chartConfig.title);
@@ -242,8 +213,8 @@ class _ChartPageState extends State<ChartPage>
             List<FlSpot> selectedPoints = [];
             List<DateTime> selectedTimestamps = [];
 
-            for (final device in selectedValues.keys) {
-              for (final sensorItem in selectedValues[device]!) {
+            for (final device in widget.chartConfig.selectedValues.keys) {
+              for (final sensorItem in widget.chartConfig.selectedValues[device]!) {
                 if (sensorItem.attribute != null) {
                   double val;
                   switch (sensorItem.attribute!) {
@@ -438,8 +409,8 @@ class _ChartPageState extends State<ChartPage>
         List<FlSpot> selectedPoints = [];
         List<DateTime> selectedTimestamps = [];
 
-        for (final device in selectedValues.keys) {
-          for (final sensorItem in selectedValues[device]!) {
+        for (final device in widget.chartConfig.selectedValues.keys) {
+          for (final sensorItem in widget.chartConfig.selectedValues[device]!) {
             if (sensorItem.attribute != null) {
               double val;
               switch (sensorItem.attribute!) {
@@ -508,31 +479,6 @@ class _ChartPageState extends State<ChartPage>
     );
   }
 
-  @override
-  void didUpdateWidget(covariant ChartPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedValues != oldWidget.selectedValues &&
-        widget.selectedValues != null) {
-      setState(() {
-        selectedValues = Map<String, Set<MultiSelectDialogItem>>.from(
-          widget.selectedValues!,
-        );
-      });
-    }
-  }
-
-  void _updateSelectedValues(
-    Map<String, Set<MultiSelectDialogItem>> newValues,
-  ) {
-    setState(() {
-      selectedValues = newValues;
-    });
-
-    if (widget.onSelectedValuesChanged != null) {
-      widget.onSelectedValuesChanged!(newValues);
-    }
-  }
-
   void _showAllNotes() {
     showDialog(
       context: context,
@@ -585,8 +531,8 @@ class _ChartPageState extends State<ChartPage>
       context: context,
       builder: (BuildContext context) {
         return Multiselectdialogwidget(
-          initialSelectedValues: selectedValues,
-          initialSelectedColors: selectedColors,
+          initialSelectedValues: widget.chartConfig.selectedValues,
+          initialSelectedColors: widget.chartConfig.selectedColors,
         );
       },
     );
@@ -596,14 +542,14 @@ class _ChartPageState extends State<ChartPage>
         final sensors =
             result['sensors'] as Map<String, Set<MultiSelectDialogItem>>;
         setState(() {
-          selectedValues = sensors;
+          widget.chartConfig.selectedValues = sensors;
         });
       }
       if (result['colors'] != null) {
         final colors =
             result['colors'] as Map<String, Map<MultiSelectDialogItem, Color>>;
         setState(() {
-          selectedColors = colors;
+          widget.chartConfig.selectedColors = colors;
         });
       }
     }
@@ -1099,12 +1045,12 @@ class _ChartPageState extends State<ChartPage>
                               sensorDataModel: VisualizationSensorDataModel(
                                 dataPoints: widget.chartConfig.dataPoints,
                                 notes: widget.chartConfig.notes,
-                                selectedSensors: selectedValues,
+                                selectedSensors: widget.chartConfig.selectedValues,
                                 warningRanges: widget.chartConfig.ranges /* {
                                   'green': [WarningRange(1, 2)],
                                 }*/,
                               ),
-                              selectedColors: selectedColors,
+                              selectedColors: widget.chartConfig.selectedColors,
                             ),
 
                             /*SensorChartView(
@@ -1315,14 +1261,14 @@ class _ChartPageState extends State<ChartPage>
       listen: false,
     );
 
-    for (String device in selectedValues.keys) {
-      for (MultiSelectDialogItem sensor in selectedValues[device]!) {
+    for (String device in widget.chartConfig.selectedValues.keys) {
+      for (MultiSelectDialogItem sensor in widget.chartConfig.selectedValues[device]!) {
         legendData.add({
           'device': connectionProvider.connectedDevices[device] ?? "Simulator",
           'sensorName': sensor.sensorName.displayName,
           'attribute': sensor.attribute!.displayName,
           'color':
-              selectedColors[device]?[sensor] ??
+              widget.chartConfig.selectedColors[device]?[sensor] ??
               SensorDataController.getSensorColor(
                 sensor.attribute!.displayName,
               ),
@@ -1344,8 +1290,8 @@ class _ChartPageState extends State<ChartPage>
       listen: false,
     );
 
-    for (String device in selectedValues.keys) {
-      for (MultiSelectDialogItem sensor in selectedValues[device]!) {
+    for (String device in widget.chartConfig.selectedValues.keys) {
+      for (MultiSelectDialogItem sensor in widget.chartConfig.selectedValues[device]!) {
         rows.add(
           Row(
             children: [
@@ -1353,7 +1299,7 @@ class _ChartPageState extends State<ChartPage>
                 size: const Size(24, 12),
                 painter: LineStylePainter(
                   color:
-                      selectedColors[device]?[sensor] ??
+                      widget.chartConfig.selectedColors[device]?[sensor] ??
                       SensorDataController.getSensorColor(
                         sensor.attribute!.displayName,
                       ),
