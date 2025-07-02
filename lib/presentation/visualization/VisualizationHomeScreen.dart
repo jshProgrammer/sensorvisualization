@@ -208,16 +208,8 @@ class _VisualizationHomeScreenState extends State<VisualizationHomeScreen> {
                         height: 500,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: ChartPage.withSelectedValues(
+                          child: ChartPage(
                             chartConfig: chart,
-                            selectedValues:
-                                _controller.chartSelections[chart.id] ?? {},
-                            onSelectedValuesChanged: (newSel) {
-                              _controller.updateChartSelections(
-                                chart.id,
-                                newSel,
-                              );
-                            },
                           ),
                         ),
                       ),
