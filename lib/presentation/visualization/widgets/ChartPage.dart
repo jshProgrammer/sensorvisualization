@@ -1051,6 +1051,7 @@ class _ChartPageState extends State<ChartPage>
                                 }*/,
                               ),
                               selectedColors: widget.chartConfig.selectedColors,
+                              timeController: timeController,
                             ),
 
                             /*SensorChartView(

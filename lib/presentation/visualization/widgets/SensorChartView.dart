@@ -15,6 +15,7 @@ class SensorChartView extends StatefulWidget {
   final ChartConfigurationModel configModel;
   final VisualizationSensorDataModel sensorDataModel;
   final Map<String, Map<MultiSelectDialogItem, Color>> selectedColors;
+  final TextEditingController timeController;
 
   //TODO: alternative Lösung zu Key Restart: ValueNotifier
   SensorChartView({
@@ -22,6 +23,7 @@ class SensorChartView extends StatefulWidget {
     required this.configModel,
     required this.sensorDataModel,
     required this.selectedColors,
+    required this.timeController,
   }) : super(
          key: ValueKey([
            sensorDataModel.warningRanges.hashCode,
@@ -43,7 +45,7 @@ class _SensorChartViewState extends State<SensorChartView> {
       dataModel: widget.sensorDataModel,
       configModel: widget.configModel,
       settingsProvider: context.read<SettingsProvider>(),
-      timeController: TextEditingController(),
+      timeController: widget.timeController,
       onTitlesDataText: onTitlesDataTest,
       selectedColors: widget.selectedColors,
     );
