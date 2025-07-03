@@ -265,12 +265,21 @@ class SensorDataController {
               }
             }
 
+            final yellow = _dataModel.warningRanges['yellow'] ?? [];
+            final red = _dataModel.warningRanges['red'] ?? [];
+
+            bool paintInDanger(double y) {
+              for (final range in [...yellow, ...red]) {
+                if (y >= range.lower) return true;
+              }
+              return false;
+            }
+
             return LineTooltipItem(
               noteText ?? "Keine Notiz",
 
               TextStyle(
-                color:
-                    spot.y >= 2.5
+                color:  paintInDanger(spot.y)                   
                         ? ColorSettings.pointHoverCritical
                         : ColorSettings.pointHoverDefault,
               ),
