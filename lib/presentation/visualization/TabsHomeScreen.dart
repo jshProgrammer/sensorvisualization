@@ -27,19 +27,27 @@ class _TabsHomeScreenState extends State<TabsHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.sensors), label: 'Messung'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart),
-            label: 'Visualisierung',
-          ),
-        ],
-      ),
+      bottomNavigationBar:
+          screenWidth >= 600
+              ? BottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.sensors),
+                    label: 'Messung',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.show_chart),
+                    label: 'Visualisierung',
+                  ),
+                ],
+              )
+              : null,
     );
   }
 }
