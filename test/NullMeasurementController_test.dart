@@ -1,29 +1,33 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
-//TODO: manche tests funktionieren noch nicht
 import 'package:sensorvisualization/controller/measurement/NullMeasurementController.dart';
 import 'package:sensorvisualization/data/services/client/SensorClient.dart';
 import 'package:sensorvisualization/data/services/client/ClientCommandHandler.dart';
 import 'package:sensorvisualization/model/measurement/MeasurementState.dart';
 import 'package:sensorvisualization/data/services/providers/SettingsProvider.dart';
 
-// Generate mocks
 @GenerateMocks([SensorClient, ClientCommandHandler])
 import 'NullMeasurementController_test.mocks.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const MethodChannel(
+    'dev.fluttercommunity.plus/sensors/method',
+  ).setMockMethodCallHandler((MethodCall methodCall) async {
+    return null;
+  });
+
   late MockSensorClient mockSensorClient;
   late MockClientCommandHandler mockCommandHandler;
 
   setUp(() {
-    // Create fresh mocks for each test
     mockSensorClient = MockSensorClient();
     mockCommandHandler = MockClientCommandHandler();
 
-    // Setup default behavior
     when(mockSensorClient.commandHandler).thenReturn(mockCommandHandler);
     when(mockSensorClient.localIP).thenReturn('192.168.1.100');
     when(mockSensorClient.sendStartingNullMeasurement(any)).thenReturn(null);
@@ -56,7 +60,6 @@ void main() {
     test('should setup connection handlers on initialization', () {
       final controller = createController();
 
-      // Verify that the command handlers are accessed
       verify(mockSensorClient.commandHandler).called(greaterThanOrEqualTo(1));
 
       controller.dispose();
@@ -90,7 +93,7 @@ void main() {
   });
 
   group('Null Measurement Tests', () {
-    /*test('should start null measurement correctly', () {
+    test('should start null measurement correctly', () async {
       final controller = createController();
 
       controller.startNullMeasurement();
@@ -102,9 +105,9 @@ void main() {
       verify(mockSensorClient.sendStartingNullMeasurement(any)).called(1);
 
       controller.dispose();
-    });*/
+    });
 
-    /*test('should start null measurement with custom duration', () {
+    test('should start null measurement with custom duration', () {
       final controller = createController();
 
       const customDuration = 15;
@@ -120,11 +123,11 @@ void main() {
       ).called(1);
 
       controller.dispose();
-    });*/
+    });
 
-    /*test('should clear model data when starting measurement', () {
+    test('should clear model data when starting measurement', () {
       final controller = createController();
-      // Add some data first
+
       controller.model.addAccelerometerData(1.0, 2.0, 3.0);
       controller.model.addGyroscopeData(4.0, 5.0, 6.0);
 
@@ -137,7 +140,7 @@ void main() {
       expect(controller.model.gyroscopeData.length, equals(0));
 
       controller.dispose();
-    });*/
+    });
   });
 
   group('Delay Timer Tests', () {
@@ -163,10 +166,7 @@ void main() {
       controller.startDelayTimer();
 
       expect(controller.measurementState.isDelayActive, isTrue);
-      expect(
-        controller.measurementState.delayRemainingSeconds,
-        equals(120),
-      ); // 2 * 60
+      expect(controller.measurementState.delayRemainingSeconds, equals(120));
       verify(mockSensorClient.sendDelayedMeasurement(120)).called(1);
       controller.dispose();
     });
@@ -179,10 +179,7 @@ void main() {
       controller.startDelayTimer();
 
       expect(controller.measurementState.isDelayActive, isTrue);
-      expect(
-        controller.measurementState.delayRemainingSeconds,
-        equals(3600),
-      ); // 1 * 3600
+      expect(controller.measurementState.delayRemainingSeconds, equals(3600));
       verify(mockSensorClient.sendDelayedMeasurement(3600)).called(1);
       controller.dispose();
     });
@@ -304,7 +301,7 @@ void main() {
       },
     );
 
-    /*test(
+    test(
       'should start measurement directly when delay is disabled and user presses start',
       () {
         final controller = createController();
@@ -317,7 +314,7 @@ void main() {
         verify(mockSensorClient.sendStartingNullMeasurement(any)).called(1);
         controller.dispose();
       },
-    );*/
+    );
   });
 
   group('Button State Tests', () {
@@ -442,11 +439,10 @@ void main() {
   });
 
   group('Connection Handler Tests', () {
-    /*test('should handle start null measurement command from connection', () {
+    test('should handle start null measurement command from connection', () {
       final controller = createController();
       const duration = 25;
 
-      // Simulate the callback being set and called
       when(mockCommandHandler.onStartNullMeasurementReceived).thenReturn((
         int receivedDuration,
       ) {
@@ -454,27 +450,24 @@ void main() {
         controller.startNullMeasurement();
       });
 
-      // Trigger the callback manually for testing
       controller.updateMeasurementDuration(duration);
       controller.startNullMeasurement();
 
       expect(controller.measurementState.measurementDuration, equals(duration));
       expect(controller.measurementState.isNullMeasurement, isTrue);
       controller.dispose();
-    });*/
+    });
 
     test('should handle delayed measurement command from connection', () {
       final controller = createController();
       const duration = 45;
 
-      // Simulate the callback being set and called
       when(mockCommandHandler.onDelayedMeasurementReceived).thenReturn((
         int receivedDuration,
       ) {
         controller.startDelayTimer(duration: receivedDuration);
       });
 
-      // Trigger the callback manually for testing
       controller.startDelayTimer(duration: duration);
 
       expect(controller.measurementState.isDelayActive, isTrue);
@@ -497,9 +490,9 @@ void main() {
       controller.dispose();
     });
 
-    /* test('should clear model data on measurement start', () {
+    test('should clear model data on measurement start', () {
       final controller = createController();
-      // Add test data
+
       controller.model.addAccelerometerData(1.0, 2.0, 3.0);
       controller.model.addBarometerData(1013.25);
 
@@ -511,7 +504,7 @@ void main() {
       expect(controller.model.accelerometerData.length, equals(0));
       expect(controller.model.barometerData.length, equals(0));
       controller.dispose();
-    });*/
+    });
   });
 
   group('Edge Cases', () {
@@ -522,7 +515,6 @@ void main() {
 
       controller.startDelayTimer();
 
-      // Should default to 0 or handle gracefully
       expect(
         controller.measurementState.delayRemainingSeconds,
         anyOf(equals(0), equals(-5)),
@@ -557,15 +549,14 @@ void main() {
   });
 
   group('Dispose Tests', () {
-    /*test('should cancel timers on dispose', () {
+    test('should cancel timers on dispose', () {
       final controller = createController();
       controller.startNullMeasurement();
 
-      // Dispose should not throw
       expect(() {
         controller.dispose();
       }, returnsNormally);
-    });*/
+    });
   });
 
   group('ChangeNotifier Tests', () {
@@ -585,7 +576,6 @@ void main() {
 
       expect(notificationCount, greaterThan(0));
 
-      // Clean up
       controller.removeListener(listener);
       controller.dispose();
     });

@@ -132,62 +132,6 @@ void main() {
       });
     });
 
-    //TODO: funktioniert noch nicht (versucht auf echte Streams zuzugreifen?)
-    group('CommandHandler Callbacks', () {
-      /*test('onAlarmReceived sollte Alarm-Callback auslösen', () {
-        const alarmMessage = "Test-Alarm";
-
-        final onAlarmCallback =
-            controller.connection.commandHandler.onAlarmReceived;
-        if (onAlarmCallback != null) {
-          onAlarmCallback(alarmMessage);
-        }
-
-        expect(receivedAlarm, equals(alarmMessage));
-      });*/
-
-      /* test('onMeasurementPaused sollte Messung pausieren', () async {
-        final onPausedCallback =
-            controller.connection.commandHandler.onMeasurementPaused;
-        if (onPausedCallback != null) {
-          await onPausedCallback();
-        }
-
-        verify(mockSensorClient.pauseMeasurement()).called(1);
-        expect(controller.measurementState.isPaused, isTrue);
-      });*/
-
-      /*test('onMeasurementResumed sollte Messung fortsetzen', () async {
-        final onResumedCallback =
-            controller.connection.commandHandler.onMeasurementResumed;
-        if (onResumedCallback != null) {
-          await onResumedCallback();
-        }
-
-        verify(mockSensorClient.resumeMeasurement()).called(1);
-        expect(controller.measurementState.isPaused, isFalse);
-      });*/
-
-      /* test('onMeasurementStopped sollte Stop-Callback auslösen', () async {
-        final onStoppedCallback =
-            controller.connection.commandHandler.onMeasurementStopped;
-        if (onStoppedCallback != null) {
-          await onStoppedCallback();
-        }
-
-        verify(mockSensorClient.stopMeasurement()).called(1);
-        expect(measurementStoppedCalled, isTrue);
-      });*/
-    });
-
-    group('Sensor Stream Setup', () {
-      /* test('startSensorStreams sollte SensorClient starten', () {
-        controller.startSensorStreams();
-
-        verify(mockSensorClient.startSensorStream()).called(1);
-      });*/
-    });
-
     group('Sensor Data Updates', () {
       test('sollte UserAccelerometer-Daten korrekt aktualisieren', () {
         final now = DateTime.now();
@@ -387,13 +331,6 @@ void main() {
       expect(notified, isTrue);
     });
 
-    //TODO: funktioniert noch nicht
-    /* group('Dispose', () {
-      /* test('sollte alle Subscriptions korrekt canceln', () {
-        expect(() => controller.dispose(), returnsNormally);
-      });*/
-    });*/
-
     group('Error Handling & Exceptions', () {
       test('sollte mit SensorClient-Fehlern umgehen können', () async {
         when(
@@ -443,23 +380,6 @@ void main() {
     });
 
     group('Integration Tests', () {
-      //TODO: funktioniert noch nicht
-      /* test('sollte kompletten Mess-Zyklus korrekt durchlaufen', () async {
-        controller.startSensorStreams();
-        verify(mockSensorClient.startSensorStream()).called(1);
-
-        await controller.pauseMeasurement();
-        verify(mockSensorClient.pauseMeasurement()).called(1);
-        expect(controller.measurementState.isPaused, isTrue);
-
-        await controller.resumeMeasurement();
-        verify(mockSensorClient.resumeMeasurement()).called(1);
-        expect(controller.measurementState.isPaused, isFalse);
-
-        await controller.stopMeasurement();
-        verify(mockSensorClient.stopMeasurement()).called(1);
-      });*/
-
       test('sollte Sensor-Daten-Updates mit Callbacks kombinieren', () {
         bool notified = false;
         controller.addListener(() => notified = true);

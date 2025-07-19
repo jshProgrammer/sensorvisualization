@@ -29,7 +29,7 @@ import 'package:drift/drift.dart' hide isNotNull, isNull;
   AppDatabase,
   Databaseoperations,
 ])
-import 'firebase_operations_test.dart.mocks.dart';
+import 'firebase_operations_test.mocks.dart';
 
 class MockFirebaseApp extends Mock implements FirebaseApp {
   @override
@@ -305,8 +305,6 @@ void main() {
         ).thenAnswer((_) async => ConnectivityResult.none);
 
         await firebasesync.exportTableAsCSV('TestTable');
-
-        expect(true, isTrue); //TODO
       });
 
       test('exportTableAsCSV handles non-existent table', () async {
@@ -325,7 +323,7 @@ void main() {
       test('stopSyncTimer works correctly', () {
         firebasesync.stopSyncTimer();
 
-        expect(true, isTrue); // TODO echten Timer status Prüfen
+        expect(firebasesync.isSyncing, false);
       });
     });
 
@@ -441,7 +439,6 @@ class TestableFirebasesync extends Firebasesync {
         final data = await mockDatabaseOperations.readTableData(tableName);
 
         if (data.isNotEmpty) {
-          // Simuliere Firestore-Upload
           await mockFirestore
               .collection('local_data')
               .doc('${tableName}_${DateTime.now().millisecondsSinceEpoch}')
@@ -494,7 +491,6 @@ class TestableFirebasesync extends Firebasesync {
         print('Table $tableName does not exist');
         return;
       }
-      // TODO csv export
     } catch (e) {
       print('Error exporting table $tableName: $e');
     }
