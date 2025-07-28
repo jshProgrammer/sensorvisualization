@@ -20,8 +20,6 @@ class Databaseoperations {
 
   Databaseoperations(this._db);
 
-  //Insert Methods
-
   Future<void> insertSensorData(SensorCompanion sensor) async {
     try {
       await _db.into(_db.sensor).insert(sensor);

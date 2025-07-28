@@ -380,7 +380,6 @@ class _ConnectedDevicesDialogState extends State<ConnectedDevicesDialog> {
       builder:
           (context) => AlertDialog(
             title: Text(title),
-            //TODO: copied from ChartsHomeScreen => extract (DRY)
             content: StatefulBuilder(
               builder: (BuildContext context, StateSetter setStateDialog) {
                 return Column(

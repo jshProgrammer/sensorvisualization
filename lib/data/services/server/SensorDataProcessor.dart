@@ -20,7 +20,6 @@ class SensorDataProcessor {
   }
 
   void process(Map<String, dynamic> parsed) {
-    //TODO: refactoring
     databaseOperations.insertSensorData(
       SensorCompanion(
         date: Value(DateTime.parse(parsed['timestamp'])),

@@ -20,8 +20,6 @@ class VisualizationHomeModel {
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
   bool _selectedGridChoice = false;
 
-  //TODO: evtl auslagern?
-  //TODO: URL Noch anpassen
   final List<LexikonEntry> _lexikonEntries = [
     LexikonEntry(
       title: 'Accelerometer',

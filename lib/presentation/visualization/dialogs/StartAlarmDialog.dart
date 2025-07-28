@@ -15,16 +15,7 @@ class _StartAlarmDialogState extends State<StartAlarmDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text("Alarm auslösen"),
-      content: TextField(
-        decoration: InputDecoration(
-          labelText: "Alarmmeldung",
-          hintText: "Geben Sie eine Nachricht ein",
-        ),
-        onSubmitted: (value) {
-          widget.controller.sendAlarm(value);
-          Navigator.pop(context);
-        },
-      ),
+
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),

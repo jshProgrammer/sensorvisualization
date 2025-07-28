@@ -13,7 +13,7 @@ extension SensorTypeExtension on SensorType {
   String get displayName {
     switch (this) {
       case SensorType.accelerometer:
-        return 'Beschleunigungssensor'; //Beschleunigungssensor
+        return 'Beschleunigungssensor';
       case SensorType.gyroscope:
         return 'Gyroskop';
       case SensorType.magnetometer:

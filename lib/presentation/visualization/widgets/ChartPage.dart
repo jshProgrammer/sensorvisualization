@@ -200,16 +200,6 @@ class _ChartPageState extends State<ChartPage>
               Duration(milliseconds: (timestamp * 1000).toInt()),
             );
 
-            // final newDangers = DangerDetector.findDangerTimestamps(
-            //   points: [
-            //     FlSpot(timestamp, x),
-            //     FlSpot(timestamp, y),
-            //     FlSpot(timestamp, z),
-            //   ],
-            //   timestamps: [dateTime, dateTime, dateTime],
-            //   warningLevels: warningRanges,
-            // );
-
             List<FlSpot> selectedPoints = [];
             List<DateTime> selectedTimestamps = [];
 
@@ -752,13 +742,6 @@ class _ChartPageState extends State<ChartPage>
             ],
       ),
 
-      /*IconButton(
-        icon: const Icon(Icons.add_comment),
-        onPressed: () {
-          addNote(initialTime: _dangerNavigationController.current);
-        },
-        tooltip: 'Notiz hinzufügen',
-      ),*/
       ElevatedButton(
         child: Text(
           isSimulationRunning ? "Simulation stoppen" : "Simulation start",
@@ -1041,36 +1024,15 @@ class _ChartPageState extends State<ChartPage>
                                 autoFollowLatestData: autoFollowLatestData,
                               ),
 
-                              //TODO: ChartConfig doch jetzt eig unnötig?!
                               sensorDataModel: VisualizationSensorDataModel(
                                 dataPoints: widget.chartConfig.dataPoints,
                                 notes: widget.chartConfig.notes,
                                 selectedSensors: widget.chartConfig.selectedValues,
-                                warningRanges: widget.chartConfig.ranges /* {
-                                  'green': [WarningRange(1, 2)],
-                                }*/,
+                                warningRanges: widget.chartConfig.ranges
                               ),
                               selectedColors: widget.chartConfig.selectedColors,
                               timeController: timeController,
                             ),
-
-                            /*SensorChartView(
-                              selectedLines: selectedValues,
-                              chartConfig: widget.chartConfig,
-                              autoFollowLatestData: autoFollowLatestData,
-                              baselineX: baselineX,
-                              warningRanges: widget.chartConfig.ranges,
-                              settingsProvider: Provider.of<SettingsProvider>(
-                                context,
-                                listen: false,
-                              ),
-                              connectionProvider:
-                                  Provider.of<ConnectionProvider>(
-                                    context,
-                                    listen: false,
-                                  ),
-                              timeController: timeController,
-                            ).getLineChart(context, baselineX),*/
                           ),
                         ),
                       ),

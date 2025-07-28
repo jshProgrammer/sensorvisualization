@@ -136,21 +136,18 @@ class NullMeasurementController extends ChangeNotifier {
       final elapsed = now.difference(startTime).inMilliseconds;
       final totalDurationMs = duration * 1000;
 
-      // Berechne verbleibende Zeit in Millisekunden für smooth progress
       final remainingMs = totalDurationMs - elapsed;
       final remainingSeconds = (remainingMs / 1000).clamp(
         0.0,
         duration.toDouble(),
       );
 
-      // Für die Anzeige runden wir auf ganze Sekunden
       final displaySeconds = remainingSeconds.ceil().clamp(0, duration);
 
       if (isDelay) {
         _updateMeasurementState(
           _measurementState.copyWith(
             delayRemainingSeconds: displaySeconds,
-            // Fügen Sie ein neues Feld für smooth progress hinzu
             delayProgress:
                 1.0 - (remainingMs / totalDurationMs).clamp(0.0, 1.0),
           ),
@@ -159,7 +156,6 @@ class NullMeasurementController extends ChangeNotifier {
         _updateMeasurementState(
           _measurementState.copyWith(
             remainingSeconds: displaySeconds,
-            // Fügen Sie ein neues Feld für smooth progress hinzu
             measurementProgress:
                 1.0 - (remainingMs / totalDurationMs).clamp(0.0, 1.0),
           ),

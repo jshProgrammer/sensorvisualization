@@ -1,5 +1,3 @@
-// sensor_command_handler.dart
-
 import 'dart:convert';
 import 'dart:io';
 

@@ -58,32 +58,10 @@ class SensorDataTransformation {
             );
       }
     } else {
-      //TODO: barometer
+      // barometer has been prepared
     }
     return relativeSensorValues;
   }
-
-  /*
-  static Map<String, dynamic> returnRelativeSensorDataAsJson(
-    Map<SensorOrientation, double> nullMeasurementValues,
-    Map<String, dynamic> receivedJsonData,
-    SensorType? sensorType,
-  ) {
-    Map<SensorOrientation, double> relativeSensorValues =
-        SensorDataTransformation.transformAbsoluteToRelativeValues(
-          nullMeasurementValues,
-          receivedJsonData,
-          sensorType,
-        );
-
-    return {
-      'sensor': receivedJsonData['sensor'],
-      'timestamp': receivedJsonData['timestamp'],
-      'x': relativeSensorValues[SensorOrientation.x],
-      'y': relativeSensorValues[SensorOrientation.y],
-      'z': relativeSensorValues[SensorOrientation.z],
-    };
-  }*/
 
   static Map<String, dynamic> returnAbsoluteSensorDataAsJson(
     Map<String, dynamic> receivedJsonData,

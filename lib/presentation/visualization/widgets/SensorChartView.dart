@@ -17,7 +17,6 @@ class SensorChartView extends StatefulWidget {
   final Map<String, Map<MultiSelectDialogItem, Color>> selectedColors;
   final TextEditingController timeController;
 
-  //TODO: alternative Lösung zu Key Restart: ValueNotifier
   SensorChartView({
     Key? key,
     required this.configModel,

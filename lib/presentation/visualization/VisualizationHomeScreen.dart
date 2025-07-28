@@ -113,7 +113,6 @@ class _VisualizationHomeScreenState extends State<VisualizationHomeScreen> {
     );
   }
 
-  //TODO: Textfeld für Alarm Message einfügen
   Widget _buildAlarmButton() {
     return IconButton(
       icon: Consumer<ConnectionProvider>(
