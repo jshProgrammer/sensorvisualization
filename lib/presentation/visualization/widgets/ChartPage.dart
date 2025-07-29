@@ -91,10 +91,19 @@ class _ChartPageState extends State<ChartPage>
 
   late Databaseoperations _databaseOperations;
 
-  //Only for Simulation
+  late DateTime _currentWindowStart;
+  late DateTime _currentWindowEnd;
+
+  bool _isLoading = false;
+
+  //Only for Simulationl
   @override
   void initState() {
     super.initState();
+
+    final now = DateTime.now();
+    _currentWindowEnd = now;
+    _currentWindowStart = now.subtract(Duration(minutes: 1));
 
     _transformationController = TransformationController();
 
@@ -135,7 +144,9 @@ class _ChartPageState extends State<ChartPage>
     _dataSubscription = Provider.of<ConnectionProvider>(
       context,
       listen: false,
-    ).dataStream.listen(_handleSensorData);
+    ).dataStream.listen((data) {
+      _handleSensorData(context, data);
+    });
 
     Provider.of<ConnectionProvider>(
       context,
@@ -265,6 +276,22 @@ class _ChartPageState extends State<ChartPage>
     simulator.init();
   }
 
+  void _limitDataPoints() {
+    final windowDuration = Duration(minutes: 1); // Doppelte Beobachtungszeit
+    final cutoff = DateTime.now().subtract(windowDuration);
+
+    widget.chartConfig.dataPoints.forEach((device, sensorsOfDevices) {
+      sensorsOfDevices.forEach((sensorTypeOrOrientation, datapoints) {
+        // Use removeWhere to safely remove points before the cutoff
+        datapoints.removeWhere((datapoint) {
+          return SensorDataTransformation.transformUnixSecondsToDateTime(
+            datapoint.x,
+          ).isBefore(cutoff);
+        });
+      });
+    });
+  }
+
   @override
   void dispose() {
     _transformationController.dispose();
@@ -276,7 +303,9 @@ class _ChartPageState extends State<ChartPage>
     super.dispose();
   }
 
-  void _handleSensorData(Map<String, dynamic> data) {
+
+
+  void _handleSensorData(BuildContext context, Map<String, dynamic> data) {
     if (mounted) {
       setState(() {
         var jsonData = SensorDataTransformation.returnAbsoluteSensorDataAsJson(
@@ -456,6 +485,12 @@ class _ChartPageState extends State<ChartPage>
         }
       });
     }
+    final settingsProvider = Provider.of<SettingsProvider>(
+      context,
+      listen: false,
+    );
+    if (settingsProvider.performanceMode && autoFollowLatestData)
+      _limitDataPoints();
   }
 
   DateTime truncateToSeconds(DateTime dateTime) {
@@ -929,6 +964,196 @@ class _ChartPageState extends State<ChartPage>
       },
     );
   }
+  Future<void> _loadMoreData({bool older = true}) async {
+    print("=== START _loadMoreData ===");
+    print("INITIAL _currentWindowStart: $_currentWindowStart");
+    print("INITIAL _currentWindowEnd: $_currentWindowEnd");
+
+    final windowSize = _currentWindowEnd.difference(_currentWindowStart);
+    print("Calculated windowSize: $windowSize");
+
+// Wenn windowSize crazy ist, dann ist das Problem schon da!
+    if (windowSize.inDays > 365) {
+      print("ERROR: windowSize too large! Resetting windows.");
+      _currentWindowStart = DateTime.now().subtract(Duration(minutes: 5));
+      _currentWindowEnd = DateTime.now();
+      return; // Abbrechen und neu versuchen
+    }
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    final now = DateTime.now();
+
+    final currentStart = now.subtract(Duration(minutes: 1));
+    final currentEnd = now;
+
+    // Älteres Fenster davor (z. B. die Minute davor)
+    final newStart2 = currentStart.subtract(Duration(minutes: 1));
+    final newEnd2 = currentStart;
+
+
+    try {
+      // DEBUG: Prüfen Sie die DateTime-Werte
+      print("=== DATETIME DEBUG ===");
+      print("_currentWindowStart: $_currentWindowStart");
+      print("_currentWindowEnd: $_currentWindowEnd");
+      print("_currentWindowStart.millisecondsSinceEpoch: ${_currentWindowStart.millisecondsSinceEpoch}");
+      print("_currentWindowEnd.millisecondsSinceEpoch: ${_currentWindowEnd.millisecondsSinceEpoch}");
+
+      final windowSize = _currentWindowEnd.difference(_currentWindowStart);
+      print("windowSize: $windowSize");
+      print("windowSize.inMilliseconds: ${windowSize.inMilliseconds}");
+
+      DateTime newStart, newEnd;
+
+      if (older) {
+        print("Calculating older data range...");
+
+        // Sicherheitscheck vor subtract:
+        var targetMillis = _currentWindowStart.millisecondsSinceEpoch - windowSize.inMilliseconds;
+        print("Target milliseconds: $targetMillis");
+
+        if (targetMillis < -8640000000000000 || targetMillis > 8640000000000000) {
+          print("ERROR: Would create invalid DateTime! Aborting.");
+          return;
+        }
+
+        newStart = _currentWindowStart.subtract(windowSize);
+        newEnd = _currentWindowStart;
+      } else {
+        print("Calculating newer data range...");
+        newStart = _currentWindowEnd;
+        newEnd = _currentWindowEnd.add(windowSize);
+      }
+
+      print("newStart: $newStart");
+      print("newEnd: $newEnd");
+      print("BEFORE DEBUG");
+
+      final data = await _databaseOperations.getSensorDataInTimeRange(
+        newStart2,
+        newEnd2,
+      );
+
+      setState(() {
+        print("Processing ${data.length} data points");
+        int addedCount = 0;
+
+        /*for (var point in data) {
+          widget.chartConfig.addDataPoint(
+            point.ip,
+            point.sensorType,
+            point.orientation,
+            point.spot,
+          );
+          addedCount++;
+        }*/
+        for (var point in data) {
+          try {
+            widget.chartConfig.addDataPoint(
+              point.ip,
+              point.sensorType,
+              point.orientation,
+              point.spot,
+            );
+            addedCount++;
+          } catch (e, stacktrace) {
+            print("Fehler beim Verarbeiten von raw: $point");
+            print("Fehler: $e");
+            print("Stacktrace: $stacktrace");
+          }
+        }
+        print("Successfully added $addedCount points to chart");
+
+        if (older) {
+          _currentWindowStart = newStart2;
+        } else {
+          _currentWindowEnd = newEnd2;
+        }
+      });
+    } catch (e) {
+      print("Error in _loadMoreData: $e");
+    } finally {
+      print("Check ob ich hier ankomme ");
+      setState(() => _isLoading = false);
+    }
+    /*if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final windowSize = _currentWindowEnd.difference(_currentWindowStart);
+      DateTime newStart, newEnd;
+
+      if (older) {
+        newStart = _currentWindowStart.subtract(windowSize);
+        newEnd = _currentWindowStart;
+      } else {
+        newStart = _currentWindowEnd;
+        newEnd = _currentWindowEnd.add(windowSize);
+      }
+      print("BEFORE DEBUG");
+      final data = await _databaseOperations.getSensorDataInTimeRange(
+        newStart,
+        newEnd,
+      );
+
+      /*setState(() {
+        print("Processing ${data.length} data points");
+        var line;
+        var addedCount;
+          for (var point in line) {
+
+            widget.chartConfig.addDataPoint(
+              point.ip,
+              SensorType.values[point.SensorType],
+              SensorOrientation.values[point.SensorOrientation],
+              FlSpot(
+                point.date
+                    .difference(_startTime)
+                    .inSeconds
+                    .toDouble(),
+                point.value ?? 0.0,
+              ),
+            );
+            addedCount++;
+          }
+        print("Successfully added $addedCount points to chart");
+
+
+        if (older) {
+          _currentWindowStart = newStart;
+        } else {
+          _currentWindowEnd = newEnd;
+        }
+      });*/
+      setState(() {
+        print("Processing ${data.length} data points");
+        int addedCount = 0;
+
+        for (var point in data) {  // Über DATA iterieren, nicht line!
+          widget.chartConfig.addDataPoint(
+            point.ip,
+            point.sensorType,     // Klein geschrieben!
+            point.orientation,    // Klein geschrieben!
+            point.spot,           // FlSpot ist bereits korrekt erstellt
+          );
+          addedCount++;
+        }
+
+        print("Successfully added $addedCount points to chart");
+
+        if (older) {
+          _currentWindowStart = newStart;
+        } else {
+          _currentWindowEnd = newEnd;
+        }
+      });
+    } finally {
+      setState(() => _isLoading = false);
+    }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1045,12 +1270,11 @@ class _ChartPageState extends State<ChartPage>
                       children: [
                         Expanded(
                           child: Slider(
-
                             value: baselineX.clamp(
                               getSliderMinMax(settingsProvider).item1,
                               getSliderMinMax(settingsProvider).item2,
                             ),
-                            onChanged: (newValue) {
+                            onChanged: (newValue) async {
                               setState(() {
                                 autoFollowLatestData = false;
                                 baselineX = newValue.clamp(
@@ -1058,6 +1282,23 @@ class _ChartPageState extends State<ChartPage>
                                   getSliderMinMax(settingsProvider).item2,
                                 );
                               });
+
+                              // Prüfe, ob wir neue Daten laden müssen
+                              final newTime = _startTime.add(
+                                Duration(seconds: newValue.toInt()),
+                              );
+                              if (settingsProvider.performanceMode) {
+                                final newTime = _startTime.add(
+                                  Duration(seconds: newValue.toInt()),
+                                );
+                                print("HALLLLLLLLLO");
+                                await _loadMoreData(older: true);
+                                /*if (newTime.isBefore(
+                                  _currentWindowStart.add(Duration(minutes: 1)),
+                                )) {
+                                  await _loadMoreData(older: true);
+                                }*/
+                              }
                             },
                             min: getSliderMinMax(settingsProvider).item1,
                             max: getSliderMinMax(settingsProvider).item2,

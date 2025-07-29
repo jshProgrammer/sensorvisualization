@@ -85,6 +85,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
               _buildGridSection(setStateDialog),
               const Divider(color: Colors.grey, thickness: 1, height: 20),
               _buildDatabaseSyncSection(setStateDialog),
+              const Divider(color: Colors.grey, thickness: 1, height: 20),
+              _buildPerformanceSection(setStateDialog),
             ],
           ),
         );
@@ -161,7 +163,51 @@ class _SettingsDialogState extends State<SettingsDialog> {
       ],
     );
   }
-
+  Widget _buildPerformanceSection(StateSetter setStateDialog) {
+    return Column(
+      children: [
+        const Text("Performancemodus"),
+        const SizedBox(height: 8),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment<bool>(
+              value: true,
+              label: Text('Performane Mode Active'),
+            ),
+            ButtonSegment<bool>(
+              value: false,
+              label: Text('Performance Mode Deactivated'),
+            ),
+          ],
+          selected: {widget.controller.isPerformanceModeActive},
+          onSelectionChanged: (Set<bool> newSelection) {
+            setStateDialog(() {
+              widget.controller.togglePerformanceModeChoice();
+            });
+          },
+        ),
+        /*IconButton(
+          icon: Icon(
+            widget.controller.isPerformanceModeActive
+                ? Icons.speed
+                : Icons.speed_outlined,
+          ),
+          onPressed: () {
+            setState(() {
+              widget.controller.togglePerformanceModeChoice();
+              /*if (widget.chartConfig.performanceMode) {
+                _limitDataPoints();
+              }*/
+            });
+          },
+          tooltip:
+              widget.controller.isPerformanceModeActive
+                  ? 'Performance-Modus aus'
+                  : 'Performance-Modus an',
+        ),*/
+      ],
+    );
+  }
   Widget _buildTimeSettingsSection(StateSetter setStateDialog) {
     return Column(
       children: [

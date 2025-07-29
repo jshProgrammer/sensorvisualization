@@ -6,11 +6,13 @@ class SettingsProvider with ChangeNotifier {
   int _selectedTimeChoice = TimeChoice.timestamp.value;
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
   bool _showGrid = false;
+  bool _performanceMode = true;
 
   int get scrollingSeconds => _scrollingSeconds;
   int get selectedTimeChoice => _selectedTimeChoice;
   int get selectedAbsRelData => _selectedAbsRelData;
   bool get showGrid => _showGrid;
+  bool get performanceMode => _performanceMode;
 
   void setScrollingSeconds(int seconds) {
     _scrollingSeconds = seconds;
@@ -29,6 +31,10 @@ class SettingsProvider with ChangeNotifier {
 
   void setShowGrid(bool showGrid) {
     _showGrid = showGrid;
+    notifyListeners();
+  }
+  void setPerformanceMode(bool performanceMode) {
+    _performanceMode = performanceMode;
     notifyListeners();
   }
 }

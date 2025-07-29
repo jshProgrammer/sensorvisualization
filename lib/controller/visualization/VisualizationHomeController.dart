@@ -34,6 +34,8 @@ class VisualizationHomeController extends ChangeNotifier {
   int get selectedAbsRelData => _model.selectedAbsRelData;
   int get selectedTimeUnit => _model.selectedTimeUnit;
   bool get selectedGridChoice => _model.selectedGridChoice;
+  bool get isPerformanceModeActive => model.isPerformanceModeActive;
+
 
 
   void _initializeController() {
@@ -107,6 +109,9 @@ class VisualizationHomeController extends ChangeNotifier {
 
   void updateTimeChoice(int choice) {
     _model.setSelectedTimeChoice(choice);
+  }
+  void togglePerformanceModeChoice() {
+    _model.isPerformanceModeActive = !_model.isPerformanceModeActive;
   }
 
   void updateAbsRelData(int choice) {

@@ -29,7 +29,7 @@ class ChartConfig {
     required this.color,
   });
 
-  void addDataPoint(
+  /*void addDataPoint(
     String ipAddress,
     SensorType sensorType,
     SensorOrientation sensorOrientation,
@@ -41,6 +41,29 @@ class ChartConfig {
       () => [],
     );
     dataPoints[ipAddress]![Tuple2(sensorType, sensorOrientation)]!.add(spot);
+  }*/
+
+  void addDataPoint(String ipAddress, SensorType sensorType, SensorOrientation sensorOrientation, FlSpot spot) {
+    print("=== ADDING DATAPOINT ===");
+    print("IP: $ipAddress");
+    print("Sensor: $sensorType");
+    print("Orientation: $sensorOrientation");
+    print("Spot: x=${spot.x}, y=${spot.y}");
+    dataPoints.putIfAbsent(ipAddress, () => {});
+    dataPoints[ipAddress]!.putIfAbsent(Tuple2(sensorType, sensorOrientation), () => []);
+
+    final list = dataPoints[ipAddress]![Tuple2(sensorType, sensorOrientation)]!;
+
+    // Finde die richtige Position (sortiert nach Zeit):
+    int insertIndex = list.length;
+    for (int i = 0; i < list.length; i++) {
+      if (spot.x < list[i].x) {
+        insertIndex = i;
+        break;
+      }
+    }
+
+    list.insert(insertIndex, spot);
   }
 
   void addNote(DateTime time, String noteText) {

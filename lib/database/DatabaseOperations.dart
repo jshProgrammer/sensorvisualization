@@ -14,6 +14,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import '../presentation/visualization/widgets/SensorDataDBTransformation.dart';
+
 class Databaseoperations {
   final AppDatabase _db;
   final firebassync = Firebasesync();
@@ -274,4 +276,164 @@ class Databaseoperations {
         .get()
         .then((rows) => rows.map((row) => row.data).toList());
   }
-}
+
+  //NEU NEU NEU
+  Future<List<SensorDataDBTransfomration>> getSensorDataInTimeRange(DateTime start, DateTime end) async {
+    /*// Limit hinzufügen für maximale Datenpunkte pro Abfrage
+    final allData =
+    await _db.customSelect('SELECT * FROM sensor LIMIT 5').get();
+    print("=== DB CONTENT ===");
+    for (var row in allData) {
+      print("DB Date: ${row.data['date']}");
+      print("DB Date Type: ${row.data['date'].runtimeType}");
+      if (row.data['date'] is DateTime) {
+        DateTime dbDate = row.data['date'];
+        print("  - isUtc: ${dbDate.isUtc}");
+        print("  - toString: $dbDate");
+        print("  - toIso8601String: ${dbDate.toIso8601String()}");
+      }
+    }
+    print("=== ZEIT DEBUG ===");
+    print("Start DateTime: $start");
+    print("End DateTime: $end");
+    print("Start Timestamp: ${start.millisecondsSinceEpoch ~/ 1000}");
+    print("End Timestamp: ${end.millisecondsSinceEpoch ~/ 1000}");
+    print("DB Sample Timestamp: 1753771389");
+
+// Konvertierung testen:
+    var sampleDbDate = DateTime.fromMillisecondsSinceEpoch(1753771389 * 1000);
+    print("Sample DB Date converted: $sampleDbDate");
+    /*final result =
+    await _db
+        .customSelect(
+      '''SELECT * FROM sensor 
+       WHERE date >= ? AND date <= ? 
+       ORDER BY date ASC 
+       LIMIT 2000''', // Verhindert zu große Datenmengen
+      variables: [
+        Variable.withDateTime(start),
+        Variable.withDateTime(end),
+      ],
+    )
+        .get();*/
+
+    final result = await _db.customSelect(
+      '''SELECT * FROM sensor 
+     WHERE date >= ? AND date <= ? 
+     ORDER BY date ASC 
+     LIMIT 2000''',
+      variables: [
+        Variable.withInt(start.millisecondsSinceEpoch ~/ 1000), // Unix timestamp
+        Variable.withInt(end.millisecondsSinceEpoch ~/ 1000),   // Unix timestamp
+      ],
+    ).get();
+    /*List allSensorData =
+        result.expand((row) => SensorData.fromDbRow(row.data)).toList();*/
+    List<SensorDataDBTransfomration> allSensorData = [];
+    print("DEBUG");
+    print("DB Result count: ${result.length}");
+    result.forEach((row) {
+      allSensorData.addAll(SensorDataDBTransfomration.fromDbRow(row.data));
+      print(SensorDataDBTransfomration.fromDbRow(row.data));
+    });
+    /*print(
+      'Anzahl der Sensor-Datenpunkte im Zeitbereich: ${allSensorData.length}',
+    );*/
+
+    return allSensorData;
+  }*/
+    print("=== VOLLSTÄNDIGE DB ANALYSE ===");
+
+    // 1. Alle DB-Daten anzeigen
+    final allData = await _db.customSelect('SELECT * FROM sensor ORDER BY date ASC').get();
+    print("Total DB entries: ${allData.length}");
+
+    if (allData.isNotEmpty) {
+      print("ERSTE 5 Einträge:");
+      allData.take(5).forEach((row) {
+        var timestamp = row.data['date'];
+        var converted = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+        print("  DB: $timestamp -> $converted");
+      });
+
+      print("LETZTE 5 Einträge:");
+      allData.skip(allData.length - 5).forEach((row) {
+        var timestamp = row.data['date'];
+        var converted = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+        print("  DB: $timestamp -> $converted");
+      });
+    }
+
+    // 2. Suchbereich testen
+    print("=== SUCHBEREICH TEST ===");
+    print("Suche zwischen: $start und $end");
+    print("Start Timestamp: ${start.millisecondsSinceEpoch ~/ 1000}");
+    print("End Timestamp: ${end.millisecondsSinceEpoch ~/ 1000}");
+
+    // 3. Manuelle Abfrage ohne WHERE-Clause
+    final testResult = await _db.customSelect('SELECT COUNT(*) as count FROM sensor').get();
+    print("Total count query: ${testResult.first.data}");
+
+    // 4. Verschiedene WHERE-Abfragen testen
+    final startTs = start.millisecondsSinceEpoch ~/ 1000;
+    final endTs = end.millisecondsSinceEpoch ~/ 1000;
+
+    final test1 = await _db.customSelect('SELECT COUNT(*) as count FROM sensor WHERE date >= ?',
+        variables: [Variable.withInt(startTs)]).get();
+    print("Count >= startTs: ${test1.first.data}");
+
+    final test2 = await _db.customSelect('SELECT COUNT(*) as count FROM sensor WHERE date <= ?',
+        variables: [Variable.withInt(endTs)]).get();
+    print("Count <= endTs: ${test2.first.data}");
+
+    // 5. Original Query
+    /*final result = await _db.customSelect(
+      '''SELECT * FROM sensor 
+       WHERE date >= ? AND date <= ? 
+       ORDER BY date ASC 
+       LIMIT 2000''',
+      variables: [Variable.withInt(startTs), Variable.withInt(endTs)],
+    ).get();
+
+    print("Final result count: ${result.length}");
+    /*List allSensorData =
+    result.expand((row) => SensorData.fromDbRow(row.data)).toList();*/
+    List<SensorDataDBTransfomration> allSensorData = [];
+    print("DEBUG");
+    print("DB Result count: ${result.length}");
+    result.forEach((row) {
+    allSensorData.add(SensorDataDBTransfomration.fromDbRow(row.data) as SensorDataDBTransfomration);
+    print(SensorDataDBTransfomration.fromDbRow(row.data));
+    });*/
+    /*for (final row in result) {
+      print("Row data: ${row.data}");
+      final transformed = SensorDataDBTransfomration.fromDbRow(row.data);
+      allSensorData.add(transformed as SensorDataDBTransfomration);
+      print(transformed); // toString wurde ja implementiert
+    }*/
+
+    final result = await _db.customSelect(
+    '''SELECT * FROM sensor 
+   WHERE date >= ? AND date <= ? 
+   ORDER BY date ASC 
+   LIMIT 2000''',
+    variables: [Variable.withInt(startTs), Variable.withInt(endTs)],
+    ).get();
+
+    print("Final result count: ${result.length}");
+    List<SensorDataDBTransfomration> allSensorData = [];
+    print("DEBUG");
+    print("DB Result count: ${result.length}");
+
+    result.forEach((row) {
+    allSensorData.addAll(SensorDataDBTransfomration.fromDbRow(row.data)); // addAll statt add!
+    print(SensorDataDBTransfomration.fromDbRow(row.data));
+    });
+
+    print(
+      'Anzahl der Sensor-Datenpunkte im Zeitbereich: ${allSensorData.length}',
+    );
+
+    return allSensorData;
+
+  }}

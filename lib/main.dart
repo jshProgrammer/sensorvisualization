@@ -38,8 +38,8 @@ void main() async {
   final firebaseSync = Firebasesync();
   if (firebaseReady) {
     try {
-      await firebaseSync.initializeApp(appDatabase);
-      firebaseSync.deleteOldTablesInFirestore();
+      //await firebaseSync.initializeApp(appDatabase);
+      //firebaseSync.deleteOldTablesInFirestore();
     } catch (e) {
       print('FirebaseSync konnte nicht initialisiert werden: $e');
     }

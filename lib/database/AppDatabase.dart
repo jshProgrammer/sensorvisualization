@@ -18,17 +18,19 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance;
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
-  MigrationStrategy get migration {
-    return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        print('Erstelle Datenbank-Tabellen...');
-        await m.createAll();
-      },
-    );
-  }
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (Migrator m) async {
+      await m.createAll();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      // Einfach alle Tabellen löschen und neu erstellen
+      await m.drop(sensor);
+      await m.createAll();
+    },
+  );
 }
 
 LazyDatabase _openConnection() {

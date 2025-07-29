@@ -19,6 +19,7 @@ class VisualizationHomeModel {
   int _selectedAbsRelData = AbsRelDataChoice.relative.value;
   int _selectedTimeUnit = TimeUnitChoice.seconds.value;
   bool _selectedGridChoice = false;
+  bool isPerformanceModeActive = true;
 
   final List<LexikonEntry> _lexikonEntries = [
     LexikonEntry(
