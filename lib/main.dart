@@ -67,7 +67,7 @@ Future<void> _initializeNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('app_icon');
 
-  const DarwinInitializationSettings initializationSettingsIOS =
+  const DarwinInitializationSettings initializationSettingsDarwin =
       DarwinInitializationSettings(
         requestSoundPermission: true,
         requestBadgePermission: true,
@@ -76,7 +76,8 @@ Future<void> _initializeNotifications() async {
 
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
-    iOS: initializationSettingsIOS,
+    iOS: initializationSettingsDarwin,
+    macOS: initializationSettingsDarwin,
   );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
