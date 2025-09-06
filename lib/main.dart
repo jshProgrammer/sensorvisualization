@@ -28,9 +28,7 @@ void main() async {
     print('Firebase konnte nicht initialisiert werden: $e');
   }
 
-  if (!Platform.isWindows) {
-    _initializeNotifications();
-  }
+  _initializeNotifications();
 
   final appDatabase = AppDatabase.instance;
   final dbOps = Databaseoperations(appDatabase);
@@ -74,9 +72,17 @@ Future<void> _initializeNotifications() async {
         requestAlertPermission: true,
       );
 
+  const WindowsInitializationSettings initializationSettingsWindows =
+      WindowsInitializationSettings(
+        appName: 'Sensor Visualization (THW)',
+        appUserModelId: 'Com.Example.SensorVisualization',
+        guid: 'f5f24079-ee62-488e-bb79-c514c6f33864',
+      );
+
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     iOS: initializationSettingsIOS,
+    windows: initializationSettingsWindows,
   );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
